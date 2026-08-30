@@ -1,0 +1,262 @@
+{
+  "captured_at": "2026-08-27T19:51:54+00:00",
+  "count": 12,
+  "free_count": 12,
+  "free_unknown_count": 0,
+  "models": [
+    {
+      "canonical_slug": "gemma-4-31b-it",
+      "context_length": 262144,
+      "created": 1775148486,
+      "data_retention_days": 30,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "google/gemma-4-31b-it",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 8192,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": false
+    },
+    {
+      "canonical_slug": "leanstral-1-5",
+      "context_length": 262144,
+      "created": 1779840000,
+      "data_retention_days": 0,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "mistral/leanstral-1-5",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 32768,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "response_format",
+        "tools"
+      ],
+      "trains_on_input": false
+    },
+    {
+      "canonical_slug": "ling-3.0-tiny",
+      "context_length": 262144,
+      "created": 1785941340,
+      "data_retention_days": 0,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "novita/inclusionai/ling-3.0-tiny",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 32768,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": false
+    },
+    {
+      "canonical_slug": "muse-glimmer-30b",
+      "context_length": 131072,
+      "created": 1786302394,
+      "data_retention_days": 30,
+      "endpoint_context_length": 131072,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/muse-glimmer-30b",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 20480,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3-nano-30b-a3b",
+      "context_length": 262144,
+      "created": 1765731275,
+      "data_retention_days": 30,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-nano-30b-a3b",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 0,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3-nano-omni-30b-a3b-reasoning",
+      "context_length": 131072,
+      "created": 1781014014,
+      "data_retention_days": 30,
+      "endpoint_context_length": 131072,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 20480,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3-super-120b-a12b",
+      "context_length": 1048576,
+      "created": 1773245239,
+      "data_retention_days": 30,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-super-120b-a12b",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 65536,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3-ultra-550b-a55b",
+      "context_length": 1048576,
+      "created": 1780551208,
+      "data_retention_days": 30,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-ultra-550b-a55b",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 65536,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3.5-content-safety",
+      "context_length": 131072,
+      "created": 1781510650,
+      "data_retention_days": 30,
+      "endpoint_context_length": 131072,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3.5-content-safety",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 8192,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "nemotron-3.5-lightning-30b-a3b",
+      "context_length": 1048576,
+      "created": 1786471648,
+      "data_retention_days": 30,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 65536,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning",
+        "tools"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "laguna-m.1",
+      "context_length": 32768,
+      "created": 1781014014,
+      "data_retention_days": 30,
+      "endpoint_context_length": 32768,
+      "expiration_date": null,
+      "free": true,
+      "id": "poolside/laguna-m.1",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 0,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning"
+      ],
+      "trains_on_input": true
+    },
+    {
+      "canonical_slug": "laguna-xs.2",
+      "context_length": 32768,
+      "created": 1781014014,
+      "data_retention_days": 30,
+      "endpoint_context_length": 32768,
+      "expiration_date": null,
+      "free": true,
+      "id": "poolside/laguna-xs.2",
+      "input_modalities": null,
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": 0,
+      "name": null,
+      "output_modalities": null,
+      "supported_parameters": [
+        "reasoning"
+      ],
+      "trains_on_input": true
+    }
+  ],
+  "pricing_class": "A",
+  "roster_scope": "free-only",
+  "source": "https://router.requesty.ai/v1/models",
+  "stealth_count": 0,
+  "venue": "requesty"
+}

@@ -1,0 +1,862 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Curtis Galloway
+# SPDX-License-Identifier: Apache-2.0
+"""Snapshot the free tier of several model gateways and diff each against last week.
+
+Standard library only, because nothing here has needed more — not a rule
+inherited from oxbox, whose reason for one does not apply to a public catalog.
+Python 3.9+ (the system python3 on macOS is still 3.9).
+
+    ./oxsurvey                        # snapshot every venue, print the diffs
+    ./oxsurvey --venue zenmux         # one venue (repeatable)
+    ./oxsurvey --dry-run              # fetch and diff, write nothing
+    ./oxsurvey --diff A.json B.json   # diff two existing snapshots
+    ./oxsurvey --list-venues          # what is configured, and how far to trust it
+
+No API key is needed or used: every venue's catalog is public. Keys are for
+calling models, which happens in oxbox, not here.
+
+"Free" means the catalog reports zero for both prompt and completion. That
+predicate catches cloaked listings too, which carry no `:free` suffix.
+
+Two classes of venue, and the difference is load-bearing:
+
+  Class A  the catalog carries pricing, so `free` is Measured. The snapshot
+           holds the free models only.
+  Class B  the catalog carries a roster but no pricing, so `free` is UNKNOWN
+           and recorded as null — never as false, and never guessed from a
+           `-free` suffix, because `big-pickle` and `grok-code` are free
+           without one. The snapshot holds the whole roster, so that roster
+           churn is still diffable.
+
+Never let a class B null read as a measured zero. `roster_scope` and
+`pricing_class` are written into every snapshot so a consumer can tell.
+
+Alongside each snapshot, the raw catalog payload — every model as served,
+pricing included, nothing filtered — is archived under catalogs/<venue>/.
+Snapshots are the curated free-tier record; catalogs exist so a claim about a
+paid or delisted model ("glm-5.3-flash cost $0.075/M on 2026-08-27") stays
+checkable after the venue moves on.
+"""
+
+import argparse
+import datetime as dt
+import json
+import os
+import re
+import sys
+import urllib.error
+import urllib.request
+
+UA = "oxsurvey/0.2 (+https://oxbox.ai)"
+SNAPSHOT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "snapshots")
+CATALOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "catalogs")
+
+# Vendor-authored prose is stripped from archived catalogs before they are
+# committed. The archive exists so a claim about a paid or delisted model stays
+# checkable -- that needs ids, pricing and capability fields, all of which are
+# facts. `description` is marketing copy written by the vendor, it is theirs,
+# and this repo cannot relicense it: an Apache-2.0 grant over 300 KB of someone
+# else's writing is a grant nobody here is able to make.
+#
+# Deliberately NOT stripped, having been measured rather than assumed:
+#   links.details    a URL path ("/api/v1/models/<id>/endpoints"), not prose
+#   privacy_comments ten distinct values across the whole roster, longest 73
+#                    chars, mostly a URL or "N/A" -- factual, below any
+#                    threshold of originality, and load-bearing for the survey's
+#                    data-terms axis
+REDACTED_FIELDS = ("description",)
+
+
+def redact_vendor_prose(payload):
+    """Strip vendor-authored prose from a raw catalog payload.
+
+    Records the key as present-but-empty rather than deleting it, so a reader
+    can tell "the venue published none" from "we removed it". A silently absent
+    field would misrepresent the venue.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    out = dict(payload)
+    for key in ("data", "models"):
+        rows = out.get(key)
+        if not isinstance(rows, list):
+            continue
+        cleaned = []
+        for row in rows:
+            if not isinstance(row, dict):
+                cleaned.append(row)
+                continue
+            row = dict(row)
+            for field in REDACTED_FIELDS:
+                if row.get(field):
+                    row[field] = ""
+            cleaned.append(row)
+        out[key] = cleaned
+    return out
+
+
+# Fields carried into every snapshot record. A venue that cannot supply one
+# writes None — never a guess, never an interpolation from a sibling field.
+FIELDS = (
+    "id",
+    "canonical_slug",
+    "name",
+    "created",
+    "context_length",
+    "endpoint_context_length",
+    "max_completion_tokens",
+    "is_moderated",
+    "input_modalities",
+    "output_modalities",
+    "supported_parameters",
+    "expiration_date",
+    "is_stealth",
+    "free",
+    # Data terms. Most catalogs carry these only as prose on a terms page, which
+    # makes them Reported; Requesty publishes them as fields, which makes them
+    # Measured for that venue. None means the venue does not say — never false.
+    "trains_on_input",
+    "data_retention_days",
+)
+
+
+def blank():
+    return dict((f, None) for f in FIELDS)
+
+
+def as_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+# --------------------------------------------------------------------------
+# Venue adapters
+#
+# Each parse_* takes the raw catalog payload and returns normalized records.
+# Adding a venue means writing one of these and adding a VENUES entry; nothing
+# else in the file should need to change.
+# --------------------------------------------------------------------------
+
+
+def parse_openrouter(payload):
+    out = []
+    for model in payload.get("data") or []:
+        arch = model.get("architecture") or {}
+        top = model.get("top_provider") or {}
+        pricing = model.get("pricing") or {}
+        mid = model.get("id", "")
+
+        prompt = as_float(pricing.get("prompt"))
+        completion = as_float(pricing.get("completion"))
+        request_price = as_float(pricing.get("request"))
+        # A request-priced model is not free even at zero per-token.
+        free = (
+            prompt == 0.0
+            and completion == 0.0
+            and not (request_price is not None and request_price > 0)
+        )
+
+        rec = blank()
+        rec.update({
+            "id": mid,
+            "canonical_slug": model.get("canonical_slug"),
+            "name": model.get("name"),
+            "created": model.get("created"),
+            "context_length": model.get("context_length"),
+            "endpoint_context_length": top.get("context_length"),
+            "max_completion_tokens": top.get("max_completion_tokens"),
+            "is_moderated": top.get("is_moderated"),
+            "input_modalities": sorted(arch.get("input_modalities") or []),
+            "output_modalities": sorted(arch.get("output_modalities") or []),
+            "supported_parameters": sorted(model.get("supported_parameters") or []),
+            "expiration_date": model.get("expiration_date"),
+            # The `stealth/` prefix is the venue's own marking, so this is
+            # measured here. Other venues do not mark cloaked listings at all;
+            # see the note in VENUES.
+            "is_stealth": mid.startswith("stealth/"),
+            "free": free,
+        })
+        out.append(rec)
+    return out
+
+
+def parse_zenmux(payload):
+    """ZenMux nests pricing as {field: [{value, unit, currency}, ...]}."""
+    out = []
+    for model in payload.get("data") or []:
+        pricings = model.get("pricings") or {}
+
+        def values_for(key):
+            found = []
+            for row in pricings.get(key) or []:
+                if isinstance(row, dict) and "value" in row:
+                    v = as_float(row.get("value"))
+                    if v is not None:
+                        found.append(v)
+            return found
+
+        priced = values_for("prompt") + values_for("completion")
+        free = bool(priced) and all(v == 0.0 for v in priced)
+
+        rec = blank()
+        rec.update({
+            "id": model.get("id"),
+            "name": model.get("display_name"),
+            "created": model.get("created"),
+            "context_length": model.get("context_length"),
+            # ZenMux publishes one context figure; it is the served one, so
+            # record it in both slots rather than leaving a false gap.
+            "endpoint_context_length": model.get("context_length"),
+            "input_modalities": sorted(model.get("input_modalities") or []),
+            "output_modalities": sorted(model.get("output_modalities") or []),
+            # ZenMux publishes `publish_time`, which is a listing date, not an
+            # end date. There is no expiration field here; leave it None rather
+            # than let a start date masquerade as one.
+            "free": free,
+        })
+        out.append(rec)
+    return out
+
+
+def parse_requesty(payload):
+    """Requesty prices in tiers and publishes data terms as fields."""
+    out = []
+    for model in payload.get("data") or []:
+        tiers = model.get("pricing")
+        if not isinstance(tiers, list) or not tiers:
+            tiers = [{
+                "input_price": model.get("input_price"),
+                "output_price": model.get("output_price"),
+            }]
+        # Free only if EVERY tier is zero. A model that is free up to some
+        # threshold and priced above it is not free.
+        prices = []
+        for tier in tiers:
+            if not isinstance(tier, dict):
+                continue
+            for key in ("input_price", "output_price"):
+                prices.append(as_float(tier.get(key)))
+        free = bool(prices) and all(p == 0.0 for p in prices)
+
+        # Requesty states capabilities as booleans rather than as a parameter
+        # list. This renames them into the common vocabulary — a translation of
+        # what the venue asserts, not an inference about what it supports.
+        params = []
+        if model.get("supports_tool_calling"):
+            params.append("tools")
+        if model.get("supports_reasoning"):
+            params.append("reasoning")
+        if model.get("supports_output_json_object") or model.get("supports_output_json_schema"):
+            params.append("response_format")
+
+        rec = blank()
+        rec.update({
+            "id": model.get("id"),
+            "canonical_slug": model.get("model_canonical_name"),
+            "created": model.get("created"),
+            "context_length": model.get("context_window"),
+            "endpoint_context_length": model.get("context_window"),
+            "max_completion_tokens": model.get("max_output_tokens"),
+            "supported_parameters": sorted(params),
+            "free": free,
+            "trains_on_input": model.get("data_used_for_training"),
+            "data_retention_days": model.get("data_retention_days"),
+        })
+        out.append(rec)
+    return out
+
+
+def parse_openai_roster(payload):
+    """A bare OpenAI-shaped /models list: id and created, no pricing.
+
+    Used for class B venues. `free` stays None — unknown, not false.
+    """
+    out = []
+    for model in payload.get("data") or []:
+        rec = blank()
+        rec.update({
+            "id": model.get("id"),
+            "created": model.get("created"),
+        })
+        out.append(rec)
+    return out
+
+
+VENUES = {
+    "openrouter": {
+        "chat_url": "https://openrouter.ai/api/v1/chat/completions",
+        "key_env": "OPENROUTER_API_KEY",
+        "url": "https://openrouter.ai/api/v1/models",
+        "parse": parse_openrouter,
+        "pricing_class": "A",
+        "roster_scope": "free-only",
+        "paginate": True,
+        "note": "pricing in catalog; `stealth/` prefix marks cloaked listings",
+    },
+    "zenmux": {
+        "chat_url": "https://zenmux.ai/api/v1/chat/completions",
+        "key_env": "ZENMUX_API_KEY",
+        "url": "https://zenmux.ai/api/v1/models",
+        "parse": parse_zenmux,
+        "pricing_class": "A",
+        "roster_scope": "free-only",
+        "paginate": False,
+        "note": "pricing in catalog; free models need a funded account to call",
+    },
+    "requesty": {
+        "chat_url": "https://router.requesty.ai/v1/chat/completions",
+        "key_env": "REQUESTY_API_KEY",
+        "url": "https://router.requesty.ai/v1/models",
+        "parse": parse_requesty,
+        "pricing_class": "A",
+        "roster_scope": "free-only",
+        "paginate": False,
+        "note": "pricing in catalog; the only venue publishing data terms as fields",
+    },
+    "opencode": {
+        "chat_url": "https://opencode.ai/zen/v1/chat/completions",
+        "key_env": "OPENCODE_ZEN_API_KEY",
+        "url": "https://opencode.ai/zen/v1/models",
+        "parse": parse_openai_roster,
+        "pricing_class": "B",
+        "roster_scope": "full-roster",
+        "paginate": False,
+        "note": "roster only, no pricing; `free` is unknown, cloaked listings unmarked",
+    },
+}
+
+
+def fetch(url):
+    req = urllib.request.Request(
+        url, headers={"User-Agent": UA, "Accept": "application/json"}
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        if resp.status != 200:
+            raise SystemExit("HTTP %s from %s" % (resp.status, url))
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def fetch_all(url, paginate):
+    """Follow links.next until exhausted, for venues that paginate."""
+    payload = fetch(url)
+    if not paginate:
+        return payload
+
+    models = list(payload.get("data") or [])
+    seen = 1
+    nxt = (payload.get("links") or {}).get("next")
+    while nxt:
+        origin = url.split("/api/")[0]
+        follow = (origin + nxt) if nxt.startswith("/") else nxt
+        page = fetch(follow)
+        models.extend(page.get("data") or [])
+        nxt = (page.get("links") or {}).get("next")
+        seen += 1
+        if seen > 20:  # pagination guard
+            break
+    payload["data"] = models
+    return payload
+
+
+def build_snapshot(venue, payload=None):
+    spec = VENUES[venue]
+    if payload is None:
+        payload = fetch_all(spec["url"], spec["paginate"])
+    records = spec["parse"](payload)
+
+    if spec["roster_scope"] == "free-only":
+        records = [r for r in records if r.get("free")]
+    records.sort(key=lambda r: r["id"] or "")
+
+    free_count = sum(1 for r in records if r.get("free") is True)
+    unknown = sum(1 for r in records if r.get("free") is None)
+    stealth = sum(1 for r in records if r.get("is_stealth") is True)
+
+    return {
+        "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "venue": venue,
+        "source": spec["url"],
+        "pricing_class": spec["pricing_class"],
+        "roster_scope": spec["roster_scope"],
+        "count": len(records),
+        "free_count": free_count,
+        "free_unknown_count": unknown,
+        "stealth_count": stealth,
+        "models": records,
+    }
+
+
+
+# --------------------------------------------------------------------------
+# Access probe
+#
+# A catalog says what a model COSTS. It cannot say whether the model answers.
+# Two cases this week proved the gap is real: a zero-priced model that returns
+# 402 until the account is funded, and a listed model whose upstream returns 503
+# while its siblings answer. Neither is visible in any snapshot.
+#
+# Probe results are OBSERVED, not measured -- somebody ran something -- so they
+# are written to their own file and never merged into the catalog snapshot.
+# Mixing them would blur exactly the distinction this repo exists to keep.
+# --------------------------------------------------------------------------
+
+PROBE_PROMPT = "Reply with exactly: OK"
+
+# --------------------------------------------------------------------------
+# The tripwire: one request per model, four axes, no human.
+#
+# The access probe above asks "Reply with exactly: OK", which measures whether
+# bytes come back and nothing else. That is not enough to choose which handful
+# of ~38 free models deserves the expensive corpus fixtures, so the shortlist
+# was picked on card facts -- which is guessing.
+#
+# This asks one question instead. The snippet holds exactly one real defect and
+# one line that looks like a second and is not, so a single reply reports:
+#
+#   finds a real defect     names line 5
+#   does not invent         does NOT also name line 6
+#   follows a contract      answers as bare integers, nothing else
+#   finishes in budget      does not exhaust max_tokens thinking
+#
+# Those are the same four axes the corpus measures expensively. A tripwire
+# result orders the SHORTLIST and disqualifies; it can never rank a model or
+# justify a USE, because one synthetic snippet is not a review. That rule is
+# not new -- `source: probe` has never carried a recommendation, and
+# surveytest enforces it.
+#
+# Line 5 says `i <= n`, so take([1,2,3], 2) returns three items, not two.
+# Line 6 is the trap: an in-loop bounds check reads like it belongs in the
+# while condition, and moving it there would be a refactor, not a fix -- the
+# docstring's "or all of them if there are fewer" is exactly what it provides.
+# --------------------------------------------------------------------------
+
+TRIPWIRE_DEFECT_LINE = 5
+TRIPWIRE_TRAP_LINE = 6
+TRIPWIRE_MAX_TOKENS = 4096
+
+TRIPWIRE_CODE = """\
+ 1  def take(items, n):
+ 2      \"\"\"Return the first n items, or all of them if there are fewer.\"\"\"
+ 3      out = []
+ 4      i = 0
+ 5      while i <= n:
+ 6          if i >= len(items):
+ 7              break
+ 8          out.append(items[i])
+ 9          i += 1
+10      return out"""
+
+TRIPWIRE_PROMPT = (
+    "Below is a Python function, with line numbers in the left column. Exactly "
+    "one line contains a defect: because of it the function does not do what "
+    "its docstring says.\n\n"
+    "Reply with ONLY that line number, as a bare integer. No words, no "
+    "explanation, no code. If you believe more than one line is defective, "
+    "give the numbers comma-separated and nothing else.\n\n"
+    + TRIPWIRE_CODE + "\n")
+
+# A reply is scored from the first line that is nothing but numbers. Models
+# that wrap an answer in prose or a fence still get read if one such line is
+# in there; anything else is malformed, which is itself a verdict -- a pipeline
+# that parses output cannot use a model that will not follow two sentences of
+# format instruction.
+ANSWER_LINE = re.compile(r"^\s*\**\s*(\d+(?:\s*,\s*\d+)*)\s*\.?\s*\**\s*$")
+
+
+TRIPWIRE_REPLY_CHARS = 240
+
+
+def summarize_reply(content):
+    """The reply as one short line, so a verdict can be argued with."""
+    if not content:
+        return ""
+    flat = " ".join(content.split())
+    if len(flat) <= TRIPWIRE_REPLY_CHARS:
+        return flat
+    return flat[:TRIPWIRE_REPLY_CHARS] + " [...]"
+
+
+def score_tripwire(content):
+    """One reply -> (verdict, the line numbers it named).
+
+    correct     named the defect and nothing else
+    overcalled  named the defect, plus lines that are not defective
+    missed      did not name the defect (including naming only the trap)
+    malformed   no line of the reply was just numbers
+    """
+    if not content:
+        return "malformed", []
+    for raw in content.replace("`", "").splitlines():
+        match = ANSWER_LINE.match(raw)
+        if not match:
+            continue
+        named = []
+        for piece in match.group(1).split(","):
+            value = int(piece.strip())
+            if value not in named:
+                named.append(value)
+        if TRIPWIRE_DEFECT_LINE not in named:
+            return "missed", named
+        if len(named) > 1:
+            return "overcalled", named
+        return "correct", named
+    return "malformed", []
+
+
+def classify(status, body, content):
+    """Turn one probe result into a stable, greppable verdict."""
+    if status == 200:
+        if content and content.strip():
+            return "ok"
+        # A 200 with no content is a real failure mode, not an empty answer:
+        # reasoning models exhaust max_tokens thinking and return an empty
+        # string with no error field.
+        return "empty_content"
+    text = (body or "").lower()
+    if status == 402 or "no_credit" in text or "balance greater than" in text:
+        return "no_credit"
+    if status == 429:
+        return "rate_limited"
+    if status in (401, 403):
+        return "unauthorized"
+    if status == 404:
+        return "not_found"
+    if status in (500, 502, 503, 504):
+        return "upstream_error"
+    return "error"
+
+
+def probe_model(chat_url, key, model, timeout=90, prompt=PROBE_PROMPT,
+                max_tokens=512):
+    payload = json.dumps({
+        "model": model,
+        "max_tokens": max_tokens,
+        "messages": [{"role": "user", "content": prompt}],
+    }).encode("utf-8")
+    req = urllib.request.Request(chat_url, data=payload, method="POST", headers={
+        "Authorization": "Bearer " + key,
+        "Content-Type": "application/json",
+        # urllib's default agent is rejected outright by at least one venue's
+        # CDN before routing; identify the client.
+        "User-Agent": UA,
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", "replace")
+            try:
+                data = json.loads(raw)
+            except ValueError:
+                return (classify(resp.status, raw, None), resp.status,
+                        "non-JSON body", None)
+            choices = data.get("choices") or [{}]
+            content = ((choices[0].get("message") or {}).get("content")) or ""
+            return classify(resp.status, raw, content), resp.status, None, content
+    except urllib.error.HTTPError as exc:
+        detail = exc.read(300).decode("utf-8", "replace").strip()
+        return classify(exc.code, detail, None), exc.code, detail[:200], None
+    except Exception as exc:  # network, timeout, TLS
+        return "error", None, str(exc)[:200], None
+
+
+def probe_venue(venue, snap, limit, tripwire=False):
+    """Probe up to `limit` models. Returns a record, or None if unprobeable."""
+    spec = VENUES[venue]
+    key = os.environ.get(spec["key_env"])
+    if not key:
+        print("  probe skipped: %s not set" % spec["key_env"])
+        return None
+
+    # Class A knows which models are free, so probe those. Class B does not,
+    # which is precisely why probing it is worth anything -- but its roster is
+    # large, so the limit matters most there.
+    candidates = [m for m in snap["models"] if m.get("free") is not False]
+    candidates = candidates[:limit]
+    if not candidates:
+        print("  probe: nothing to probe")
+        return None
+
+    kind = "tripwire" if tripwire else "access"
+    prompt = TRIPWIRE_PROMPT if tripwire else PROBE_PROMPT
+    cap = TRIPWIRE_MAX_TOKENS if tripwire else 512
+    print("  %s-probing %d model(s) at %s" % (kind, len(candidates), spec["chat_url"]))
+    results = []
+    for model in candidates:
+        verdict, status, detail, content = probe_model(
+            spec["chat_url"], key, model["id"], prompt=prompt, max_tokens=cap)
+        row = {"id": model["id"], "access": verdict,
+               "http_status": status, "detail": detail}
+        if tripwire:
+            # Only a reply that arrived can be scored. An unreachable model has
+            # no tripwire verdict at all, rather than a failing one -- a 429 is
+            # a fact about the hour, and recording it as "missed" would put a
+            # capability claim on an outage.
+            if verdict == "ok":
+                row["tripwire"], row["tripwire_lines"] = score_tripwire(content)
+                # Keep the reply, trimmed. A verdict nobody can re-score is an
+                # assertion, not evidence -- and "malformed" in particular is
+                # useless without the text that failed to parse. The prompt is
+                # fixed and synthetic, so the reply is safe to record.
+                row["tripwire_reply"] = summarize_reply(content)
+            else:
+                row["tripwire"] = None
+                row["tripwire_lines"] = []
+        results.append(row)
+        print("    %-46s %-14s %-11s %s" % (
+            model["id"], verdict, row.get("tripwire") or "",
+            status if status else ""))
+
+    return {
+        "probed_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+        "venue": venue,
+        "endpoint": spec["chat_url"],
+        "tier": "observed",
+        "probe": kind,
+        "note": ("Access is Observed, not Measured. It reflects one moment; a "
+                 "rate limit or an upstream outage is not a property of the model."
+                 + (" The tripwire verdict is one synthetic snippet: it orders a "
+                    "shortlist and disqualifies, and can never justify a USE."
+                    if tripwire else "")),
+        "probed": len(results),
+        "results": sorted(results, key=lambda r: r["id"]),
+    }
+
+
+def venue_dir(venue):
+    return os.path.join(SNAPSHOT_DIR, venue)
+
+
+def latest_snapshot(venue, exclude=None):
+    directory = venue_dir(venue)
+    if not os.path.isdir(directory):
+        return None, None
+    names = sorted(
+        f for f in os.listdir(directory) if f.endswith(".json") and f != exclude
+    )
+    if not names:
+        return None, None
+    with open(os.path.join(directory, names[-1])) as fh:
+        return names[-1], json.load(fh)
+
+
+WATCHED = (
+    "endpoint_context_length",
+    "max_completion_tokens",
+    "is_moderated",
+    "expiration_date",
+    "supported_parameters",
+    "free",
+)
+
+
+def diff(old, new):
+    """Return (findings, triggers). Triggers map to the SKILL.md revision list."""
+    o = dict((m["id"], m) for m in old["models"])
+    n = dict((m["id"], m) for m in new["models"])
+    added = sorted(set(n) - set(o))
+    removed = sorted(set(o) - set(n))
+
+    findings = []
+    for mid in added:
+        kind = "stealth" if n[mid].get("is_stealth") else "named"
+        findings.append(("ADDED", mid, kind))
+    for mid in removed:
+        findings.append(("DELISTED", mid, ""))
+
+    for mid in sorted(set(o) & set(n)):
+        for field in WATCHED:
+            if o[mid].get(field) != n[mid].get(field):
+                findings.append((
+                    "CHANGED",
+                    mid,
+                    "%s: %r -> %r" % (field, o[mid].get(field), n[mid].get(field)),
+                ))
+
+    venue = new.get("venue", "?")
+    triggers = []
+    if any(f[0] == "ADDED" and f[2] == "stealth" for f in findings):
+        triggers.append("T1 attribution: a new stealth listing appeared on %s" % venue)
+    if len(removed) >= 2:
+        triggers.append(
+            "T4 churn: %d entries delisted from %s since last snapshot"
+            % (len(removed), venue)
+        )
+    if any("expiration_date" in f[2] for f in findings):
+        triggers.append(
+            "T9 economics: a free endpoint on %s gained a deprecation date" % venue
+        )
+    if any(f[0] == "CHANGED" and f[2].startswith("free:") for f in findings):
+        triggers.append(
+            "T9 economics: a model on %s changed free status" % venue
+        )
+    # T7 only means anything where cloaked listings are actually marked, and the
+    # count is recomputed from the records rather than read from the snapshot
+    # metadata — a stale or hand-edited header must not be able to make this
+    # trigger claim an empty stealth tier that the records contradict.
+    def marked(snapshot):
+        return [m for m in snapshot["models"] if m.get("is_stealth") is not None]
+
+    def stealth_now(snapshot):
+        return sum(1 for m in snapshot["models"] if m.get("is_stealth") is True)
+
+    if marked(new) and marked(old) and stealth_now(new) == 0 and stealth_now(old) == 0:
+        triggers.append("T7 empty stealth tier on %s (check 3-week run)" % venue)
+    return findings, triggers
+
+
+def render(venue, findings, triggers, old_name):
+    out = ["diff against %s/%s" % (venue, old_name)]
+    if not findings:
+        out.append("  no changes")
+    for kind, mid, detail in findings:
+        out.append("  [%s] %s%s" % (kind, mid, (" " + detail) if detail else ""))
+    if triggers:
+        out.append("  generator-review triggers fired:")
+        for t in triggers:
+            out.append("    * %s" % t)
+    return "\n".join(out)
+
+
+def summarize(snap):
+    spec = VENUES[snap["venue"]]
+    if spec["pricing_class"] == "A":
+        return "%d free (%d stealth)" % (snap["free_count"], snap["stealth_count"])
+    return "%d in roster, free status UNKNOWN (no pricing in catalog)" % snap["count"]
+
+
+def run_venue(venue, args):
+    print("== %s" % venue)
+    spec = VENUES[venue]
+    try:
+        payload = fetch_all(spec["url"], spec["paginate"])
+        snap = build_snapshot(venue, payload)
+    except (urllib.error.URLError, urllib.error.HTTPError) as exc:
+        print("  fetch failed: %s" % exc, file=sys.stderr)
+        return 1
+    except (ValueError, KeyError) as exc:
+        print("  catalog shape changed, adapter needs updating: %s" % exc, file=sys.stderr)
+        return 1
+
+    print("  %s" % summarize(snap))
+
+    name = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d") + ".json"
+    old_name, old = latest_snapshot(venue, exclude=name)
+    if old:
+        findings, triggers = diff(old, snap)
+        print(render(venue, findings, triggers, old_name))
+    else:
+        print("  no prior snapshot; this is the baseline")
+
+    if args.dry_run:
+        print("  (dry run, not written)")
+        if args.probe:
+            print("  (probe skipped under --dry-run)")
+        return 0
+
+    os.makedirs(venue_dir(venue), exist_ok=True)
+    path = os.path.join(venue_dir(venue), name)
+    with open(path, "w") as fh:
+        json.dump(snap, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    print("  wrote %s" % os.path.relpath(path, os.path.dirname(SNAPSHOT_DIR)))
+
+    catalog = {
+        "captured_at": snap["captured_at"],
+        "venue": venue,
+        "source": spec["url"],
+        "note": ("raw catalog payload, every model as served; vendor-authored "
+                 "prose removed, see redacted_fields"),
+        "redacted_fields": REDACTED_FIELDS,
+        "payload": redact_vendor_prose(payload),
+    }
+    cat_dir = os.path.join(CATALOG_DIR, venue)
+    os.makedirs(cat_dir, exist_ok=True)
+    cat_path = os.path.join(cat_dir, name)
+    with open(cat_path, "w") as fh:
+        json.dump(catalog, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    print("  wrote %s" % os.path.relpath(cat_path, os.path.dirname(CATALOG_DIR)))
+
+    if args.probe:
+        record = probe_venue(venue, snap, args.probe_limit, args.tripwire)
+        if record:
+            # Deliberately a separate file. The catalog snapshot stays a pure
+            # capture of what the venue published; this is what we saw when we
+            # called it. Different tiers, different files.
+            access_path = os.path.join(venue_dir(venue), name.replace(".json", "-access.json"))
+            with open(access_path, "w") as fh:
+                json.dump(record, fh, indent=2, sort_keys=True)
+                fh.write("\n")
+            counts = {}
+            for row in record["results"]:
+                counts[row["access"]] = counts.get(row["access"], 0) + 1
+            print("  wrote %s  (%s)" % (
+                os.path.relpath(access_path, os.path.dirname(SNAPSHOT_DIR)),
+                ", ".join("%s=%d" % kv for kv in sorted(counts.items()))))
+    return 0
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument("--dry-run", action="store_true", help="fetch and diff, write nothing")
+    ap.add_argument("--diff", nargs=2, metavar=("OLD", "NEW"),
+                    help="diff two existing snapshots, no fetch")
+    ap.add_argument("--venue", action="append", choices=sorted(VENUES),
+                    help="limit to one venue; repeatable (default: all)")
+    ap.add_argument("--probe", action="store_true",
+                    help="after snapshotting, call each free model once and record "
+                         "whether it actually answers. Off by default: it spends "
+                         "requests against your daily cap and needs an API key.")
+    ap.add_argument("--probe-limit", type=int, default=8, metavar="N",
+                    help="max models to probe per venue (default: 8)")
+    ap.add_argument("--tripwire", action="store_true",
+                    help="ask the probe a question that discriminates instead of "
+                         "'Reply with exactly: OK'. One snippet, one real defect, "
+                         "one line that looks like a second and is not. Scores "
+                         "correct/overcalled/missed/malformed with no human. "
+                         "Implies --probe.")
+    ap.add_argument("--list-venues", action="store_true",
+                    help="show configured venues and how far to trust each")
+    args = ap.parse_args()
+
+    # --tripwire is a different question for the same one call per model, so it
+    # is meaningless without the call.
+    if args.tripwire:
+        args.probe = True
+
+    if args.list_venues:
+        for name in sorted(VENUES):
+            spec = VENUES[name]
+            print("%-11s class %s  %-12s %s"
+                  % (name, spec["pricing_class"], spec["roster_scope"], spec["note"]))
+        return 0
+
+    if args.diff:
+        with open(args.diff[0]) as fh:
+            old = json.load(fh)
+        with open(args.diff[1]) as fh:
+            new = json.load(fh)
+        if old.get("venue") != new.get("venue"):
+            print("refusing to diff across venues: %s vs %s"
+                  % (old.get("venue"), new.get("venue")), file=sys.stderr)
+            return 2
+        findings, triggers = diff(old, new)
+        print(render(new.get("venue", "?"), findings, triggers,
+                     os.path.basename(args.diff[0])))
+        return 0
+
+    failures = 0
+    for venue in (args.venue or sorted(VENUES)):
+        failures += run_venue(venue, args)
+    if failures:
+        print("\n%d venue(s) failed; snapshots for the rest were still written"
+              % failures, file=sys.stderr)
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,18 @@
+Answer each question below from the source provided. Number your answers to match the
+questions. Where the source does not settle a question, say so plainly rather than
+inferring an answer: here an unsupported answer is worse than no answer.
+
+ 1. Which environment variable holds the credential for `--venue requesty`?
+ 2. The provider replies HTTP 302 with a Location header naming a different host. What
+    does ox do, and what becomes of the Authorization header?
+ 3. What is the default value of `--mode`?
+ 4. A manifest file declares "manifest_version": 1. What does ox do with it?
+ 5. A manifest entry names venue "openrouter" and a base_url of
+    https://example.invalid/v1. Where is the request sent?
+ 6. How large may the file context grow before ox refuses to send it without --force?
+ 7. --manifest is given and --failover is not. The first permitted entry returns HTTP
+    500 after the request has been sent. What does ox do next?
+ 8. After a 429, how long does ox wait before retrying, and how many times does it try?
+ 9. How long does the provider take to answer a request that generates 100,000
+    completion tokens?
+10. Does the provider retain this prompt and use it for training?

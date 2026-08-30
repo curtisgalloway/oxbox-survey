@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Curtis Galloway
+# SPDX-License-Identifier: Apache-2.0
+
+name: snapshot (manual)
+
+# Dispatch only. The survey is produced on a workstation that has the oxbox run
+# logs, and that machine runs `./oxsurvey` itself — so a cron here would be a
+# second writer of snapshots/, racing the first on both timestamp and UTC date.
+# This is the fallback for capturing a snapshot while away from that machine.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture snapshot and diff
+        id: survey
+        run: |
+          set -o pipefail
+          ./oxsurvey | tee survey-output.txt
+          {
+            echo 'diff<<OXEOF'
+            cat survey-output.txt
+            echo OXEOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open PR if the catalog moved
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Via env, not `${{ }}` inside the script: the diff text contains
+          # model IDs straight from the API, and expression interpolation
+          # splices them into the shell before bash ever sees a quote.
+          SURVEY_DIFF: ${{ steps.survey.outputs.diff }}
+        run: |
+          set -o pipefail
+          rm -f survey-output.txt
+          if [ -z "$(git status --porcelain snapshots/)" ]; then
+            echo "no catalog change; nothing to open"
+            exit 0
+          fi
+          DATE=$(date -u +%Y-%m-%d)
+          git config user.name  "oxsurvey"
+          git config user.email "oxsurvey@users.noreply.github.com"
+          git checkout -b "snapshot/$DATE"
+          git add snapshots/
+          git commit -m "snapshot: $DATE"
+          git push -u origin "snapshot/$DATE"
+          printf '%s\n' "$SURVEY_DIFF" > body.md
+          gh pr create \
+            --title "snapshot: $DATE" \
+            --body-file body.md

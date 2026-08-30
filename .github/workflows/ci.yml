@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Curtis Galloway
+# SPDX-License-Identifier: Apache-2.0
+
+# surveytest covers two things: the fetcher's venue adapters against recorded
+# fixtures, and the evidence rules this repo asserts in prose — a class B `free`
+# is null and never false, observations carry valid frontmatter, a probe-sourced
+# observation never claims a USE. A rule that lives only in a README is a hope.
+#
+# Entirely offline. No network, no API key, no provider, so it runs anywhere.
+# 3.9 is the floor because the system python3 on macOS is still 3.9, matching
+# oxbox.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  survey:
+    name: survey (${{ matrix.python }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: surveytest
+        run: python surveytest.py
+      # The fetcher must stay importable and its CLI must parse on every
+      # supported interpreter, even where no catalog is reachable.
+      - name: oxsurvey --list-venues
+        run: python oxsurvey --list-venues

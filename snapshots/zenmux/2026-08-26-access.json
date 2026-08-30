@@ -1,0 +1,46 @@
+{
+  "endpoint": "https://zenmux.ai/api/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model.",
+  "probed": 6,
+  "probed_at": "2026-08-26T17:18:45+00:00",
+  "results": [
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "deepseek/deepseek-v4-flash-vision-exp-free"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "dots-studio/dots3-note-prev"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "inclusionai/ling-3.0-tiny"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"code\":\"503\",\"type\":\"provider_internal_server_error\",\"message\":\"\u5206\u7ec4 pavo_group \u4e0b\u6a21\u578b agnes-2.0-flash \u65e0\u53ef\u7528\u6e20\u9053\uff08distributor\uff09 (request id: 20260826171841678216630GE9kPG7M) (request_id: aa22043a88984d",
+      "http_status": 503,
+      "id": "sapiens-ai/agnes-2.0-flash"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"code\":\"503\",\"type\":\"provider_internal_server_error\",\"message\":\"\u5206\u7ec4 pavo_group \u4e0b\u6a21\u578b agnes-2.5-flash \u65e0\u53ef\u7528\u6e20\u9053\uff08distributor\uff09 (request id: 20260826171843338306833gRcExY4H) (request_id: 2469cada752d4f",
+      "http_status": 503,
+      "id": "sapiens-ai/agnes-2.5-flash"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "z-ai/glm-4.6v-flash-free"
+    }
+  ],
+  "tier": "observed",
+  "venue": "zenmux"
+}

@@ -1,0 +1,175 @@
+{
+  "captured_at": "2026-08-26T17:18:32+00:00",
+  "count": 7,
+  "free_count": 7,
+  "free_unknown_count": 0,
+  "models": [
+    {
+      "canonical_slug": null,
+      "context_length": 1000000,
+      "created": 1787305220,
+      "data_retention_days": null,
+      "endpoint_context_length": 1000000,
+      "expiration_date": null,
+      "free": true,
+      "id": "deepseek/deepseek-v4-flash-vision-exp-free",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "DeepSeek: DeepSeek V4 Flash Vision Exp (Free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 393100,
+      "created": 1786962877,
+      "data_retention_days": null,
+      "endpoint_context_length": 393100,
+      "expiration_date": null,
+      "free": true,
+      "id": "dots-studio/dots3-note-prev",
+      "input_modalities": [
+        "audio",
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "Dots Studio: Dots3-Note Preview (Free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 262144,
+      "created": 1786084218,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "inclusionai/ling-3.0-tiny",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "inclusionAI: Ling-3.0-tiny",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 256000,
+      "created": 1779357254,
+      "data_retention_days": null,
+      "endpoint_context_length": 256000,
+      "expiration_date": null,
+      "free": true,
+      "id": "sapiens-ai/agnes-2.0-flash",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "Sapiens AI: Agnes-2.0-Flash",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 524288,
+      "created": 1786363781,
+      "data_retention_days": null,
+      "endpoint_context_length": 524288,
+      "expiration_date": null,
+      "free": true,
+      "id": "sapiens-ai/agnes-2.5-flash",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "Sapiens AI: Agnes-2.5-Flash",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 200000,
+      "created": 1767078394,
+      "data_retention_days": null,
+      "endpoint_context_length": 200000,
+      "expiration_date": null,
+      "free": true,
+      "id": "z-ai/glm-4.6v-flash-free",
+      "input_modalities": [
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "Z.AI: GLM 4.6V Flash (Free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": null,
+      "context_length": 200000,
+      "created": 1768877763,
+      "data_retention_days": null,
+      "endpoint_context_length": 200000,
+      "expiration_date": null,
+      "free": true,
+      "id": "z-ai/glm-4.7-flash-free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": null,
+      "is_stealth": null,
+      "max_completion_tokens": null,
+      "name": "Z.AI: GLM 4.7 Flash (Free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": null,
+      "trains_on_input": null
+    }
+  ],
+  "pricing_class": "A",
+  "roster_scope": "free-only",
+  "source": "https://zenmux.ai/api/v1/models",
+  "stealth_count": 0,
+  "venue": "zenmux"
+}

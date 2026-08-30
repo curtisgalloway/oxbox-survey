@@ -1,0 +1,46 @@
+{
+  "endpoint": "https://router.requesty.ai/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model.",
+  "probed": 6,
+  "probed_at": "2026-08-26T17:19:10+00:00",
+  "results": [
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "google/gemma-4-31b-it"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "mistral/leanstral-1-5"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"Internal Server Error\"}}",
+      "http_status": 500,
+      "id": "novita/inclusionai/ling-3.0-tiny"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/muse-glimmer-30b"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3-nano-30b-a3b"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning"
+    }
+  ],
+  "tier": "observed",
+  "venue": "requesty"
+}

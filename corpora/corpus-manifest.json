@@ -1,0 +1,188 @@
+{
+  "corpus_version": 0,
+  "survey": "The Oxbox Survey",
+  "updated": "2026-08-30",
+  "note": "The targets side of the survey. manifests/ says which model to call; this says what to send it. An entry pins a repository at a commit, an exact file list, and the exact prompt text, so two models can be given a byte-identical payload and the difference in their output is theirs. Not dated per issue: a corpus changes when a target moves, not weekly. No expected-findings key by design -- this is a fixture set, not a benchmark. Where a task can be scored mechanically, the criteria live in corpora/answers/ and are measured, not asserted.",
+  "defaults": {
+    "mode": "review",
+    "max_tokens": 100000,
+    "temperature": 0.2,
+    "effort": "high"
+  },
+  "projects": [
+    {
+      "id": "oxbox",
+      "name": "oxbox",
+      "url": "https://github.com/curtisgalloway/oxbox",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": ["python"],
+      "commit": "6072d56830dd3f80d567bf8c71593bcab95fbc74",
+      "commit_verified": "2026-08-30",
+      "why": "The containment itself, and the only target whose every line the reviewer knows. Small enough that a whole file fits in a prompt, and a finding here gets fixed the same day, so verification is cheap and the confirmations are checkable in the oxbox log. Its fix history doubles as an answer key: a defect that was found, verified and fixed is a scoreable task when posed at the commit before the fix.",
+      "notes": "This pin was chosen because it reproduces the 2026-08-29 minimax payloads exactly: both request.json bodies are byte-identical to `git show 6072d56:<path>` for all four files. Note the drift trap -- the working tree now carries the fixes, plus comments describing the bugs that were fixed, so a verifier reading HEAD scores real findings as false positives.",
+      "tasks": [
+        {
+          "id": "oxbox-review-queue",
+          "mode": "review",
+          "files": [
+            ".claude/skills/ox-review/scripts/oxreview.py",
+            "jailtest.py"
+          ],
+          "bytes": 22910,
+          "prompt": "corpora/prompts/oxbox-review-queue.txt",
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "active",
+          "verification": "human",
+          "evidence": ["observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"],
+          "notes": "Concurrency and lock handling: a directory lock with a 120s retry floor, and a sandbox self-test. Five of five findings held up on the one run this fixture reproduces."
+        },
+        {
+          "id": "oxbox-exposure-gate",
+          "mode": "review",
+          "files": [
+            ".claude/skills/ox-review/scripts/exposure.py",
+            ".claude/skills/ox-review/scripts/preflight.py"
+          ],
+          "bytes": 27246,
+          "prompt": "corpora/prompts/oxbox-exposure-gate.txt",
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "active",
+          "verification": "human",
+          "evidence": ["observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"],
+          "notes": "Subprocess handling, URL parsing and unauthenticated network probes. Eight of ten real on the one run this fixture reproduces, including the one clear false positive in that batch."
+        },
+        {
+          "id": "oxbox-secret-scanner-fix",
+          "mode": "diff",
+          "files": ["ox"],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "active",
+          "verification": "git-apply",
+          "evidence": [],
+          "notes": "The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8."
+        },
+        {
+          "id": "oxbox-clean-control",
+          "mode": "review",
+          "files": ["jailtest.py"],
+          "bytes": 6096,
+          "commit": "6302b12c95473204875b63cc350a92b1c933a259",
+          "commit_verified": "2026-08-30",
+          "prompt": "corpora/prompts/oxbox-clean-control.txt",
+          "answer_key": "corpora/answers/oxbox-clean-control.md",
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "active",
+          "verification": "human",
+          "evidence": [],
+          "notes": "The no-defect control: expected finding count is zero. Pinned one commit LATER than the rest of the project, at 6302b12, where the single real defect this file is known to carry -- unclosed probe sockets, found by MiniMax M3 on 2026-08-29 -- is fixed. The prompt is deliberately indistinguishable from a normal review prompt. Invention rate is otherwise only ever a by-product of a mixed batch; this measures it directly, on 6 KB."
+        },
+        {
+          "id": "oxbox-ask-grounding",
+          "mode": "ask",
+          "files": ["ox"],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-ask-grounding.txt",
+          "answer_key": "corpora/answers/oxbox-ask-grounding.md",
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "active",
+          "verification": "answer-key",
+          "evidence": [],
+          "notes": "Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question."
+        },
+        {
+          "id": "oxbox-json-findings",
+          "mode": "review",
+          "files": [".claude/skills/ox-review/scripts/preflight.py"],
+          "bytes": 11917,
+          "prompt": null,
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "proposed",
+          "verification": "json-parse",
+          "evidence": [],
+          "notes": "PROPOSED. The same review, with the findings demanded as a JSON array; scored by whether json.loads succeeds and the schema holds. This tests an in-prompt contract, NOT the catalog's response_format column -- ox never sends the response_format parameter (ox:781-783 builds a plain string content), so validating that column would need an ox change first."
+        }
+      ]
+    },
+    {
+      "id": "paniolo",
+      "name": "paniolo",
+      "url": "https://github.com/curtisgalloway/paniolo",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": ["rust"],
+      "commit": "a6abbf36904401126f5ca9c78df8924c3a5a5170",
+      "commit_verified": "2026-08-30",
+      "why": "The corpus is otherwise entirely Python, which measures one language's idioms and calls it review quality. paniolo is the reviewer's own Rust -- 68 files across seven crates -- and it is systems code with a different defect vocabulary from oxbox's: wire formats, device state machines, timeouts and partial reads rather than credentials and subprocesses. Its netbootd crate parses packets from an untrusted device on the lab network -- locally verifiable parsing and bounds defects, which is the finding class models have been most reliable on in this survey's runs.",
+      "notes": "Not yet run. Rust also tests something Python cannot: whether a model reports ownership and lifetime errors that the compiler would have caught, which is the review equivalent of a false positive with a compiler as the referee.",
+      "tasks": [
+        {
+          "id": "paniolo-netboot-wire",
+          "mode": "review",
+          "files": ["netbootd/src/dhcp.rs", "netbootd/src/tftp.rs"],
+          "bytes": 60656,
+          "prompt": null,
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "proposed",
+          "verification": "human",
+          "evidence": [],
+          "notes": "PROPOSED. DHCP and TFTP packet handling: offsets, length fields and option parsing over input from whatever device is plugged into the lab link. Twice the size of the largest oxbox batch, so it also samples a longer context than anything the corpus runs today."
+        }
+      ]
+    },
+    {
+      "id": "oh-brother",
+      "name": "oh-brother",
+      "url": "https://github.com/curtisgalloway/oh-brother",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": ["rust"],
+      "commit": "360804cd4d42251602473137618831a35d432c2a",
+      "commit_verified": "2026-08-30",
+      "why": "A second Rust target pointed the other way. paniolo's netbootd parses packets arriving from an untrusted device; oh-brother's pt-protocol constructs command bytes and reads status back from one. Same language, opposite direction across the wire, and small self-contained crates -- so a batch here is a different question from a batch there rather than more of the same.",
+      "notes": "Not yet run. The crate's own tests (rust/pt-protocol/src/tests.rs) are deliberately left out of the batch: including them hands the model the spec, which is a different experiment and one worth running separately once there is a baseline without them.",
+      "tasks": [
+        {
+          "id": "ohbrother-ptouch-transport",
+          "mode": "review",
+          "files": [
+            "rust/pt-protocol/src/lib.rs",
+            "rust/pt-protocol/src/usb.rs",
+            "rust/pt-protocol/src/bt_macos.rs"
+          ],
+          "bytes": 25054,
+          "prompt": null,
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "proposed",
+          "verification": "human",
+          "evidence": [],
+          "notes": "PROPOSED. The whole crate minus its tests: raster command construction, status reads, and two transports (USB, and CoreBluetooth on macOS). Framing, timeouts and partial reads against a physical device that cannot be asked to repeat itself. Sized to match the oxbox batches (22-27 KB) so it is comparable to them."
+        },
+        {
+          "id": "ohbrother-code128",
+          "mode": "review",
+          "files": ["rust/label-render/src/code128.rs"],
+          "bytes": 12895,
+          "prompt": null,
+          "answer_key": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "proposed",
+          "verification": "human",
+          "evidence": [],
+          "notes": "PROPOSED. Barcode encoding: checksum arithmetic, code-set switching, table indices. The rare review target where a defect is decidable rather than arguable -- a wrong Code128 checksum can be computed by hand -- so it is the natural first candidate to promote to a mechanical answer key once one run has shown what the findings look like."
+        }
+      ]
+    }
+  ]
+}
