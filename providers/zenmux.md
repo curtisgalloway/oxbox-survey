@@ -8,13 +8,18 @@ venue: zenmux
 base_url: https://zenmux.ai/api/v1
 catalog: https://zenmux.ai/api/v1/models
 pricing_class: A
-last_verified: 2026-08-23
+last_verified: 2026-09-01
 ---
 
 # ZenMux
 
-Multi-vendor gateway. Eight free models, and **all eight are unavailable free on
-OpenRouter** `[M]` — the highest unique-model yield of any venue surveyed.
+Multi-vendor gateway. Five free models as of 2026-09-01, and **all five are
+unavailable free on OpenRouter** `[M]` — still the highest unique-model yield of
+any venue surveyed, and shrinking: eight on 2026-08-24, six on 2026-08-27 after
+`z-ai/glm-5.3-free` and `sapiens-ai/agnes-2.0-flash` left, five by 2026-08-30
+after `deepseek/deepseek-v4-flash-vision-exp-free`, its largest (1M context,
+image input), was delisted with no expiration date ever published `[M]`. None of
+the remaining five is above 524K.
 
 ## Getting in
 
@@ -57,8 +62,10 @@ OpenRouter** `[M]` — the highest unique-model yield of any venue surveyed.
 
 ## Why it matters to the survey
 
-`z-ai/glm-5.3-free` is the model community fingerprinting suspects is behind Ox
-Alpha. Having it free and callable makes the attribution question testable by
-experiment — run both over one file and compare — rather than a guess to be
-repeated each week. As of 2026-08-23 `ox --venue zenmux` reaches it, so the
-experiment is runnable; it needs a review run, not more plumbing.
+`z-ai/glm-5.3-free` was the model community fingerprinting suspected behind Ox
+Alpha, and having it free and callable here is what made the attribution
+testable by experiment (edition 0.2's matched run). The question closed on
+2026-08-26 when Zhipu revealed Ox Alpha as GLM-5.3-Flash, a different sibling,
+and the free GLM-5.3 route left this venue in the same window. What ZenMux
+still offers the survey is its unique-model yield: nothing free here is free
+anywhere else surveyed.

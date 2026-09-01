@@ -1,0 +1,730 @@
+{
+  "captured_at": "2026-09-01T21:48:31+00:00",
+  "count": 21,
+  "free_count": 21,
+  "free_unknown_count": 0,
+  "models": [
+    {
+      "canonical_slug": "cohere/north-mini-code-20260617",
+      "context_length": 256000,
+      "created": 1781723748,
+      "data_retention_days": null,
+      "endpoint_context_length": 256000,
+      "expiration_date": null,
+      "free": true,
+      "id": "cohere/north-mini-code:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": true,
+      "is_stealth": false,
+      "max_completion_tokens": 64000,
+      "name": "Cohere: North Mini Code (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
+        "seed",
+        "stop",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "dots-studio/dots-3-note-preview-20260813",
+      "context_length": 512000,
+      "created": 1786680361,
+      "data_retention_days": null,
+      "endpoint_context_length": 512000,
+      "expiration_date": "2026-09-30",
+      "free": true,
+      "id": "dots-studio/dots-3-note-preview:free",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 460800,
+      "name": "Dots Studio: Dots3-Note Preview (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "google/gemma-4-26b-a4b-it-20260403",
+      "context_length": 262144,
+      "created": 1775227989,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "input_modalities": [
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 32768,
+      "name": "Google: Gemma 4 26B A4B  (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "google/gemma-4-31b-it-20260402",
+      "context_length": 262144,
+      "created": 1775148486,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "google/gemma-4-31b-it:free",
+      "input_modalities": [
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 32768,
+      "name": "Google: Gemma 4 31B (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "google/lyria-3-clip-preview-20260330",
+      "context_length": 1048576,
+      "created": 1774907255,
+      "data_retention_days": null,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "google/lyria-3-clip-preview",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 65536,
+      "name": "Google: Lyria 3 Clip Preview",
+      "output_modalities": [
+        "audio",
+        "text"
+      ],
+      "supported_parameters": [
+        "max_tokens",
+        "response_format",
+        "seed",
+        "temperature",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "google/lyria-3-pro-preview-20260330",
+      "context_length": 1048576,
+      "created": 1774907286,
+      "data_retention_days": null,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "google/lyria-3-pro-preview",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 65536,
+      "name": "Google: Lyria 3 Pro Preview",
+      "output_modalities": [
+        "audio",
+        "text"
+      ],
+      "supported_parameters": [
+        "max_tokens",
+        "response_format",
+        "seed",
+        "temperature",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "inclusionai/ling-3.0-flash-fin-20260827",
+      "context_length": 262144,
+      "created": 1787846290,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "inclusionai/ling-3.0-flash-fin:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 32768,
+      "name": "Ling 3.0 Flash Fin (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "logprobs",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
+        "repetition_penalty",
+        "seed",
+        "stop",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "liquid/lfm-2.5-2.6b-20260811",
+      "context_length": 65536,
+      "created": 1786470519,
+      "data_retention_days": null,
+      "endpoint_context_length": 65536,
+      "expiration_date": null,
+      "free": true,
+      "id": "liquid/lfm-2.5-2.6b:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 8192,
+      "name": "LiquidAI: LFM2.5-2.6B (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "logprobs",
+        "max_completion_tokens",
+        "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "repetition_penalty",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "minimax/minimax-m2.7-20260318",
+      "context_length": 196608,
+      "created": 1773836697,
+      "data_retention_days": null,
+      "endpoint_context_length": 196608,
+      "expiration_date": null,
+      "free": true,
+      "id": "minimax/minimax-m2.7:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 176947,
+      "name": "MiniMax: MiniMax M2.7 (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "minimax/minimax-m3-20260531",
+      "context_length": 1048576,
+      "created": 1780245374,
+      "data_retention_days": null,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "minimax/minimax-m3:free",
+      "input_modalities": [
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 943718,
+      "name": "MiniMax: MiniMax M3 (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning-20260428",
+      "context_length": 256000,
+      "created": 1777393095,
+      "data_retention_days": null,
+      "endpoint_context_length": 256000,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "input_modalities": [
+        "audio",
+        "image",
+        "text",
+        "video"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 65536,
+      "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "nvidia/nemotron-3-super-120b-a12b-20230311",
+      "context_length": 262144,
+      "created": 1773245239,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 235929,
+      "name": "NVIDIA: Nemotron 3 Super (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
+        "seed",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "nvidia/nemotron-3-ultra-550b-a55b-20260604",
+      "context_length": 1000000,
+      "created": 1780551208,
+      "data_retention_days": null,
+      "endpoint_context_length": 1000000,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 65536,
+      "name": "NVIDIA: Nemotron 3 Ultra (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "nvidia/nemotron-3.5-content-safety-20260604",
+      "context_length": 128000,
+      "created": 1780581864,
+      "data_retention_days": null,
+      "endpoint_context_length": 128000,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3.5-content-safety:free",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 8192,
+      "name": "NVIDIA: Nemotron 3.5 Content Safety (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "seed",
+        "temperature",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "nvidia/nemotron-3.5-lightning-20260807",
+      "context_length": 1000000,
+      "created": 1786452751,
+      "data_retention_days": null,
+      "endpoint_context_length": 1000000,
+      "expiration_date": null,
+      "free": true,
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 65536,
+      "name": "NVIDIA: Nemotron 3.5 Lightning (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "seed",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "openrouter/free",
+      "context_length": 200000,
+      "created": 1769917427,
+      "data_retention_days": null,
+      "endpoint_context_length": null,
+      "expiration_date": null,
+      "free": true,
+      "id": "openrouter/free",
+      "input_modalities": [
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": null,
+      "name": "Free Models Router",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "logprobs",
+        "max_completion_tokens",
+        "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "repetition_penalty",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_logprobs",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "poolside/laguna-s-2.1-20260720",
+      "context_length": 262144,
+      "created": 1784652683,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "poolside/laguna-s-2.1:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 32768,
+      "name": "Poolside: Laguna S 2.1 (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "temperature",
+        "tool_choice",
+        "tools"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "poolside/laguna-xs-2.1-20260625",
+      "context_length": 262144,
+      "created": 1783002429,
+      "data_retention_days": null,
+      "endpoint_context_length": 262144,
+      "expiration_date": null,
+      "free": true,
+      "id": "poolside/laguna-xs-2.1:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 32768,
+      "name": "Poolside: Laguna XS 2.1 (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "temperature",
+        "tool_choice",
+        "tools"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "thinkingmachines/inkling-small-20260730",
+      "context_length": 1048576,
+      "created": 1785443117,
+      "data_retention_days": null,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "thinkingmachines/inkling-small:free",
+      "input_modalities": [
+        "audio",
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 262144,
+      "name": "Thinking Machines: Inkling Small (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "seed",
+        "stop",
+        "temperature",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "thinkingmachines/inkling-20260715",
+      "context_length": 1048576,
+      "created": 1784325956,
+      "data_retention_days": null,
+      "endpoint_context_length": 1048576,
+      "expiration_date": null,
+      "free": true,
+      "id": "thinkingmachines/inkling:free",
+      "input_modalities": [
+        "audio",
+        "image",
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 262144,
+      "name": "Thinking Machines: Inkling (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "max_tokens",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "seed",
+        "stop",
+        "temperature",
+        "tools",
+        "top_p"
+      ],
+      "trains_on_input": null
+    },
+    {
+      "canonical_slug": "z-ai/glm-5.2-20260616",
+      "context_length": 256000,
+      "created": 1781631930,
+      "data_retention_days": null,
+      "endpoint_context_length": 256000,
+      "expiration_date": null,
+      "free": true,
+      "id": "z-ai/glm-5.2:free",
+      "input_modalities": [
+        "text"
+      ],
+      "is_moderated": false,
+      "is_stealth": false,
+      "max_completion_tokens": 230400,
+      "name": "Z.ai: GLM 5.2 (free)",
+      "output_modalities": [
+        "text"
+      ],
+      "supported_parameters": [
+        "frequency_penalty",
+        "include_reasoning",
+        "max_tokens",
+        "min_p",
+        "presence_penalty",
+        "reasoning",
+        "reasoning_effort",
+        "repetition_penalty",
+        "response_format",
+        "seed",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
+        "top_p"
+      ],
+      "trains_on_input": null
+    }
+  ],
+  "pricing_class": "A",
+  "roster_scope": "free-only",
+  "source": "https://openrouter.ai/api/v1/models",
+  "stealth_count": 0,
+  "venue": "openrouter"
+}

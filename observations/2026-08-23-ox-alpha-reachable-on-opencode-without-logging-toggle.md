@@ -25,7 +25,7 @@ POST https://opencode.ai/zen/v1/chat/completions   model=x-preview-f-free
 200  content='OK'  completion_tokens=36
 ```
 
-Issue 1, on the OpenRouter path to the same model:
+Edition 0.1, on the OpenRouter path to the same model:
 
 > `404: No endpoints available matching your guardrail restrictions and data
 > policy` — account-wide, reproduced across two keys. Fix is enabling prompt

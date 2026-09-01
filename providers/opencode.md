@@ -8,12 +8,12 @@ venue: opencode
 base_url: https://opencode.ai/zen/v1
 catalog: https://opencode.ai/zen/v1/models
 pricing_class: B
-last_verified: 2026-08-26
+last_verified: 2026-09-01
 ---
 
 # OpenCode Zen
 
-The confirmed **second venue for cloaked models**. Issue 1 already recorded that
+The confirmed **second venue for cloaked models**. Edition 0.1 already recorded that
 Ox Alpha shipped here as `x-preview-f-free` on the same day it appeared on
 OpenRouter; `big-pickle` is a codename that has no OpenRouter listing at all.
 
@@ -65,7 +65,11 @@ because it is the opposite of how these tiers are marketed.
 
 - **Class B: the roster carries no pricing.** `/models` returns `id`, `object`,
   `created`, `owned_by` and nothing else, so `free` is `null` for every record.
-  The whole 64-model roster is snapshotted so churn stays diffable.
+  The whole roster (63 models on 2026-09-01) is snapshotted so churn stays
+  diffable. Recent churn: `x-preview-f-free` (Ox Alpha) left 2026-08-27,
+  `ling-3.0-flash-fin-free` arrived by 2026-08-30, `hy3-free` left by 2026-09-01
+  `[M]`; third-party listings had described `hy3-free` as available "for a
+  limited time" `[R]`.
 - The `-free` id suffix is **not** a reliable free predicate — `big-pickle` and
   `grok-code` carry no suffix and are free.
 - models.dev has OpenCode pricing but is **demonstrably stale**: 20 of the 29
@@ -84,3 +88,9 @@ because it is the opposite of how these tiers are marketed.
   path 404s until account-wide prompt logging is enabled. Same cloaked model, same
   $0, different gate — terms are a property of the venue, not the model.
   [[../observations/2026-08-23-ox-alpha-reachable-on-opencode-without-logging-toggle]]
+- **`nemotron-3-ultra-free` completed a real review run** on 2026-08-30 `[M]`:
+  27 KB payload, 4,872 completion tokens, 129 s, finish `stop`, no `provider`
+  field in the response. 2 of its 10 findings held up; the one serious defect was
+  filed UNCERTAIN and a false one filed critical. Reachability and format were
+  clean; ranking was not.
+  [[../observations/2026-08-30-nemotron-3-ultra-free-2-of-10-findings-real-on-the-exposure-gate]]

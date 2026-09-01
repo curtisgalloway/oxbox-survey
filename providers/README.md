@@ -40,13 +40,14 @@ change it, and cite the observation that proved it.
 
 | Venue | Class | Gate on free models | API shape | Free models |
 |---|---|---|---|---|
-| [openrouter](openrouter.md) | A | account-wide prompt logging, for some `[R]` | `chat/completions` | 22 |
-| [zenmux](zenmux.md) | A | **funded account required** `[M]` | `chat/completions` `[M]` | 8 |
+| [openrouter](openrouter.md) | A | account-wide prompt logging, for some `[R]` | `chat/completions` | 21 |
+| [zenmux](zenmux.md) | A | **funded account required** `[M]` | `chat/completions` `[M]` | 5 |
 | [requesty](requesty.md) | A | none; no card `[M]`/`[R]` | `chat/completions` `[M]` | 12 |
 | [opencode](opencode.md) | B | **used funded** `[M]`; cardless untested `[?]` | `chat/completions` `[M]` | unknown — no pricing in catalog |
 
 Class A means the catalog carries pricing, so `free` is Measured. Class B means
-it does not, so `free` is `null` — unknown, never false.
+it does not, so `free` is `null` — unknown, never false. Counts are from the
+2026-09-01 snapshots.
 
 **All four are reachable from oxbox** as of 2026-08-23: `ox --venue <name>`,
 each reading its own key variable. Every one of them speaks

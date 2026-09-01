@@ -8,12 +8,19 @@ venue: requesty
 base_url: https://router.requesty.ai/v1
 catalog: https://router.requesty.ai/v1/models
 pricing_class: A
-last_verified: 2026-08-24
+last_verified: 2026-09-01
 ---
 
 # Requesty
 
-676 models, 12 free, 5 of them free nowhere else `[M]`. Its distinguishing
+12 free rows, unchanged field for field from 2026-08-24 to 2026-09-01, 5 of
+them free nowhere else `[M]`. **Three of the twelve are not served**: on the
+2026-09-01 tripwire the provider behind `poolside/laguna-m.1` and
+`poolside/laguna-xs.2` answered `404 please check the model you provided`, and
+`nvidia/nemotron-3-nano-30b-a3b` answered `410 Gone` (it expired on OpenRouter on
+2026-08-24). Seven answered; `mistral/leanstral-1-5` was the only model on any
+venue to miss the tripwire's defect.
+[[../observations/2026-09-01-requesty-lists-three-free-rows-its-providers-do-not-serve]] Its distinguishing
 feature is not the model list — it is that **Requesty publishes data terms as
 structured fields**, which is the only place in this survey where the data-terms
 axis is Measured rather than read off a terms page.

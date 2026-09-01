@@ -1,0 +1,126 @@
+{
+  "endpoint": "https://router.requesty.ai/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model. The tripwire verdict is one synthetic snippet: it orders a shortlist and disqualifies, and can never justify a USE.",
+  "probe": "tripwire",
+  "probed": 12,
+  "probed_at": "2026-09-01T21:52:14+00:00",
+  "results": [
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "google/gemma-4-31b-it",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "mistral/leanstral-1-5",
+      "tripwire": "missed",
+      "tripwire_lines": [
+        4
+      ],
+      "tripwire_reply": "4"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"Internal Server Error\"}}",
+      "http_status": 500,
+      "id": "novita/inclusionai/ling-3.0-tiny",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/muse-glimmer-30b",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "error",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"Gone\"}}",
+      "http_status": 410,
+      "id": "nvidia/nemotron-3-nano-30b-a3b",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3-super-120b-a12b",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"Service temporarily overloaded\"}}",
+      "http_status": 503,
+      "id": "nvidia/nemotron-3-ultra-550b-a55b",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3.5-content-safety",
+      "tripwire": "malformed",
+      "tripwire_lines": [],
+      "tripwire_reply": "User Safety: safe"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"{\\\"error\\\":\\\"please check the model you provided\\\"}\\n\"}}",
+      "http_status": 404,
+      "id": "poolside/laguna-m.1",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"origin\":\"provider\",\"message\":\"{\\\"error\\\":\\\"please check the model you provided\\\"}\\n\"}}",
+      "http_status": 404,
+      "id": "poolside/laguna-xs.2",
+      "tripwire": null,
+      "tripwire_lines": []
+    }
+  ],
+  "tier": "observed",
+  "venue": "requesty"
+}
