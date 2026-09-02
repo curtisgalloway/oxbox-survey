@@ -148,22 +148,39 @@ def collect(run_dirs, start, end):
 
 
 def manifest_entries(records):
-    """Every manifest named by a run, read back so unused entries show up."""
+    """Every manifest named by a run, read back so unused entries show up.
+
+    ox 0.5.0 keeps the bytes a run used as `manifest.json` beside its
+    request, and names the manifest by URL when it fetched one. Prefer that
+    copy over the recorded path: `latest.json` says something different each
+    issue, and a file on disk may have been edited since the run. Two runs
+    naming the same path with different digests used two manifests, and are
+    listed as two.
+    """
     manifests = {}
     for record in records:
         info = record.get("manifest") or {}
         path = info.get("path")
-        if not path or path in manifests:
+        if not path:
             continue
+        sha = info.get("sha256")
+        key = path
+        seen = manifests.get(path)
+        if seen is not None and sha and seen.get("sha_seen") not in (None, sha):
+            key = "%s@%s" % (path, sha[:12])
+        if key in manifests:
+            continue
+        copy = Path(record["dir"]) / "manifest.json"
+        source = copy if copy.is_file() else Path(path)
         try:
-            data = json.loads(Path(path).read_text(encoding="utf-8"))
+            data = json.loads(source.read_text(encoding="utf-8"))
         except (OSError, ValueError):
-            manifests[path] = {"error": "unreadable now", "sha_seen": info.get("sha256")}
+            manifests[key] = {"error": "unreadable now", "sha_seen": sha}
             continue
-        manifests[path] = {
+        manifests[key] = {
             "entries": [(rec.get("venue"), rec.get("model"), rec.get("cost"))
                         for rec in data.get("recommendations") or []],
-            "sha_seen": info.get("sha256"),
+            "sha_seen": sha,
         }
     return manifests
 
