@@ -21,7 +21,10 @@
       "base_url": "https://openrouter.ai/api/v1",
       "model": "z-ai/glm-5.3-flash",
       "cost": "paid",
-      "pricing_usd_per_mtok": {"input": 0.075, "output": 0.25},
+      "pricing_usd_per_mtok": {
+        "input": 0.075,
+        "output": 0.25
+      },
       "why": "The revealed Ox Alpha: 63 findings at 72% in edition 0.2 and a real credential leak found in oxbox itself. Nobody has run the paid route; same weights per the reveal, same served behavior is an assumption."
     },
     {
@@ -31,14 +34,6 @@
       "model": "nemotron-3-ultra-free",
       "cost": "free",
       "why": "One run on 2026-08-30: 2 of 10 findings real on a payload matched to MiniMax M3, with the one serious defect filed as UNCERTAIN and a false one filed as critical. Cheap, fast and format-clean; run it on a different fixture before trusting its severity labels."
-    },
-    {
-      "rank": 4,
-      "venue": "opencode",
-      "base_url": "https://opencode.ai/zen/v1",
-      "model": "mimo-v2.5-free",
-      "cost": "free",
-      "why": "Confirmed free and reachable on 2026-08-23. Not yet reviewed on anything."
     }
   ]
 }
