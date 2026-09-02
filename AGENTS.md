@@ -34,6 +34,11 @@ everything here is Apache-2.0. That repo carries this one as a submodule and
 builds the site from both halves: its own editions, and this repo's snapshots
 and manifests. Write `<date>.md` there; everything below still applies.
 
+**The generator review is not part of the edition.** Part 2 of the skill goes to
+`docs/generator-reviews/<date>.md` here, one file per edition; the edition carries
+only the report. Decided 2026-09-01: the review is for the maintainer and the
+agent to iterate on the generator, not for readers.
+
 The issue is then reviewed in a Google Doc before it is committed — see **The
 review loop** below.
 

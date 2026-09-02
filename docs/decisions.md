@@ -134,3 +134,17 @@ rather than as a failed call.
 Counting them would have inflated usage 4.5× and, worse, reported models as
 reachable on requests that never left the machine. Reporting them as failures
 would have put phantom outages in the availability record.
+
+## The generator review is not published
+
+**Decided** 2026-09-01, at the user's direction while reviewing issue 1: "The
+generator review is really only for you and me to iterate on debugging how the
+generator works, it should not be part of the survey that's published."
+
+**Where it goes instead.** `docs/generator-reviews/<date>.md`, one file per
+edition, Apache-2.0 like the rest of this repo. It still has to be written every
+run; the skill's own rule that part 2 is never skipped stands. What changed is
+the audience.
+
+**What would change it.** Nothing foreseeable. The three pre-launch editions
+carry their reviews inline and are left as they are.
