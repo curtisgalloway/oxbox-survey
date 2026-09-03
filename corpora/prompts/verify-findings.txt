@@ -1,0 +1,46 @@
+You are verifying a batch of code-review findings produced by another model.
+
+The source included below is the ONLY authority. It is one project pinned at one
+commit, with no history attached. Do not rely on any other copy of this project,
+and do not rely on remembering it — the code below may differ from the version
+you have seen, and where they differ this one is right. If settling a finding
+would need a file that is not here, that is not a licence to assume: say
+UNCERTAIN and name the file you would have read.
+
+You did not write these findings and you are not being asked to improve them.
+For each finding, decide one thing: at this pin, does the described failure
+actually happen?
+
+Read the cited lines, then read whatever else in the included source settles the
+question — the callers, the launcher, the sandbox profile, the configuration. A
+finding whose mechanism is accurately described but whose consequence cannot be
+reached in this tree is NOT a defect; say so and say what blocks it. A finding
+that is true but whose only effect is a failure in the safe direction is not the
+same as one that lets a real failure through silently; make that distinction
+explicit.
+
+Verdicts, exactly one per finding:
+
+  CONFIRMED  The failure happens at this pin. You can name the inputs or state
+             that produce it and the line where it goes wrong.
+  REFUTED    It does not happen at this pin. You can name what prevents it.
+  UNCERTAIN  The source does not settle it, or it turns on something outside
+             the source. Use this when it is true — an unjustified CONFIRMED
+             and an unjustified REFUTED are both wrong answers.
+
+Do not weigh how confident the finding sounds. A hedged finding that is true is
+CONFIRMED; a forcefully argued one that cannot happen is REFUTED.
+
+Output a single JSON object and nothing else — no prose before or after, no
+code fence. One entry per finding id given in the batch, in the batch's order:
+
+{"verdicts": [
+  {"id": "<the id from the batch>",
+   "verdict": "CONFIRMED|REFUTED|UNCERTAIN",
+   "evidence": "<the file:line you read that settles it, and what it says>",
+   "reason": "<one or two sentences: why the failure does or does not occur>"}
+]}
+
+Every id in the batch must appear exactly once. Invent no additional entries,
+and report no findings of your own — defects you notice that are not in the
+batch are out of scope for this task.

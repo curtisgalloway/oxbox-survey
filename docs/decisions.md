@@ -224,3 +224,79 @@ change the decision would be the fixtures becoming a benchmark with an answer ke
 derived from baseline output, at which point "the baseline is the ruler" has
 quietly become "the baseline is the answer", and the corpus README's rule that
 there is no expected-findings key needs to be re-decided rather than eroded.
+
+## Comparing verifiers
+
+**Decided** 2026-09-03, at the user's request: try a cheap model as the standing
+supervisor and find out what it costs in accuracy. `costcheck.py` established
+that verification is the expensive half of a run; the decision above named Opus 5
+the supervisor "on price", which is an argument that has to be re-run whenever a
+cheaper candidate appears. Gemini 3.8 Flash is one: $0.75/$3.75 per million
+against Opus 5's $5/$25 on the OpenRouter list, 6.7x cheaper on both axes, and at
+the margin free through the maintainer's agy subscription.
+
+**Method.** `verifiercheck.py` replays findings the survey has already recorded
+verdicts for, rather than verifying anything new. The first set is the fifteen
+findings the five 2026-09-02 baselines emitted against `oxbox-clean-control`;
+`corpora/answers/oxbox-clean-control-verdicts.json` is the key, transcribed from
+those observations' own per-finding tables. Replay is what makes the experiment
+cheap enough to repeat: no candidate model is called at all, and the ground truth
+already exists.
+
+**Both arms are toolless and get identical bytes.** The pinned source is inlined
+into the prompt -- `jailtest.py`, the launcher, the sandbox profile, `guardtest.py`
+and `.gitignore`, every file the recorded verdicts cite -- and both arms run in an
+empty working directory. This is `corpus-manifest.json`'s byte-identical-payload
+rule applied one layer up, and it is a compromise stated rather than hidden: a
+verifier that roams picks its own evidence, and two verifiers that roam differently
+produce a gap nobody can attribute to either one. The price is that the evidence
+set is pre-decided, which is *not* how the standing supervisor works in production.
+A result here bounds what a cheap verifier can do on a fixed record; it does not
+show what it would do turned loose on a repository.
+
+Three things forced that shape, and each is worth knowing on its own:
+
+- **A `git worktree` leaks the answer key.** A worktree shares `.git` with its
+  parent, and the commit immediately after this pin (`0090c35`) names both real
+  defects in its subject line, so any verifier that ran `git log` would read the
+  answers. The pin is built with `git archive <commit> | tar -x` instead, and
+  `verifiercheck.py build` refuses a directory containing a `.git`.
+- **The verifier's evidence is a superset of the candidate's.** The fixture is
+  6 KB of `jailtest.py`, but the recorded verdicts turn on `oxbox`, `jail.sb` and
+  `.gitignore`. Handing a verifier only the reviewed file would make several
+  findings unsettleable, and a verifier that answers anyway is the failure this
+  is trying to measure.
+- **agy cannot read a file headlessly.** It reaches for a shell command rather
+  than a native read tool, and headless mode auto-denies the `command`
+  permission with no way to prompt. `--dangerously-skip-permissions` would have
+  fixed it by giving one arm unrestricted tools while the other stayed
+  allowlisted, which is the confound, not a workaround for it.
+
+**The key is not independent of the Claude arm.** The recorded verdicts were
+reached by `claude-fable-5-1` and `claude-opus-5`. Agreement with them is
+therefore worth less on the Opus side than on the Gemini side, and a summary
+statistic hides that. `verifiercheck.py score` prints the disagreement list
+first and the aggregate second for that reason: the disagreements are the rows
+that carry information, and they are few enough to be settled by hand.
+
+**Results are not observations.** They go to `docs/verifier-comparison-<date>.md`,
+one file per run, beside the generator reviews. `observations/` feeds part 2 of
+each issue, which is about models the survey recommends or declines to; a verifier
+comparison is about the machinery, and its `model:` and `role:` fields would have
+to be filled in with something untrue. First run:
+[verifier-comparison-2026-09-03.md](verifier-comparison-2026-09-03.md).
+
+**What would change it.** A cheap arm that matches on this record still has to be
+shown on a batch with no key before it can take the standing supervisor's job --
+replay measures agreement with a past judgment, not the judgment itself. And if a
+cheap verifier ever *were* adopted, the observations it produces should say which
+arm verified them in the `agent:` field, exactly as the Fable-verified rows do
+now; the field already carries that meaning and needs no new rule.
+
+The first run also turned up a question worth more than the comparison did: the
+Opus arm **refuted a defect in one batch and confirmed the same defect in
+another**, the two batches differing only in how the candidate had worded the
+finding. If a verifier's verdict moves with the candidate's phrasing, that is a
+property of the verification step this survey has never measured, and it applies
+to the standing supervisor as much as to any replacement. Measuring it would
+change this decision more than another arm would.
