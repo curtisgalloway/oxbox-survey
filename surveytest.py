@@ -224,7 +224,7 @@ def test_diff_and_triggers(ox):
 
 
 def test_cli():
-    print("\n=== cli behaviour ===")
+    print("\n=== cli behavior ===")
     survey = str(HERE / "oxsurvey")
 
     result = subprocess.run([sys.executable, survey, "--list-venues"],

@@ -90,7 +90,7 @@ hand-rolled `parse_stamp` for `datetime.fromisoformat`.
 machinery and evidence.
 
 **Why.** The prose is the publication and is all rights reserved; it cannot sit in
-a tree whose LICENSE grants everyone a copy. The split follows the licence line
+a tree whose LICENSE grants everyone a copy. The split follows the license line
 exactly, and it cost nothing in enforcement: `surveytest.py` validates
 `snapshots/`, `catalogs/`, `observations/`, `providers/` and `corpora/`, and never
 validated the editions. Moving `observations/` instead would have cost six checks
@@ -214,7 +214,7 @@ two were the clean-control fixture's own: the metadata oracle stat()ing
 host (GPT), both fixed in oxbox `0090c35`.
 
 **Cost is now in dollars.** `costcheck.py` prices a run's tokens from the
-archived OpenRouter catalog and prints a `usd` column, labelled computed rather
+archived OpenRouter catalog and prints a `usd` column, labeled computed rather
 than billed. A baseline's dollars beside a free model's verification tokens is
 the comparison the 2026-08-30 cost rule was written for.
 

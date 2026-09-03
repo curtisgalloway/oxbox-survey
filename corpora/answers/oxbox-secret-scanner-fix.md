@@ -16,7 +16,7 @@ Three gates, all mechanical. A candidate patch passes only if it clears all thre
 that the prompt supplied. Wrong path, missing context lines, or a fabricated hunk
 header all fail here without anyone reading the diff.
 
-**2. The scan changes behaviour in exactly this way.** Extract `SECRET_PATTERNS`
+**2. The scan changes behavior in exactly this way.** Extract `SECRET_PATTERNS`
 from the patched file and match it against the eight samples below. All eight
 verdicts must hold; six of them already hold before the patch and are there to
 catch a fix that overshoots.

@@ -53,7 +53,7 @@ reading every finding against the source; nothing here scores a model on its own
 ```
 
 `verification` is the field worth reading twice. `human` means someone reads every
-finding against the source — the only judgement the survey trusts for review
+finding against the source — the only judgment the survey trusts for review
 quality, and the reason there are so few runs. The other three are mechanical, and
 the tasks that carry them are the cheap ones to add: `oxbox-secret-scanner-fix` is
 scored by `git apply --check` plus eight measured pattern verdicts, with nobody

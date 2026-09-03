@@ -143,7 +143,7 @@ false, every observation carries valid frontmatter, no `source: probe`
 observation assigns a `USE`, every active corpus fixture can still be reproduced,
 every provider page dates its verification, every file carries an SPDX header. **A rule that lives only in a README is a hope.**
 
-Every assertion is mutation-checked: break the behaviour in `oxsurvey` and
+Every assertion is mutation-checked: break the behavior in `oxsurvey` and
 confirm the test goes red before trusting it. Two of the original assertions
 were wrong rather than the code — T7 correctly fires on a stealth-free catalog,
 and "it cannot justify a `USE`" is the rule being stated, not broken.
@@ -196,7 +196,7 @@ and "it cannot justify a `USE`" is the rule being stated, not broken.
 - **Never apply a generator revision unattended.** The skill proposes edits to its
   own SKILL.md as a diff and stops. The user decides whether the landscape moved
   or whether it was noise.
-- **No colour-only status.** Use the text labels `USE` / `TRY` / `HOLD` / `AVOID`.
+- **No color-only status.** Use the text labels `USE` / `TRY` / `HOLD` / `AVOID`.
   Never "the green ones".
 - **"No data" is an allowed answer** and the preferred one. Do not interpolate a
   missing axis from an adjacent benchmark.

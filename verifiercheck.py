@@ -127,6 +127,30 @@ ARMS = {
         "max_tokens": "65536",
         "evidence": "files",
     },
+    # The price ceiling, and the arm with a conflict of interest. Fable 5.1 is
+    # $10/$50 -- 2x Opus 5, 13x gemini-3.8-flash -- and it was the survey's first
+    # standing supervisor before the job was moved to Opus on price.
+    #
+    # It therefore WROTE 11 of the 15 rows it is scored against: the sonnet,
+    # gemini-3.7 and gpt batches carry `agent: claude-fable-5-1`, and only the
+    # deepseek and glm batches (L1-L4) were Opus's. Its agreement score is
+    # circular by construction and must not be read as accuracy.
+    #
+    # It is worth running anyway, for the one thing only this arm can test: P2 is
+    # Fable's own prior verdict, reached WITH tools and the whole repository, and
+    # every arm so far has refuted it. If Fable toolless also refutes it, the key
+    # row is a judgment its own author will not reproduce, and four arms have not
+    # missed anything -- the key has.
+    "or-fable": {
+        "model": "anthropic/claude-fable-5.1",
+        "harness": "ox-openrouter",
+        "priced": True,
+        "effort": "high",
+        "max_tokens": "128000",
+        "evidence": "files",
+        "wrote_key_rows": ["S1", "S2", "G1", "P1", "P2", "P3", "P4", "P5", "P6",
+                           "P7", "P8"],
+    },
 }
 
 
@@ -401,6 +425,7 @@ PRICES = {
     # newest archived capture (2026-09-01); the next ./oxsurvey run supersedes
     # this and the figures should be recomputed from the archive then.
     "anthropic/claude-opus-5": (5.0e-6, 25.0e-6),
+    "anthropic/claude-fable-5.1": (10.0e-6, 50.0e-6),
     "google/gemini-3.8-flash": (0.75e-6, 3.75e-6),
 }
 

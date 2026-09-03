@@ -44,4 +44,4 @@ false-positive rate rather than a failure to engage.
 
 One small file, one prompt. A model that invents nothing here can still invent on a
 600-line file with a plausible-looking race in it. Treat a clean result as one data
-point against invention, never as a licence to skip verification on the real runs.
+point against invention, never as a license to skip verification on the real runs.

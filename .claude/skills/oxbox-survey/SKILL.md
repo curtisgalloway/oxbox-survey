@@ -139,7 +139,7 @@ Then read the two Observed-tier sources, which together are the entire input to 
 - **`providers/`** — standing facts per venue: access gates, API shape, rate limits,
   known quirks. Read these for context before writing the catalog; they explain why a
   model that looks free may not be callable.
-- **oxbox run logs** — `logs/*/metadata.json` and the review outputs, on the machine that
+- **oxbox run logs** — `logs/*/meta.json` and the review outputs, on the machine that
   holds them.
 
 If neither has anything new, part 2 is one line.
@@ -186,7 +186,7 @@ One line if nothing was run.>
 | `HOLD` | Was tried, or has a card fact, that says wait — expiring, degraded, churning. |
 | `AVOID` | Tried and bad, or a card fact that disqualifies it for this job. |
 
-Never a `USE` on a model nobody ran. **Markers must not rely on colour** — use the text
+Never a `USE` on a model nobody ran. **Markers must not rely on color** — use the text
 labels, never a red/green dot as the only carrier of meaning, and never "the green ones"
 in prose.
 
