@@ -146,6 +146,21 @@ venue's own usage comes back in `status.json` and `costcheck.py` prices it from
 the catalog. `ox` is toolless by construction, so "control tool use" needed no
 arranging: there is no tool to control.
 
+**Provenance of the ox that ran these.** oxbox `12b8358`, authored 14:03:10 PDT,
+two and a half minutes before the first run at 14:05:46; the next commit to touch
+`ox` landed 42 minutes after the last run at 14:13:12. Against current oxbox main
+that is `git diff 12b8358 HEAD -- ox` = 12 insertions, 0 deletions, of which nine
+are comment and three are code: `venue_cost` recorded into the status initializer,
+the status record and the attempt record, all after the response is parsed.
+Nothing in request building, effort resolution or anything on the wire, so these
+figures reproduce against current ox.
+
+(An earlier note gave the baseline as `c8b287e` and the delta as 28 insertions
+and 3 deletions. That was the wrong commit -- the manifest-diagnosis change was
+already in the tree while these runs executed, so it is not part of the delta at
+all. Corrected 2026-09-03 after a peer session checked the authored timestamps
+against the run directory names.)
+
 Each model runs at its **own** `default_effort` rather than a matched rung --
 `google/gemini-3.8-flash` at `medium`, `anthropic/claude-opus-5` at `high` --
 because the question is what a supervisor costs to actually run, and a matched
