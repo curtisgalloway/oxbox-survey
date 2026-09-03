@@ -69,10 +69,27 @@ EVIDENCE = ["jailtest.py", "oxbox", "profiles/jail.sb", "guardtest.py", ".gitign
 # The prompt goes to claude on stdin and to agy attached to --print. That is not
 # a preference: agy's flag parser takes the next argv element as --print's value,
 # so a bare --print eats whatever flag follows it and drops the real prompt.
+# The ox arms are the ones that can be priced. A subscription CLI reports no
+# tokens -- agy publishes none at all -- so the arms below it can be compared for
+# accuracy and not for cost, which is the wrong way round for a question that is
+# entirely about cost. Through ox the venue's own usage accounting comes back in
+# status.json, `costcheck.py` prices it from the archived catalog, and the source
+# rides as --files so context_bytes is recorded the way every corpus run records
+# it. ox is also toolless by construction, so "control tool use" costs nothing to
+# arrange: there is no tool to control.
+#
+# Effort is each model's OWN default, not a matched level: gemini-3.8-flash is
+# medium, claude-opus-5 is high, per reasoning.default_effort in the catalog.
+# The question is what a supervisor actually costs to run, and a matched rung
+# would price a setting nobody would choose. `medium` needs ox from the
+# effort-ladder work (c8b287e); the Homebrew ox on PATH stops at low|high|max.
+OX = "/Users/curtisg/src/oxbox/ox"
+
 ARMS = {
     "opus": {
         "model": "claude-opus-5",
         "harness": "claude-code-cli",
+        "priced": False,
         "prompt": "stdin",
         "cmd": [
             "claude", "-p", "--model", "opus",
@@ -83,6 +100,7 @@ ARMS = {
     "gemini": {
         "model": "gemini-3.8-flash-medium",
         "harness": "agy-cli",
+        "priced": False,
         "prompt": "--print={prompt}",
         "cmd": [
             "agy", "--model", "gemini-3.8-flash-medium",
@@ -92,7 +110,60 @@ ARMS = {
             "--print-timeout", "10m",
         ],
     },
+    "or-opus": {
+        "model": "anthropic/claude-opus-5",
+        "harness": "ox-openrouter",
+        "priced": True,
+        "effort": "high",
+        "max_tokens": "128000",
+        "evidence": "files",
+    },
+    "or-gemini": {
+        "model": "google/gemini-3.8-flash",
+        "harness": "ox-openrouter",
+        "priced": True,
+        "effort": "medium",
+        "max_tokens": "65536",
+        "evidence": "files",
+    },
 }
+
+
+def ox_command(arm, pin, stem):
+    """One ox invocation, wrapped in `op run` so the key never enters argv.
+
+    --force is here for two lines in guardtest.py and nothing else. ox's secret
+    scan flags `guardtest.py:240` and `:242`; both are fixtures the file needs in
+    order to assert that ox REFUSES them -- 240 is a sequential-alphabet dummy
+    (`sk-abc...012345`) and 242 is `AKIAIOSFODNN7EXAMPLE`, the example key id
+    published in AWS's own documentation. Verified by reading them, 2026-09-03.
+
+    This is a standing override on a fixed file set and it is only safe while
+    that set is fixed. If EVIDENCE changes, dry-run once WITHOUT --force and
+    read what the scanner reports before restoring it; --force suppresses a real
+    leak exactly as willingly as a false positive.
+    """
+    files = ",".join(os.path.join(pin, name) for name in EVIDENCE)
+    return [
+        "op", "run", "--env-file", ".env", "--",
+        OX,
+        "--force",
+        "--venue", "openrouter",
+        "--model", arm["model"],
+        "--effort", arm["effort"],
+        "--max-tokens", arm["max_tokens"],
+        "--temperature", "0.2",
+        "--mode", "ask",
+        "--files", files,
+        "--stdin",
+        "--status-file", stem + ".status.json",
+        "--output", stem + ".raw.txt",
+        # Without this ox writes its audit log under the CWD, which for these
+        # runs is the survey repo -- an untracked logs/ appearing in a clean
+        # tree. Verifier runs are not corpus runs and do not belong in the
+        # oxbox log either; they live beside the rest of the run's artifacts.
+        "--log-dir", os.path.join(os.path.dirname(stem), "ox-logs"),
+    ]
 
 
 def load_key():
@@ -177,13 +248,21 @@ def cmd_build(args):
     evidence = build_evidence(args.pin)
     for batch in key["batches"]:
         name = slug(batch["model"])
-        text = contract + "\n\n" + evidence + "\n" + build_batch(batch, args.logs)
-        out = os.path.join(args.work, "batch-%s.txt" % name)
-        with open(out, "w", encoding="utf-8") as handle:
-            handle.write(text)
-        print("%-22s %2d finding(s)  %6d B  %s"
-              % (name, len(batch["findings"]), len(text), out))
+        findings = build_batch(batch, args.logs)
+        # Two shapes of the same batch. The CLI arms have no way to attach a
+        # file, so the source is inlined; ox attaches it with --files and
+        # records context_bytes, so its copy carries the findings alone. The
+        # two are not byte-comparable to each other and results from them are
+        # not pooled -- each generation is compared within itself.
+        for suffix, text in (("", contract + "\n\n" + evidence + "\n" + findings),
+                             (".nofiles", contract + "\n\n" + findings)):
+            out = os.path.join(args.work, "batch-%s%s.txt" % (name, suffix))
+            with open(out, "w", encoding="utf-8") as handle:
+                handle.write(text)
+            print("%-22s %-9s %2d finding(s)  %6d B"
+                  % (name, suffix or "inlined", len(batch["findings"]), len(text)))
     print("\npin: %s" % args.pin)
+    print("evidence attached by ox: %s" % ", ".join(EVIDENCE))
     return 0
 
 
@@ -237,24 +316,32 @@ def cmd_run(args):
     os.makedirs(empty, exist_ok=True)
     failures = 0
     for name in todo:
-        batch_path = os.path.join(args.work, "batch-%s.txt" % name)
+        stem = os.path.join(args.work, "%s-%s" % (args.arm, name))
+        is_ox = arm.get("evidence") == "files"
+        batch_path = os.path.join(
+            args.work, "batch-%s%s.txt" % (name, ".nofiles" if is_ox else ""))
         if not os.path.exists(batch_path):
             sys.stderr.write("verifiercheck: %s missing; run `build` first\n"
                              % batch_path)
             return 2
         with open(batch_path, encoding="utf-8") as handle:
             prompt = handle.read()
-        cmd = list(arm["cmd"])
-        stdin = None
-        if arm["prompt"] == "stdin":
-            stdin = prompt
+        if is_ox:
+            if not args.pin:
+                sys.stderr.write("verifiercheck: an ox arm needs --pin\n")
+                return 2
+            cmd, stdin, cwd = ox_command(arm, args.pin, stem), prompt, HERE
         else:
-            cmd.append(arm["prompt"].format(prompt=prompt))
+            cmd, stdin, cwd = list(arm["cmd"]), None, empty
+            if arm["prompt"] == "stdin":
+                stdin = prompt
+            else:
+                cmd.append(arm["prompt"].format(prompt=prompt))
         sys.stderr.write("verifiercheck: arm=%s batch=%s bytes=%d\n"
                          % (args.arm, name, len(prompt)))
         try:
             proc = subprocess.run(
-                cmd, input=stdin, cwd=empty, capture_output=True,
+                cmd, input=stdin, cwd=cwd, capture_output=True,
                 text=True, timeout=args.timeout, check=False,
             )
         except subprocess.TimeoutExpired:
@@ -263,9 +350,21 @@ def cmd_run(args):
             failures += 1
             continue
 
-        stem = os.path.join(args.work, "%s-%s" % (args.arm, name))
-        with open(stem + ".raw.txt", "w", encoding="utf-8") as handle:
-            handle.write(proc.stdout)
+        # ox writes the answer to --output itself and keeps stdout for its
+        # banner; the CLI arms answer on stdout. Always keep stderr for an ox
+        # run even on success -- the banner carries model, effort and the token
+        # line, and it is the only place the venue's own framing survives.
+        if is_ox:
+            with open(stem + ".stderr.txt", "w", encoding="utf-8") as handle:
+                handle.write(proc.stderr)
+            reply = ""
+            if os.path.exists(stem + ".raw.txt"):
+                with open(stem + ".raw.txt", encoding="utf-8") as handle:
+                    reply = handle.read()
+        else:
+            reply = proc.stdout
+            with open(stem + ".raw.txt", "w", encoding="utf-8") as handle:
+                handle.write(reply)
         if proc.returncode != 0:
             with open(stem + ".stderr.txt", "w", encoding="utf-8") as handle:
                 handle.write(proc.stderr)
@@ -273,7 +372,7 @@ def cmd_run(args):
                              % (args.arm, name, proc.returncode))
             failures += 1
             continue
-        parsed = extract_json(proc.stdout)
+        parsed = extract_json(reply)
         if parsed is None:
             sys.stderr.write("verifiercheck: arm=%s batch=%s produced no JSON; "
                              "raw reply kept at %s.raw.txt\n" % (args.arm, name, stem))
@@ -281,9 +380,77 @@ def cmd_run(args):
             continue
         with open(stem + ".json", "w", encoding="utf-8") as handle:
             json.dump(parsed, handle, indent=2)
-        print("%-8s %-22s %d verdict(s)"
-              % (args.arm, name, len(parsed.get("verdicts", []))))
+        if is_ox:
+            got = resolved_effort(read_status(stem))
+            if got != arm["effort"]:
+                sys.stderr.write(
+                    "verifiercheck: arm=%s batch=%s WENT OUT AT effort=%s, "
+                    "wanted %s -- the run is at the wrong rung and its cost is "
+                    "not comparable\n" % (args.arm, name, got, arm["effort"]))
+                failures += 1
+        print("%-10s %-22s %d verdict(s)%s"
+              % (args.arm, name, len(parsed.get("verdicts", [])),
+                 "  " + token_line(stem) if arm["priced"] else ""))
     return 1 if failures else 0
+
+
+PRICES = {
+    # USD per token, from the live OpenRouter catalog on 2026-09-03. Kept here
+    # rather than read from catalogs/ because gemini-3.8-flash post-dates the
+    # newest archived capture (2026-09-01); the next ./oxsurvey run supersedes
+    # this and the figures should be recomputed from the archive then.
+    "anthropic/claude-opus-5": (5.0e-6, 25.0e-6),
+    "google/gemini-3.8-flash": (0.75e-6, 3.75e-6),
+}
+
+
+def read_status(stem):
+    path = stem + ".status.json"
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def resolved_effort(status):
+    """The effort level the request actually went out at, from the run's log.
+
+    Not the flag that was typed. `meta.json`'s effort field records the level ox
+    resolved to, which is the only thing that survives the ways a run can go out
+    at the wrong rung. Passing --effort as a flag fails loudly on an ox that does
+    not know the level, but an effort set through a manifest entry is silently
+    ignored by an older ox and resolves to its built-in default -- a completed,
+    priced, plausible run at a rung nobody chose, with nothing in stderr to say
+    so. Checking the log catches both, and catches a tree that moved underneath
+    the run, which no promise from anyone else can.
+    """
+    if not status or not status.get("log_dir"):
+        return None
+    path = os.path.join(status["log_dir"], "meta.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle).get("effort")
+
+
+def priced(model, status):
+    """USD for one ox run. Computed from the catalog, never billed."""
+    rates = PRICES.get(model)
+    if not rates or not status or status.get("prompt_tokens") is None:
+        return None
+    prompt = status.get("prompt_tokens") or 0
+    completion = status.get("completion_tokens") or 0
+    return prompt * rates[0] + completion * rates[1]
+
+
+def token_line(stem):
+    status = read_status(stem)
+    if not status:
+        return "(no status)"
+    usd = priced(status.get("model", ""), status)
+    return "prompt=%s completion=%s%s" % (
+        status.get("prompt_tokens"), status.get("completion_tokens"),
+        " usd=$%.4f" % usd if usd is not None else "")
 
 
 def read_arm(work, arm, name):
@@ -358,6 +525,92 @@ def cmd_score(args):
               % (arm, len(scored), len(ok), len(miss), len(false)))
     print("\nmiss  = a defect the key calls real, refuted by the arm")
     print("false = an invention the key refutes, confirmed by the arm")
+
+    # ok/miss/false still lets a bad supervisor look reasonable, because an arm
+    # that confirms nearly everything scores every real defect correct. What a
+    # supervisor is actually for is the CONFIRMED list a human then reads, so
+    # the figures that matter are how much of that list is worth reading
+    # (precision) and how much of the real defect set reached it (recall). An
+    # arm with perfect recall and poor precision has not saved any money; it has
+    # moved the cost to whoever reads its output.
+    print("\n## The list a human would have to read\n")
+    head = "%-10s %9s %8s %10s %9s %8s" % (
+        "arm", "confirmed", "of which", "precision", "real found", "recall")
+    print(head)
+    print("-" * len(head))
+    for arm in arms:
+        scored = [r for r in rows if r[arm] != "-"]
+        confirmed = [r for r in scored if r[arm] == "CONFIRMED"]
+        good = [r for r in confirmed if "CONFIRMED" in r["accept"]]
+        reals = [r for r in scored if r["accept"] == ["CONFIRMED"]]
+        found = [r for r in reals if r[arm] == "CONFIRMED"]
+        print("%-10s %9d %8d %10s %9s %8s"
+              % (arm, len(confirmed), len(good),
+                 "%.0f%%" % (100.0 * len(good) / len(confirmed))
+                 if confirmed else "n/a",
+                 "%d of %d" % (len(found), len(reals)),
+                 "%.0f%%" % (100.0 * len(found) / len(reals)) if reals else "n/a"))
+
+    # The economics. A review costs the candidate's tokens plus the supervisor's,
+    # and only the supervisor's scale with how much the candidate emitted -- so
+    # an inventive candidate is expensive twice over, once in its own tokens and
+    # again in everything spent refuting it. The figure that matters is not cost
+    # per run but cost per finding that survived verification.
+    real = sum(1 for b in key["batches"] for f in b["findings"]
+               if f["accept"] == ["CONFIRMED"])
+    emitted = sum(len(b["findings"]) for b in key["batches"])
+    priced_arms = [a for a in arms if ARMS.get(a, {}).get("priced")]
+    if priced_arms:
+        print("\n## What the supervisor cost\n")
+        head = ("%-12s %8s %11s %11s %9s %11s"
+                % ("arm", "runs", "prompt", "completion", "usd", "usd/real"))
+        print(head)
+        print("-" * len(head))
+        for arm in priced_arms:
+            runs = prompt = completion = 0
+            total = 0.0
+            for batch in key["batches"]:
+                stem = os.path.join(args.work, "%s-%s" % (arm, slug(batch["model"])))
+                status = read_status(stem)
+                # ox writes a status file on every exit, so one can exist with
+                # null token counts -- a run still in flight, or one that failed
+                # before the venue answered. Counting it as a run would divide a
+                # real total by an inflated denominator and quietly understate
+                # what a supervisor costs.
+                if not status or status.get("prompt_tokens") is None:
+                    continue
+                runs += 1
+                prompt += status.get("prompt_tokens") or 0
+                completion += status.get("completion_tokens") or 0
+                total += priced(ARMS[arm]["model"], status) or 0.0
+            print("%-12s %8d %11s %11s %9s %11s"
+                  % (arm, runs, "{:,}".format(prompt), "{:,}".format(completion),
+                     "$%.4f" % total,
+                     "$%.4f" % (total / real) if real else "n/a"))
+        print("\n%d findings emitted by the five candidates, %d real by the key."
+              % (emitted, real))
+        print("usd is computed from catalog list price, not billed.")
+
+        # Per batch, because this is where the answer lives: supervision is
+        # charged per finding emitted, not per finding that turns out to be
+        # real, so a candidate's invention rate is a multiplier on the
+        # supervisor's bill and not only on the reader's patience.
+        print("\n## Supervision charged per batch\n")
+        head = "%-20s %8s %6s" % ("batch (candidate)", "emitted", "real")
+        for arm in priced_arms:
+            head += " %11s" % arm
+        print(head)
+        print("-" * len(head))
+        for batch in key["batches"]:
+            name = slug(batch["model"])
+            n = len(batch["findings"])
+            nreal = sum(1 for f in batch["findings"] if f["accept"] == ["CONFIRMED"])
+            line = "%-20s %8d %6d" % (name, n, nreal)
+            for arm in priced_arms:
+                status = read_status(os.path.join(args.work, "%s-%s" % (arm, name)))
+                usd = priced(ARMS[arm]["model"], status) if status else None
+                line += " %11s" % ("$%.4f" % usd if usd is not None else "-")
+            print(line)
     if missing:
         print("\nNOT RUN: %s" % ", ".join(missing))
     if extra:
@@ -382,6 +635,8 @@ def main():
 
     run = subs.add_parser("run", help="put one or all batches to one arm")
     run.add_argument("--arm", required=True, choices=sorted(ARMS))
+    run.add_argument("--pin", help="required for an ox arm, which attaches the "
+                                   "pinned tree with --files")
     run.add_argument("--batch")
     run.add_argument("--all", action="store_true")
     run.add_argument("--timeout", type=int, default=900)

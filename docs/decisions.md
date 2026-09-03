@@ -293,6 +293,26 @@ cheap verifier ever *were* adopted, the observations it produces should say whic
 arm verified them in the `agent:` field, exactly as the Fable-verified rows do
 now; the field already carries that meaning and needs no new rule.
 
+**Cost is measured through ox, not through a subscription.** A subscription CLI
+is the cheapest way to run an arm and the worst way to measure one: agy publishes
+no token accounting at all, so its half of a comparison cannot be reported under
+the rule that a findings run reports both halves of its cost. Priced arms
+therefore go through `ox` against OpenRouter, where the venue's usage returns in
+`status.json` and `costcheck.py` prices it from the archived catalog, and each
+model runs at its own `default_effort` rather than a matched rung -- the question
+is what a supervisor costs to run, and a matched rung prices a setting nobody
+would choose. If Google ever adds usage reporting to agy, a subscription arm
+becomes measurable and this narrows to a preference rather than a requirement.
+
+**A supervisor is scored on the list it hands back, not on its accuracy.** An arm
+that confirms nearly everything scores every real defect correct and is useless,
+because the job is filtering inventions out. `score` therefore reports precision
+and recall over the CONFIRMED list beside ok/miss/false. The first run showed why:
+the cheap arm reached 100% recall at 44% precision, catching a defect every other
+arm missed while confirming six of eight findings in that batch, and cost $0.90
+less while handing a human six more findings to read. A saving denominated in
+tokens against a cost denominated in human attention is not a saving.
+
 The first run also turned up a question worth more than the comparison did: the
 Opus arm **refuted a defect in one batch and confirmed the same defect in
 another**, the two batches differing only in how the candidate had worded the

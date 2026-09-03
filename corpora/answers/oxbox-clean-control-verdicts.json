@@ -138,7 +138,7 @@
         },
         {
           "id": "L2",
-          "label": "udp_send can report FAIL on a correctly contained jail if egress is a firewall DROP rather than seccomp or a netns -- self-labelled UNCERTAIN by the model",
+          "label": "udp_send can report FAIL on a correctly contained jail if egress is a firewall DROP rather than seccomp or a netns -- self-labeled UNCERTAIN by the model",
           "accept": ["REFUTED"],
           "recorded": "invention, fenced by the model itself",
           "settles_it": "jail.sb:7 (deny network*) and oxbox:179 --unshare-all both raise. Line cite is wrong: ~78-81 is inside tcp_connect; udp_send is :87-90."
@@ -153,9 +153,10 @@
         {
           "id": "L4",
           "label": "jailtest-ok.txt is never removed; dirties git status and accumulates unboundedly",
-          "accept": ["CONFIRMED", "UNCERTAIN"],
+          "accept": ["REFUTED"],
           "recorded": "true, negligible",
-          "settles_it": "The file is left behind (:112-114; it must survive for :117-119). Both stated consequences are false -- the work dir is sandbox/work (oxbox:43-45, enforced :315-319), sandbox/ is gitignored (.gitignore:3), and a fixed name opened \"w\" is one file, not many. REFUTED is wrong: the file genuinely is never removed."
+          "corrected": "2026-09-03. This row first accepted CONFIRMED|UNCERTAIN, by mapping the observation's 'true, negligible' the same way P3's was mapped. That was a transcription error and all four verifier arms caught it, unanimously and with the observation's own reasoning. The two rows are not the same category: P3's described consequence happens and is merely harmless, while L4's two described consequences -- a dirtied git status and unbounded accumulation -- do not happen at all. The contract asks whether the described failure occurs, so REFUTED is the correct verdict and the arms were right against the key.",
+          "settles_it": "The file is left behind (:112-114; it must survive for :117-119), but both stated consequences are false -- the work dir is sandbox/work (oxbox:43-45, enforced :315-319), sandbox/ is gitignored (.gitignore:3), and a fixed name opened \"w\" is one file, not many. The bare fact that the file is never removed is not what the finding claimed."
         }
       ]
     }

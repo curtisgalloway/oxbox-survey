@@ -1,11 +1,11 @@
 You are verifying a batch of code-review findings produced by another model.
 
-The source included below is the ONLY authority. It is one project pinned at one
-commit, with no history attached. Do not rely on any other copy of this project,
-and do not rely on remembering it — the code below may differ from the version
-you have seen, and where they differ this one is right. If settling a finding
-would need a file that is not here, that is not a licence to assume: say
-UNCERTAIN and name the file you would have read.
+The source included with this request is the ONLY authority. It is one project
+pinned at one commit, with no history attached. Do not rely on any other copy of
+this project, and do not rely on remembering it — the code you are given may
+differ from the version you have seen, and where they differ this one is right.
+If settling a finding would need a file that is not here, that is not a license
+to assume: say UNCERTAIN and name the file you would have read.
 
 You did not write these findings and you are not being asked to improve them.
 For each finding, decide one thing: at this pin, does the described failure
@@ -26,7 +26,9 @@ Verdicts, exactly one per finding:
   REFUTED    It does not happen at this pin. You can name what prevents it.
   UNCERTAIN  The source does not settle it, or it turns on something outside
              the source. Use this when it is true — an unjustified CONFIRMED
-             and an unjustified REFUTED are both wrong answers.
+             and an unjustified REFUTED are both wrong answers. Do not reach
+             for it to avoid committing: a finding the source does settle has
+             a CONFIRMED or a REFUTED answer and saying UNCERTAIN is wrong.
 
 Do not weigh how confident the finding sounds. A hedged finding that is true is
 CONFIRMED; a forcefully argued one that cannot happen is REFUTED.
