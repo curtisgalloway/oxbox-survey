@@ -36,10 +36,14 @@ express the setting.
 
 ## Result
 
+Scores below are against the **corrected** key — L4 was fixed after generation 2,
+see "The correction the arms forced". As first published this section read 12 and
+11; the L4 row moved both arms up one and is not a difference between them.
+
 | arm | scored | correct | missed a real defect | confirmed an invention |
 |---|---|---|---|---|
-| opus | 15 | 12 | 2 | 1 |
-| gemini | 15 | 11 | 3 | 1 |
+| opus | 15 | 13 | 1 | 1 |
+| gemini | 15 | 12 | 2 | 1 |
 
 | id | batch | opus | gemini | key |
 |---|---|---|---|---|
@@ -57,11 +61,11 @@ express the setting.
 | **L1** | glm-5.3-flash | CONFIRMED | **REFUTED** | CONFIRMED |
 | L2 | glm-5.3-flash | REFUTED | REFUTED | REFUTED |
 | L3 | glm-5.3-flash | REFUTED | REFUTED | REFUTED |
-| **L4** | glm-5.3-flash | **REFUTED** | **REFUTED** | CONFIRMED\|UNCERTAIN |
+| L4 | glm-5.3-flash | REFUTED | REFUTED | REFUTED *(corrected)* |
 
 ## One point apart, and the point is not the interesting part
 
-12 against 11 on fifteen rows is not a result. Two things underneath it are.
+13 against 12 on fifteen rows is not a result. Two things underneath it are.
 
 **The same arm gave the same defect opposite verdicts.** P2 and L1 are one bug —
 the network probes record any exception as containment, so on a host with no
@@ -77,9 +81,9 @@ That is worse than being wrong. An arm that misses a defect consistently can be
 corrected with a rule; an arm whose verdict depends on how the finding was worded
 cannot, and a single run of it cannot be distinguished from a careful one.
 
-**Both arms missed the same two rows.** P2, and L4 (the marker file that is never
-removed — true, and negligible, which is a verdict neither arm reached). The two
-arms disagreed on four rows in all: on P3 both answers are acceptable, on P7 and
+**Both arms missed the same row.** P2 — and, as first scored, L4 as well, which
+turned out to be the key's error rather than theirs. The two arms disagreed on
+four rows in all: on P3 both answers are acceptable, on P7 and
 L1 the key sides with Opus, and on P6 it sides with Gemini. So the cheap arm was
 not the reckless one — **Opus confirmed an invention that Gemini correctly
 refused** — and each arm's single false confirm landed on a different row.
@@ -89,7 +93,7 @@ consequence of certifying an uncontained jail as contained cannot occur because
 oxbox unconditionally denies network egress" — a coherent reading that answers a
 narrower question than the one the key asks. The key's ground is the file's own
 docstring standard, *passing by not looking*, which is a judgment about intent,
-not a fact about the sandbox. Two of the three shared errors are of that kind.
+not a fact about the sandbox.
 
 ## Cost
 
@@ -183,37 +187,57 @@ and the disagreement list is what surfaced it.
 | L3 | REFUTED | REFUTED | REFUTED | REFUTED | REFUTED |
 | L4 | REFUTED | REFUTED | REFUTED | REFUTED | REFUTED |
 
-**Opus is harness-independent.** `opus` (claude -p, source inlined) and `or-opus`
-(ox, source as `--files`) returned identical verdicts on all fifteen findings,
-across different harnesses, different payload shapes and different tokenizers.
-Whatever generation 1 measured, it was not a harness artifact.
+**Opus is harness-independent and wording-dependent, and both are in this table.**
+`opus` (claude -p, source inlined) and `or-opus` (ox, source as `--files`)
+returned identical verdicts on all fifteen findings, across different harnesses,
+payload shapes and tokenizers. Whatever generation 1 measured, it was not a
+harness artifact. But the same table shows both Opus arms refusing P2 and
+confirming L1 -- **one defect, two wordings, opposite verdicts** -- so generation
+1's wording effect survives into generation 2 on the same model. The two facts
+are not in tension and a reader given only the first will over-read it: what is
+stable across harnesses is not thereby stable across how a candidate phrased its
+finding.
 
-**Gemini is not.** The two Gemini arms are the same model at the same effort and
-they disagree on six of fifteen, including L1 -- the real defect -- which agy
-refuted and ox confirmed.
+**Gemini is neither.** The two Gemini arms are the same model at the same effort
+and they disagree on six of fifteen, including L1.
 
 ## The number that answers the question
 
-| arm | confirmed | of which real | precision | real found | recall | usd |
+Recall is counted over **distinct defects**, not findings. P2 and L1 are one bug,
+so counting them separately would score an arm as having found and missed the
+same defect at once. P3 is excluded from both columns: its key accepts either
+CONFIRMED or UNCERTAIN, so confirming it is not a false positive and declining to
+is not a miss, and a row the record refuses to adjudicate cannot be evidence
+against either arm. That exclusion is also the only choice not made by which arm
+it flatters -- scoring P3 as real costs the arm that hedged it, scoring it as not
+real costs the arm that confirmed it.
+
+| arm | confirmed | of which real | precision | defects found | recall | usd |
 |---|---|---|---|---|---|---|
-| or-opus | 3 | 2 | 67% | 2 of 3 | 67% | $1.0946 |
-| or-gemini | 9 | 4 | 44% | 3 of 3 | 100% | $0.1938 |
+| or-opus | 3 | 2 | 67% | 2 of 2 | 100% | $1.0946 |
+| or-gemini | 8 | 3 | 38% | 2 of 2 | 100% | $0.1938 |
 
-`or-gemini` is the only arm that caught P2 -- and it caught it by confirming six
-of the eight findings in that batch. That is not judgment, it is a confirm bias,
-and it is the one failure mode that makes a supervisor worthless: the entire job
-is filtering inventions out, and an arm that confirms them passes the cost
-downstream instead of paying it.
+**Both arms found every real defect.** The recall column is not where they differ
+and the argument does not rest on it. They differ entirely in what else came back:
+`or-opus` hands a human three findings to read, `or-gemini` hands back eight for
+the same two defects.
 
-So the cheap supervisor costs **$0.90 less** and hands a human **six more
-findings to read**. It is economical only if reading and dismissing a code-review
-finding against source is worth less than about **fifteen cents**. It is not --
-that is minutes of attention per finding, on exactly the task the supervisor
-existed to avoid.
+`or-gemini` was the only arm to confirm P2 in its own wording -- and it did so
+while confirming six of the eight findings in that batch. Catching a real defect
+is not evidence of judgment in an arm that confirms nearly everything, and confirm
+bias is the one failure mode that makes a supervisor worthless: the entire job is
+filtering inventions out, and an arm that confirms them passes the cost downstream
+instead of paying it.
+
+So the cheap supervisor costs **$0.90 less** and hands back **five more findings
+to read**. It is economical only if reading a code-review finding and dismissing
+it against source is worth less than about **eighteen cents**. It is not -- that
+is minutes of attention per finding, on exactly the task the supervisor existed
+to do.
 
 **On this evidence, no.** A 5.6x cheaper supervisor did not make cheap candidates
-economical, because the saving is denominated in tokens and the cost it creates
-is denominated in human attention, and the second is the expensive one.
+economical. The saving is denominated in tokens and the cost it creates is
+denominated in human attention, and the second is the expensive one.
 
 ## Where the money actually goes
 
@@ -259,6 +283,13 @@ discarded and billed as zero tokens. It succeeded on one retry. One failure in
 ten runs is not a rate, but a supervisor is infrastructure, and infrastructure
 that drops a request after doing the work is a different proposition from one
 that does not.
+
+The run log for that failure is at
+`~/.cache/oxbox-verifier/runs-2026-09-03/ox-logs/2026-09-03T21-09-18Z/`, with the
+502 body in `response.json`. It was first written to a session scratchpad, which
+is cleaned; an availability claim whose evidence has been deleted is a claim
+nobody can check, so the whole run set was copied somewhere durable. Point
+`--work` at a durable path when the runs are meant to be citable later.
 
 ## What this licenses now
 

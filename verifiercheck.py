@@ -38,6 +38,7 @@ and settles. `score` prints that list first for exactly that reason.
 """
 
 import argparse
+import collections
 import json
 import os
 import re
@@ -479,7 +480,8 @@ def cmd_score(args):
                     extra.append("%s/%s invented id %r" % (arm, name, vid))
         for finding in batch["findings"]:
             row = {"batch": name, "id": finding["id"],
-                   "accept": finding["accept"], "recorded": finding["recorded"]}
+                   "accept": finding["accept"], "recorded": finding["recorded"],
+                   "defect": finding.get("defect")}
             for arm in arms:
                 verdicts = got.get(arm) or {}
                 entry = verdicts.get(finding["id"])
@@ -535,29 +537,53 @@ def cmd_score(args):
     # moved the cost to whoever reads its output.
     print("\n## The list a human would have to read\n")
     head = "%-10s %9s %8s %10s %9s %8s" % (
-        "arm", "confirmed", "of which", "precision", "real found", "recall")
+        "arm", "confirmed", "of which", "precision", "defects", "recall")
     print(head)
     print("-" * len(head))
     for arm in arms:
-        scored = [r for r in rows if r[arm] != "-"]
+        # A row whose key accepts more than one verdict is one the record
+        # declines to adjudicate, and it cannot be evidence for or against an
+        # arm: confirming it is not a false positive, and not confirming it is
+        # not a miss. It is therefore excluded from BOTH sides. The first
+        # version of this counted such a row as real in the precision numerator
+        # and not real in the recall denominator, which mixed two different
+        # definitions in one line and made the arms not comparable to each
+        # other. Excluding it is also the only resolution that does not let the
+        # choice be made by which arm it happens to flatter -- scoring the row
+        # as real weakens the arm that hedged it, scoring it as not real
+        # weakens the arm that confirmed it, and neither is a reason.
+        scored = [r for r in rows if r[arm] != "-" and len(r["accept"]) == 1]
         confirmed = [r for r in scored if r[arm] == "CONFIRMED"]
         good = [r for r in confirmed if "CONFIRMED" in r["accept"]]
+        # Recall is over distinct DEFECTS, not findings. Two candidates can find
+        # one bug and describe it differently -- P2 and L1 are the same defect --
+        # and counting those as two lets an arm be scored as having found and
+        # missed the same bug at once, which is exactly what happened to or-opus
+        # at "2 of 3" before this. A defect counts as found if the arm confirmed
+        # any finding describing it.
         reals = [r for r in scored if r["accept"] == ["CONFIRMED"]]
-        found = [r for r in reals if r[arm] == "CONFIRMED"]
+        defects = collections.defaultdict(list)
+        for row in reals:
+            defects[row.get("defect") or row["id"]].append(row)
+        found = [d for d, group in defects.items()
+                 if any(r[arm] == "CONFIRMED" for r in group)]
         print("%-10s %9d %8d %10s %9s %8s"
               % (arm, len(confirmed), len(good),
                  "%.0f%%" % (100.0 * len(good) / len(confirmed))
                  if confirmed else "n/a",
-                 "%d of %d" % (len(found), len(reals)),
-                 "%.0f%%" % (100.0 * len(found) / len(reals)) if reals else "n/a"))
+                 "%d of %d" % (len(found), len(defects)),
+                 "%.0f%%" % (100.0 * len(found) / len(defects))
+                 if defects else "n/a"))
 
     # The economics. A review costs the candidate's tokens plus the supervisor's,
     # and only the supervisor's scale with how much the candidate emitted -- so
     # an inventive candidate is expensive twice over, once in its own tokens and
     # again in everything spent refuting it. The figure that matters is not cost
     # per run but cost per finding that survived verification.
-    real = sum(1 for b in key["batches"] for f in b["findings"]
-               if f["accept"] == ["CONFIRMED"])
+    # Distinct defects, not findings, for the same reason recall is: P2 and L1
+    # are one bug and dividing by three would understate the cost of each.
+    real = len({f.get("defect") or f["id"] for b in key["batches"]
+                for f in b["findings"] if f["accept"] == ["CONFIRMED"]})
     emitted = sum(len(b["findings"]) for b in key["batches"])
     priced_arms = [a for a in arms if ARMS.get(a, {}).get("priced")]
     if priced_arms:

@@ -5,7 +5,11 @@
   "built": "2026-09-03",
   "note": "The verdict key for the reviewer comparison, NOT for the fixture. corpora/answers/oxbox-clean-control.md is the candidate's answer key -- what a model reviewing jailtest.py should and should not find. This file is one layer up: the fifteen findings five baselines actually emitted on 2026-09-02, and what a verifier reading the pin should say about each. It scores the reviewing agent, not the reviewed model.",
   "provenance": "Transcribed from the per-finding verdict tables in the five 2026-09-02 clean-control observations. Those verdicts were reached by claude-fable-5-1 (sonnet, gemini, gpt rows) and claude-opus-5 (glm row) and reviewed by the maintainer. They are therefore NOT independent of the Claude arm of any comparison that uses them -- see docs/decisions.md, 'Comparing verifiers'. Disagreements between a candidate verifier and this key are the rows a human has to read; agreement with it proves less than it looks like.",
-  "verdicts": ["CONFIRMED", "REFUTED", "UNCERTAIN"],
+  "verdicts": [
+    "CONFIRMED",
+    "REFUTED",
+    "UNCERTAIN"
+  ],
   "scoring": "A finding is scored correct when the verifier's verdict is in its `accept` list. Two findings accept either CONFIRMED or UNCERTAIN: both were recorded as true-but-negligible -- the mechanism holds and the only consequence is a failure in the safe direction. REFUTED is wrong for those two, because the mechanism does hold.",
   "batches": [
     {
@@ -19,14 +23,18 @@
         {
           "id": "S1",
           "label": "read_probe's os.path.isdir branch is defeated by the jail's stat denial, so a leaked directory gets open() -> IsADirectoryError -> a false PASS",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "mechanism accurate, consequence unreachable",
           "settles_it": "jail.sb:6,28,60-67 allow file-read* per path -- data and metadata together, with no global file-read-metadata -- so a directory that leaks also leaks its stat, isdir is True and listdir runs. bubblewrap never binds the hidden paths at all."
         },
         {
           "id": "S2",
           "label": "write_probe is dead code; writability of sensitive paths is never tested",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention, the one the answer key pre-registers",
           "settles_it": "The comment block above env_canary states that escape-write verification lives in guardtest.py because the two backends disagree when judged from inside the jail."
         }
@@ -42,9 +50,12 @@
         {
           "id": "G1",
           "label": "stat_outside unconditionally stats EXISTING[0]; when that is /etc/shadow the stat succeeds, probe() reads success as a leak, and the suite exits 1 on a sandbox that is working",
-          "accept": ["CONFIRMED"],
+          "accept": [
+            "CONFIRMED"
+          ],
           "recorded": "real",
-          "settles_it": "jailtest.py:93-94,134 -- the oracle is os.stat(EXISTING[0]) expected blocked. oxbox:93-107 sensitive_paths() puts /etc/shadow last on non-Darwin but :343 filters by lexists preserving order, so it is first when no home-relative entry and no .env exists; oxbox:190-197 --ro-binds /etc, so the stat succeeds at any uid. Model line cites are ~14 lines low; the code it quotes is the code that is there. Fixed after the pin in 0090c35."
+          "settles_it": "jailtest.py:93-94,134 -- the oracle is os.stat(EXISTING[0]) expected blocked. oxbox:93-107 sensitive_paths() puts /etc/shadow last on non-Darwin but :343 filters by lexists preserving order, so it is first when no home-relative entry and no .env exists; oxbox:190-197 --ro-binds /etc, so the stat succeeds at any uid. Model line cites are ~14 lines low; the code it quotes is the code that is there. Fixed after the pin in 0090c35.",
+          "defect": "stat-oracle-existing-0"
         }
       ]
     },
@@ -58,56 +69,74 @@
         {
           "id": "P1",
           "label": "A missing OXBOX_EXISTING_PATHS is treated like an empty list, so every filesystem probe skips and the script can exit 0",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "The skip prints [SKIP] fs reads; the launcher always sets the variable (oxbox:352); the file's stated rule is that a probe which cannot test skips rather than answers."
         },
         {
           "id": "P2",
           "label": "Network probes treat every exception as enforcement; a host with no default route raises ENETUNREACH/gaierror and all three PASS",
-          "accept": ["CONFIRMED"],
+          "accept": [
+            "CONFIRMED"
+          ],
           "recorded": "real",
-          "settles_it": "jailtest.py:48-53 records blocked=True on any raise, probes unconditional. Under bubblewrap --unshare-net the jail's own denial is also ENETUNREACH, so no exception-type check can separate the two from inside. Fixed after the pin in 0090c35 via an outside-the-jail OXBOX_HOST_HAS_ROUTE oracle."
+          "settles_it": "jailtest.py:48-53 records blocked=True on any raise, probes unconditional. Under bubblewrap --unshare-net the jail's own denial is also ENETUNREACH, so no exception-type check can separate the two from inside. Fixed after the pin in 0090c35 via an outside-the-jail OXBOX_HOST_HAS_ROUTE oracle.",
+          "defect": "offline-probes-vacuous"
         },
         {
           "id": "P3",
           "label": "getaddrinfo can succeed from /etc/hosts, reporting a DNS leak that is not one",
-          "accept": ["CONFIRMED", "UNCERTAIN"],
+          "accept": [
+            "CONFIRMED",
+            "UNCERTAIN"
+          ],
           "recorded": "true, negligible",
           "settles_it": "Needs an /etc/hosts entry for example.com, and the error is in the safe direction -- a false FAIL, not a false PASS. Not changed. REFUTED is wrong: the mechanism does hold."
         },
         {
           "id": "P4",
           "label": "UDP sendto success only proves the kernel queued it; a silent firewall drop reads as a leak",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "The probe measures whether the sandbox lets the syscall through, and (deny network*) makes it raise. A downstream firewall is a different system, and the direction is again a false FAIL."
         },
         {
           "id": "P5",
           "label": "os.path.isdir swallows the denied stat, so a directory the policy lets you list but not stat is opened instead and IsADirectoryError counts as blocked",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "Same claim as S1. The policy it needs -- listing allowed, metadata denied -- is not one either backend can express for a sensitive path."
         },
         {
           "id": "P6",
           "label": "Metadata is tested only on EXISTING[0]; a stat leak on a later path goes unnoticed",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "The oracle is a canary for one specific mistake, a global file-read-metadata allow (jail.sb:60-67 says so), which is all-or-nothing. A per-path metadata leak would need a per-path allow rule that does not exist. A stat per path would be an improvement, not a defect."
         },
         {
           "id": "P7",
           "label": "write_inside uses a fixed filename, can truncate existing data, and can make a non-writable directory look writable",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "The work dir is the sandbox's own scratch and jailtest-ok.txt is the test's own file. The second half needs a directory that forbids creating files while allowing a truncating open of one that exists, which is not the sandbox's write policy."
         },
         {
           "id": "P8",
           "label": "No write probe against sensitive paths, so the standalone run cannot show they are unwritable",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention, the pre-registered one in a different coat",
           "settles_it": "Same as S2: the comment block above env_canary explains that escape-write verification lives in guardtest.py."
         }
@@ -132,33 +161,43 @@
         {
           "id": "L1",
           "label": "probe() scores any exception as containment; an offline host gives ENETUNREACH/EHOSTUNREACH and EAI_FAIL/EAI_AGAIN, all three PASS, exit 0",
-          "accept": ["CONFIRMED"],
+          "accept": [
+            "CONFIRMED"
+          ],
           "recorded": "real",
-          "settles_it": "Same defect as P2, found independently. jailtest.py:52-54 blocked=True on any raise; probes unconditional at :122-124; verdict at :168-171. Fixed after the pin in 0090c35."
+          "settles_it": "Same defect as P2, found independently. jailtest.py:52-54 blocked=True on any raise; probes unconditional at :122-124; verdict at :168-171. Fixed after the pin in 0090c35.",
+          "defect": "offline-probes-vacuous"
         },
         {
           "id": "L2",
           "label": "udp_send can report FAIL on a correctly contained jail if egress is a firewall DROP rather than seccomp or a netns -- self-labeled UNCERTAIN by the model",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention, fenced by the model itself",
           "settles_it": "jail.sb:7 (deny network*) and oxbox:179 --unshare-all both raise. Line cite is wrong: ~78-81 is inside tcp_connect; udp_send is :87-90."
         },
         {
           "id": "L3",
           "label": "WORK = os.environ.get(\"HOME\", \"\") falls back to cwd, so the work-dir probes test the wrong place",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "invention",
           "settles_it": "Mechanism right (:21), consequence unreachable: HOME is always the work dir (oxbox:348-349, re-injected past --clearenv at :365-370) and cwd is the work dir anyway (oxbox:377 os.chdir(work), :201 --chdir)."
         },
         {
           "id": "L4",
           "label": "jailtest-ok.txt is never removed; dirties git status and accumulates unboundedly",
-          "accept": ["REFUTED"],
+          "accept": [
+            "REFUTED"
+          ],
           "recorded": "true, negligible",
           "corrected": "2026-09-03. This row first accepted CONFIRMED|UNCERTAIN, by mapping the observation's 'true, negligible' the same way P3's was mapped. That was a transcription error and all four verifier arms caught it, unanimously and with the observation's own reasoning. The two rows are not the same category: P3's described consequence happens and is merely harmless, while L4's two described consequences -- a dirtied git status and unbounded accumulation -- do not happen at all. The contract asks whether the described failure occurs, so REFUTED is the correct verdict and the arms were right against the key.",
           "settles_it": "The file is left behind (:112-114; it must survive for :117-119), but both stated consequences are false -- the work dir is sandbox/work (oxbox:43-45, enforced :315-319), sandbox/ is gitignored (.gitignore:3), and a fixed name opened \"w\" is one file, not many. The bare fact that the file is never removed is not what the finding claimed."
         }
       ]
     }
-  ]
+  ],
+  "defect_identity": "Findings that describe the SAME underlying defect share a `defect` id. Recall must be counted over distinct defects, not over findings: P2 and L1 are one bug -- the network probes recording any exception as containment -- found independently by gpt-5.6-sol and glm-5.3-flash and worded differently. Counting them separately lets one arm be scored as having found and missed the same defect at once, which is how the first version of this scored or-opus at 2 of 3."
 }
