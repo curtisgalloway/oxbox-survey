@@ -53,6 +53,7 @@ import sys
 from pathlib import Path
 
 TRANSCRIPT_ROOT = Path.home() / ".claude" / "projects"
+CATALOG_ROOT = Path(__file__).resolve().parent / "catalogs"
 
 
 def die(message):
@@ -80,6 +81,56 @@ def parse_stamp(text):
     return raw[:19]
 
 
+def newest_catalog(venue):
+    """The most recent archived catalog for a venue, or None."""
+    found = sorted((CATALOG_ROOT / venue).glob("*.json")) if venue else []
+    return found[-1] if found else None
+
+
+def price_from_catalog(catalog_path, model):
+    """USD per token (prompt, completion) for a model, from an archived catalog.
+
+    Only the OpenRouter shape is read: pricing.prompt / pricing.completion as
+    decimal strings per token. Other venues' archives carry price differently
+    or not at all, and a guess here would be a number nobody measured.
+    """
+    data = json.loads(Path(catalog_path).read_text(encoding="utf-8"))
+    if data.get("venue") != "openrouter":
+        return None
+    rows = (data.get("payload") or {}).get("data") or []
+    for row in rows:
+        if row.get("id") == model:
+            pricing = row.get("pricing") or {}
+            try:
+                return float(pricing.get("prompt")), float(pricing.get("completion"))
+            except (TypeError, ValueError):
+                return None
+    return None
+
+
+def price_run(run, catalog_path=None):
+    """Attach a computed USD figure to a run, and say where the price came from.
+
+    Computed, not billed: OpenRouter only returns the billed figure when the
+    request asks for it, and ox does not. Reasoning tokens are inside the
+    completion count and are billed as output, so completion * output price
+    already covers them. Cached prompt tokens are priced lower and are not
+    corrected for -- none of the corpus runs so far had any.
+    """
+    run["usd"], run["priced_from"] = None, None
+    if run.get("prompt") is None or run.get("completion") is None:
+        return run
+    path = Path(catalog_path) if catalog_path else newest_catalog(run.get("venue"))
+    if not path or not path.exists():
+        return run
+    prices = price_from_catalog(path, run.get("model"))
+    if prices is None:
+        return run
+    run["usd"] = run["prompt"] * prices[0] + run["completion"] * prices[1]
+    run["priced_from"] = path.name
+    return run
+
+
 def read_run(run_dir):
     """The model-under-test half, from an ox log directory."""
     run = Path(run_dir)
@@ -97,7 +148,7 @@ def read_run(run_dir):
         "timestamp": meta.get("timestamp"),
         "manifest": (meta.get("manifest") or {}).get("path"),
         "prompt": None, "completion": None, "reasoning": None,
-        "cached": None, "cost": None,
+        "cached": None, "cost": None, "usd": None, "priced_from": None,
     }
     if not response_path.exists():
         # Two very different things look identical here: a run that failed
@@ -216,26 +267,45 @@ def commas(value):
     return "-" if value is None else "{:,}".format(value)
 
 
+def dollars(run):
+    if run.get("cost") == 0 or run.get("usd") == 0:
+        return "free"
+    if run.get("usd") is None:
+        return "-"
+    return "$%.4f" % run["usd"]
+
+
 def render(runs, totals, span, window, state):
     lines = []
     under = {"prompt": 0, "completion": 0, "reasoning": 0}
     if runs:
         lines.append("### Under test")
         lines.append("")
-        lines.append("| run | model | mode | context | prompt | completion | reasoning | cost |")
+        lines.append("| run | model | mode | context | prompt | completion | reasoning | usd |")
         lines.append("|---|---|---|---|---|---|---|---|")
+        usd_total, priced_from = 0.0, set()
         for run in runs:
             for field in under:
                 under[field] += run.get(field) or 0
+            if run.get("usd") is not None:
+                usd_total += run["usd"]
+                priced_from.add(run["priced_from"])
             lines.append("| `%s` | `%s` | %s | %s B | %s | %s | %s | %s |" % (
                 run.get("timestamp") or "?", run["model"], run["mode"],
                 commas(run["context_bytes"]),
                 commas(run["prompt"]), commas(run["completion"]), commas(run["reasoning"]),
-                "free" if run.get("cost") == 0 else commas(run.get("cost"))))
+                dollars(run)))
         if len(runs) > 1:
-            lines.append("| **total** | | | | %s | %s | %s | |" % (
+            lines.append("| **total** | | | | %s | %s | %s | %s |" % (
                 commas(under["prompt"]), commas(under["completion"]),
-                commas(under["reasoning"])))
+                commas(under["reasoning"]),
+                "$%.4f" % usd_total if priced_from else "-"))
+        if priced_from:
+            lines.append("")
+            lines.append("usd is computed from the archived catalog price (%s), "
+                         "not billed: OpenRouter returns the billed figure only when "
+                         "asked, and ox does not ask. Reasoning tokens are inside "
+                         "completion and priced as output." % ", ".join(sorted(priced_from)))
         for run in runs:
             if run.get("error"):
                 lines.append("")
@@ -306,12 +376,15 @@ def main():
                                       "--project is derived from it")
     parser.add_argument("--from", dest="start", help="window start, UTC (2026-08-30T00:50Z)")
     parser.add_argument("--to", dest="end", help="window end, UTC")
+    parser.add_argument("--catalog", help="an archived catalog to price the run's "
+                                          "tokens from; default is the newest one "
+                                          "under catalogs/<venue>/")
     args = parser.parse_args()
 
     if not args.run and not args.session and not args.project and not args.cwd:
         parser.error("give at least --run, --session, --project or --cwd")
 
-    runs = [read_run(d) for d in args.run]
+    runs = [price_run(read_run(d), args.catalog) for d in args.run]
     start, end = parse_stamp(args.start), parse_stamp(args.end)
 
     paths, state = [], None

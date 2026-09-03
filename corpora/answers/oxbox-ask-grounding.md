@@ -17,7 +17,7 @@ source.
 
 ## Settled by the source
 
-1. **`REQUESTY_API_KEY`.** `VENUES["requesty"]["key_env"]`, line 53.
+1. **`REQUESTY_API_KEY`.** `VENUES["requesty"]["key_env"]`, line 52.
 2. **It does not follow the redirect.** `NoRedirects` (line 114) overrides
    `redirect_request` and the opener is built with it (line 423), so no follow-up
    request is made and the `Authorization` header is never re-sent to the host in

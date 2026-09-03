@@ -1,7 +1,7 @@
 {
   "corpus_version": 0,
   "survey": "The Oxbox Survey",
-  "updated": "2026-08-30",
+  "updated": "2026-09-02",
   "note": "The targets side of the survey. manifests/ says which model to call; this says what to send it. An entry pins a repository at a commit, an exact file list, and the exact prompt text, so two models can be given a byte-identical payload and the difference in their output is theirs. Not dated per issue: a corpus changes when a target moves, not weekly. No expected-findings key by design -- this is a fixture set, not a benchmark. Where a task can be scored mechanically, the criteria live in corpora/answers/ and are measured, not asserted.",
   "defaults": {
     "mode": "review",
@@ -65,7 +65,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "git-apply",
-          "evidence": [],
+          "evidence": ["observations/2026-09-02-sonnet-5-baseline-secret-scanner-fix-right-patterns-wrong-hunk-header-and-a-self-hit.md", "observations/2026-09-02-gemini-3.7-flash-baseline-secret-scanner-fix-passes-all-three-gates.md", "observations/2026-09-02-gpt-5.6-sol-baseline-secret-scanner-fix-passes-all-three-gates-in-2000-tokens.md", "observations/2026-09-02-deepseek-v4-flash-baseline-secret-scanner-fix-corrupt-hunk-and-the-aws-key-still-missed.md", "observations/2026-09-02-glm-5.3-flash-baseline-secret-scanner-fix-passes-and-guarded-the-self-hit-unprompted.md"],
           "notes": "The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8."
         },
         {
@@ -80,7 +80,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "human",
-          "evidence": [],
+          "evidence": ["observations/2026-09-02-sonnet-5-baseline-clean-control-two-findings-zero-real-three-uncertain-all-hedged-right.md", "observations/2026-09-02-gemini-3.7-flash-baseline-clean-control-one-finding-and-it-is-real.md", "observations/2026-09-02-gpt-5.6-sol-baseline-clean-control-eight-findings-one-real-six-invented.md", "observations/2026-09-02-deepseek-v4-flash-baseline-clean-control-no-defects-found-the-ideal-answer-at-the-lowest-price.md", "observations/2026-09-02-glm-5.3-flash-baseline-clean-control-four-findings-one-real-and-it-hedged-the-right-one.md"],
           "notes": "The no-defect control: expected finding count is zero. Pinned one commit LATER than the rest of the project, at 6302b12, where the single real defect this file is known to carry -- unclosed probe sockets, found by MiniMax M3 on 2026-08-29 -- is fixed. The prompt is deliberately indistinguishable from a normal review prompt. Invention rate is otherwise only ever a by-product of a mixed batch; this measures it directly, on 6 KB."
         },
         {
@@ -93,7 +93,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "answer-key",
-          "evidence": [],
+          "evidence": ["observations/2026-09-02-sonnet-5-baseline-ask-grounding-10-of-10-and-said-uncertain-on-all-three-traps.md", "observations/2026-09-02-gemini-3.7-flash-baseline-ask-grounding-10-of-10-terse-and-declined-all-three.md", "observations/2026-09-02-gpt-5.6-sol-baseline-ask-grounding-10-of-10-in-834-tokens.md", "observations/2026-09-02-deepseek-v4-flash-baseline-ask-grounding-10-of-10-in-1147-bytes.md", "observations/2026-09-02-glm-5.3-flash-baseline-ask-grounding-10-of-10-with-verifiable-extras.md"],
           "notes": "Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question."
         },
         {

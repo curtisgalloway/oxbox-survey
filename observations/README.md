@@ -34,6 +34,7 @@ kind: access             # see the table below
 source: probe            # oxbox-run | probe | manual
 agent: claude-opus-5     # who observed it; a human name is fine too
 corpus: oxbox-review-queue  # optional: the fixture this run used, see corpora/
+role: candidate          # optional: candidate (default) | baseline, see below
 ---
 
 # Title
@@ -98,5 +99,16 @@ group observations without interpreting prose:
   what makes a matched comparison findable later instead of noticed by luck, and
   `surveytest.py` checks the id exists. A run assembled by hand simply omits the
   field.
+- **A baseline is a reference, never a candidate.** `role: baseline` marks a run
+  of a paid frontier model -- Sonnet, Gemini Flash -- against a corpus fixture,
+  there so a free model's count on the same fixture means something. A baseline
+  observation carries no status marker and appears in an edition only as the
+  reference figure beside a candidate's ("Sonnet 5 on the same fixture: x of
+  y"). A free model is never a baseline. A paid model may be both a manifest
+  entry and a baseline (`z-ai/glm-5.3-flash` is), and then its baseline
+  observations are not what move its entry -- a candidate run is. Omitting
+  `role` means `candidate`. `surveytest.py` enforces the marker and free-model
+  rules.
+  Decided 2026-09-02; see `docs/decisions.md`.
 - **Counts and filenames, never adjectives.** "4 of 10 findings verified on
   `oxbox/ox`" is an observation; "good at review" is not.

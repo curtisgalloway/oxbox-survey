@@ -10,7 +10,7 @@ oxbox `6072d56830dd3f80d567bf8c71593bcab95fbc74`.
 
 ## Acceptance
 
-Two gates, both mechanical. A candidate patch passes only if it clears both.
+Three gates, all mechanical. A candidate patch passes only if it clears all three.
 
 **1. It applies.** `git apply --check` against the pin, using the exact path `ox`
 that the prompt supplied. Wrong path, missing context lines, or a fabricated hunk
@@ -41,6 +41,19 @@ which is full of `max_tokens` and `completion_tokens`, and a pattern that fires
 on those makes the tool refuse every run. A patch that catches the five misses by
 matching `token` unconditionally has made the tool worse, and only these rows say
 so.
+
+**3. It can still read its own source.** The patched `SECRET_PATTERNS`, run over
+`ox` at the pin and over the patched file, produces zero hits -- as the pin's own
+list does, and as the reference fix does (both measured: 0 hits on both files).
+This is the requirement the prompt states in words, measured over the whole file;
+the two trap rows above are the same requirement sampled at two lines, and they
+turned out to be too few. Added 2026-09-02, before any evidence was recorded
+against this task: the first candidate patch cleared all eight rows and still
+fired on `max_tokens = DEFAULT_MAX_TOKENS` (line 734 at the pin), a value the
+trap rows cannot represent because theirs are three and six characters long.
+
+All three gates are run by `corpora/scorers/secret_scanner_fix.py --run <ox log
+dir>`; nothing in it reads the diff for meaning.
 
 ## Reference
 

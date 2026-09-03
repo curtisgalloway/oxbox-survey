@@ -148,3 +148,79 @@ the audience.
 
 **What would change it.** Nothing foreseeable. The three pre-launch editions
 carry their reviews inline and are left as they are.
+
+## Paid frontier models run as baselines, never as candidates
+
+**Decided** 2026-09-02, when the first baseline runs were made. A survey of free
+and stealth models reports "13 of 15 findings real" and has no way to say whether
+that is good. The only thing that can say so is the same fixture, same bytes, put
+to a model whose quality is not in question -- so a small fixed set is run through
+`ox` on the corpus, from the OpenRouter venue that already exists, and recorded as
+observations with `role: baseline`. The set, approved by the user the same day:
+
+| Role | Model | Why this one |
+|---|---|---|
+| frontier ruler | `anthropic/claude-sonnet-5` | the paid model a reader would otherwise reach for |
+| frontier ruler | `openai/gpt-5.6-sol` | the other one; same list price, and a survey that omits the largest vendor reads as if it were avoiding it |
+| cheap frontier | `google/gemini-3.7-flash` | the price tier readers actually compare free models against |
+| pay-a-little open weights | `deepseek/deepseek-v4-flash` | seven cents per million in: the real competitor to free |
+| pay-a-little open weights | `z-ai/glm-5.3-flash` | already rank 2 of the manifest as a paid entry, and never run |
+
+Left out on purpose: Opus and the GPT Pro tiers (nobody weighs a free model
+against $25--$180 per million output, and Opus is the verifier's own family),
+Codex variants (a different product shape), and the rest of the frontier (Grok,
+Kimi, Qwen Max, Mistral Medium) until a reader asks the question one of them
+answers. Five is the ceiling without a reason, because each addition is five runs
+of which two are human-verified.
+
+**What a baseline is not.** It is not a recommendation and cannot become one: no
+status marker, never ranked, and never a free model -- the free tier is the
+subject, not the ruler. A paid model can be both a manifest entry and a baseline
+(`z-ai/glm-5.3-flash` is rank 2 and a baseline), and when it is, its baseline
+observations do not move its entry; only a candidate run does. The survey's scope
+is what a free model can do, and the baseline is the ruler, not a contestant. The
+generator's rule that there is no league table stands; a reference figure beside
+a count is a comparison of two numbers on one fixture, not a ranking of the field.
+
+**Why through ox and OpenRouter, not a vendor SDK or a subscription CLI.** The
+comparison is only worth anything if the payload is byte-identical and the audit
+trail is the same shape. `ox` already records `context_bytes`, the request and
+the response for every run, and the corpus checks `context_bytes` against the
+fixture. A vendor SDK would need a second code path whose request shape differs
+in ways nobody has measured; an agentic CLI on a subscription gives the model
+tools, a workspace and a system prompt of its own, which is a different
+experiment entirely (the `inkling-free` observation of 2026-09-01 is about that
+gap). Pricing is the one thing OpenRouter costs extra, and it is small: the
+three mechanical fixtures against both baselines came to well under a dollar.
+
+**Who verifies.** A Claude agent, against the pin, the same way for baselines
+and candidates. The user's first call was Fable; revised the same evening to
+**Claude Opus 5 as the standing supervisor**, on price -- verification is the
+expensive half of every run and Opus is the practical choice for it. The
+observations dated 2026-09-02 for Sonnet 5, Gemini 3.7 Flash and GPT-5.6 sol were
+verified by Fable and say so in their `agent:` field; everything after is Opus
+unless the field says otherwise. The self-preference objection -- Claude judging
+Claude -- is real and is handled by protocol rather than by choosing a
+different judge: findings are verified against the source, counts are recorded
+per finding with the file and line, and for the human-scored review fixtures the
+model's identity is stripped from the batch before verification. Mechanical
+fixtures do not have the problem at all, which is why they ran first.
+
+**Real defects get fixed, not just recorded.** The user's standing instruction
+(2026-09-02): any verified finding a run produces in one of the user's repos is
+fixed the same session, and the observation cites the fixing commit. The first
+two were the clean-control fixture's own: the metadata oracle stat()ing
+`/etc/shadow` (Gemini) and the network probes passing vacuously on an offline
+host (GPT), both fixed in oxbox `0090c35`.
+
+**Cost is now in dollars.** `costcheck.py` prices a run's tokens from the
+archived OpenRouter catalog and prints a `usd` column, labelled computed rather
+than billed. A baseline's dollars beside a free model's verification tokens is
+the comparison the 2026-08-30 cost rule was written for.
+
+**What would change it.** A baseline that turns out to be *worse* than the free
+tier on a fixture is not a reason to drop it -- that is a finding. A reason to
+change the decision would be the fixtures becoming a benchmark with an answer key
+derived from baseline output, at which point "the baseline is the ruler" has
+quietly become "the baseline is the answer", and the corpus README's rule that
+there is no expected-findings key needs to be re-decided rather than eroded.

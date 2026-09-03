@@ -742,6 +742,48 @@ def load_usagereport():
     return namespace
 
 
+def test_pricing():
+    print("\n=== catalog pricing ===")
+    cc = load_costcheck()
+    catalog = {"venue": "openrouter", "captured_at": "2026-09-01T00:00:00Z",
+               "payload": {"data": [
+                   {"id": "anthropic/claude-sonnet-5",
+                    "pricing": {"prompt": "0.000002", "completion": "0.00001"}},
+                   {"id": "minimax/minimax-m3:free",
+                    "pricing": {"prompt": "0", "completion": "0"}},
+               ]}}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "2026-09-01.json"
+        path.write_text(json.dumps(catalog), encoding="utf-8")
+        prices = cc["price_from_catalog"](path, "anthropic/claude-sonnet-5")
+        report(prices == (0.000002, 0.00001), "per-token prices are read from the "
+               "archived OpenRouter catalog", prices)
+        run = {"venue": "openrouter", "model": "anthropic/claude-sonnet-5",
+               "prompt": 1000, "completion": 2000, "cost": None}
+        priced = cc["price_run"](dict(run), path)
+        report(abs(priced["usd"] - 0.022) < 1e-9 and priced["priced_from"] == path.name,
+               "usd is prompt*in + completion*out, and names the catalog it came from",
+               (priced["usd"], priced["priced_from"]))
+        # Reasoning is inside completion, so it must not be added again.
+        with_reasoning = cc["price_run"](dict(run, reasoning=1500), path)
+        report(abs(with_reasoning["usd"] - priced["usd"]) < 1e-12,
+               "reasoning tokens are not priced twice", with_reasoning["usd"])
+        free = cc["price_run"](dict(run, model="minimax/minimax-m3:free"), path)
+        report(free["usd"] == 0 and cc["dollars"](free) == "free",
+               "a zero-priced row renders as free", cc["dollars"](free))
+        unknown = cc["price_run"](dict(run, model="nobody/nothing"), path)
+        report(unknown["usd"] is None and cc["dollars"](unknown) == "-",
+               "a model the catalog does not list is unpriced, never estimated",
+               cc["dollars"](unknown))
+        other = {"venue": "zenmux", "payload": {"data": [{"id": "x", "pricing": {}}]}}
+        path.write_text(json.dumps(other), encoding="utf-8")
+        report(cc["price_from_catalog"](path, "x") is None,
+               "only the OpenRouter catalog shape is priced", None)
+        incomplete = cc["price_run"]({"venue": "openrouter", "model": "m",
+                                      "prompt": None, "completion": None}, path)
+        report(incomplete["usd"] is None, "a run with no reply is not priced", None)
+
+
 def test_usagereport():
     print("\n=== weekly usage ===")
     ur = load_usagereport()
@@ -922,6 +964,47 @@ def test_repo_discipline():
             problems.append("%s: filename disagrees with its date field" % path.name)
     report(not problems, "every observation carries valid frontmatter", problems[:4])
 
+    # A baseline is a reference point, not a candidate: a paid model run on
+    # the same fixture so a free model's count means something. It can never
+    # earn a marker, and a free model can never be one -- the free tier is what
+    # the survey is *about*. A paid model may wear both hats (glm-5.3-flash is
+    # rank 2 of the manifest and a baseline), and then the baseline
+    # observation is not what moves its manifest entry.
+    roles = {"candidate", "baseline"}
+    free_recommended = set()
+    for path in sorted((HERE / "manifests").glob("*.json")):
+        if path.is_symlink():
+            continue
+        for rec in json.loads(path.read_text(encoding="utf-8")).get("recommendations", []):
+            if rec.get("cost") == "free":
+                free_recommended.add(rec.get("model"))
+    bad_roles, baseline_claims, baseline_in_manifest = [], [], []
+    for path in obs:
+        text = path.read_text(encoding="utf-8")
+        head = re.search(r"^---\n(.*?)\n---\n", text, re.DOTALL | re.MULTILINE)
+        if not head:
+            continue
+        fields = dict(re.findall(r"^(\w+):\s*(.+)$", head.group(1), re.MULTILINE))
+        role = fields.get("role")
+        if role is None:
+            continue
+        if role not in roles:
+            bad_roles.append("%s: %r" % (path.name, role))
+            continue
+        if role != "baseline":
+            continue
+        if re.search(r"\*\*(USE|TRY|HOLD|AVOID)\b|^\s*\|[^|]*\b(USE|TRY|HOLD|AVOID)\b",
+                     text, re.MULTILINE):
+            baseline_claims.append(path.name)
+        model = fields.get("model", "").strip('"')
+        if model.endswith(":free") or model in free_recommended:
+            baseline_in_manifest.append("%s: %s" % (path.name, model))
+    report(not bad_roles, "every observation role is candidate or baseline", bad_roles)
+    report(not baseline_claims, "no baseline observation assigns a status marker",
+           baseline_claims)
+    report(not baseline_in_manifest, "no free model is a baseline",
+           baseline_in_manifest)
+
     # Both halves of the cost, from 2026-08-30 on. Earlier observations are
     # grandfathered rather than backfilled: editing a published one to add a
     # number nobody measured at the time is exactly what the archive is for
@@ -1020,6 +1103,7 @@ def main():
     test_tier_separation()
     test_corpus()
     test_costcheck()
+    test_pricing()
     test_usagereport()
     test_repo_discipline()
 
