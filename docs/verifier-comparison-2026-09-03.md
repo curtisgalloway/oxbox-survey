@@ -217,6 +217,19 @@ real costs the arm that confirmed it.
 | or-opus | 3 | 2 | 67% | 2 of 2 | 100% | $1.0946 |
 | or-gemini | 8 | 3 | 38% | 2 of 2 | 100% | $0.1938 |
 
+Those dollars are computed from the archived catalog, and OpenRouter's own
+`usage.cost` agrees with them **to the cent on all ten successful runs** --
+$1.0946 and $0.1938 summed independently. That is the only external check
+`costcheck.py`'s pricing has ever had, and it passed.
+
+`usage.cost` turns out to be present on every response although `ox` never asks
+for it: none of these runs' `request.json` carries a `usage` key. An oxbox
+handoff records the opposite as a dead end, and it is wrong. The catalog figure
+stays the published one anyway -- a price derived from bytes in this repo can be
+recomputed by anyone later, and a number read off a live response cannot -- but
+the venue's own claim is now recorded beside it, which is both a cross-check and
+the thing that would survive a mid-week price change.
+
 **Both arms found every real defect.** The recall column is not where they differ
 and the argument does not rest on it. They differ entirely in what else came back:
 `or-opus` hands a human three findings to read, `or-gemini` hands back eight for
@@ -276,13 +289,34 @@ spends more completion tokens reaching a worse answer (39,463 against Opus's
 
 ## Availability
 
-The `or-gemini` GPT batch failed on first attempt: HTTP 502 from Google via
-OpenRouter, `"JSON error injected into SSE stream"`, `error_type:
-provider_unavailable`, after producing 11,874 characters of reasoning that were
-discarded and billed as zero tokens. It succeeded on one retry. One failure in
-ten runs is not a rate, but a supervisor is infrastructure, and infrastructure
-that drops a request after doing the work is a different proposition from one
-that does not.
+The `or-gemini` GPT batch failed on first attempt, and **the interesting part is
+that it did not fail over HTTP.** The response came back 200 with a well-formed
+`chat.completion` body, no top-level `error`, and a populated `usage` block. The
+failure is inside it:
+
+```
+choices[0].finish_reason   "error"
+choices[0].error           {"code": 502,
+                            "message": "JSON error injected into SSE stream",
+                            "metadata": {"error_type": "provider_unavailable"}}
+choices[0].message.content null
+usage                      prompt 0, completion 0, cost 0
+reasoning                  11,874 characters, present and preserved
+```
+
+A client that checks the HTTP status sees success and moves on. ox's HTTP error
+path never ran; what caught this was its no-content check -- `model returned no
+content (finish=error)`, exit 1, `ok=false`, response and reasoning both kept.
+That is the failure worth reporting for venue reliability, because it is the one
+that gets past a naive client, and the 11,874 characters of reasoning billed at
+zero tokens are confirmed by the venue's own usage block.
+
+It succeeded on one retry. One failure in eleven runs is not a rate, but a
+supervisor is infrastructure, and infrastructure that returns 200 on a request it
+dropped is a different proposition from one that errors honestly.
+
+(An earlier version of this section called it "HTTP 502 from Google via
+OpenRouter". That was wrong and the distinction is the whole value of the datum.)
 
 The run log for that failure is at
 `~/.cache/oxbox-verifier/runs-2026-09-03/ox-logs/2026-09-03T21-09-18Z/`, with the

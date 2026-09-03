@@ -434,6 +434,30 @@ def resolved_effort(status):
         return json.load(handle).get("effort")
 
 
+def venue_cost(status):
+    """What the venue itself says the run cost, from usage.cost in its reply.
+
+    OpenRouter populates this on every response and ox does not ask for it --
+    none of these runs' request.json carries a `usage` key. An oxbox handoff
+    records the opposite as a dead end; it is wrong, verified across eleven runs
+    on 2026-09-03.
+
+    It is recorded BESIDE the catalog figure and does not replace it. A price
+    derived from an archived catalog is reproducible -- anyone can recompute it
+    from bytes in this repo -- while a number read off a live response cannot be
+    checked later by anyone who was not there. The venue's figure is worth having
+    as its own claim, and as a check: across ten successful runs the two agreed
+    to the cent, which is the only independent test costcheck.py's pricing has.
+    """
+    if not status or not status.get("log_dir"):
+        return None
+    path = os.path.join(status["log_dir"], "response.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as handle:
+        return ((json.load(handle).get("usage") or {}).get("cost"))
+
+
 def priced(model, status):
     """USD for one ox run. Computed from the catalog, never billed."""
     rates = PRICES.get(model)
@@ -588,13 +612,14 @@ def cmd_score(args):
     priced_arms = [a for a in arms if ARMS.get(a, {}).get("priced")]
     if priced_arms:
         print("\n## What the supervisor cost\n")
-        head = ("%-12s %8s %11s %11s %9s %11s"
-                % ("arm", "runs", "prompt", "completion", "usd", "usd/real"))
+        head = ("%-12s %6s %10s %11s %9s %9s %9s"
+                % ("arm", "runs", "prompt", "completion", "usd", "venue",
+                   "usd/real"))
         print(head)
         print("-" * len(head))
         for arm in priced_arms:
             runs = prompt = completion = 0
-            total = 0.0
+            total = venue = 0.0
             for batch in key["batches"]:
                 stem = os.path.join(args.work, "%s-%s" % (arm, slug(batch["model"])))
                 status = read_status(stem)
@@ -609,13 +634,15 @@ def cmd_score(args):
                 prompt += status.get("prompt_tokens") or 0
                 completion += status.get("completion_tokens") or 0
                 total += priced(ARMS[arm]["model"], status) or 0.0
-            print("%-12s %8d %11s %11s %9s %11s"
+                venue += venue_cost(status) or 0.0
+            print("%-12s %6d %10s %11s %9s %9s %9s"
                   % (arm, runs, "{:,}".format(prompt), "{:,}".format(completion),
-                     "$%.4f" % total,
+                     "$%.4f" % total, "$%.4f" % venue,
                      "$%.4f" % (total / real) if real else "n/a"))
         print("\n%d findings emitted by the five candidates, %d real by the key."
               % (emitted, real))
-        print("usd is computed from catalog list price, not billed.")
+        print("usd is computed from the catalog and is the published figure;")
+        print("venue is the venue's own usage.cost, recorded as its claim.")
 
         # Per batch, because this is where the answer lives: supervision is
         # charged per finding emitted, not per finding that turns out to be
