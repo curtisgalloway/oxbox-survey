@@ -82,8 +82,15 @@ EVIDENCE = ["jailtest.py", "oxbox", "profiles/jail.sb", "guardtest.py", ".gitign
 # Effort is each model's OWN default, not a matched level: gemini-3.8-flash is
 # medium, claude-opus-5 is high, per reasoning.default_effort in the catalog.
 # The question is what a supervisor actually costs to run, and a matched rung
-# would price a setting nobody would choose. `medium` needs ox from the
-# effort-ladder work (c8b287e); the Homebrew ox on PATH stops at low|high|max.
+# would price a setting nobody would choose.
+#
+# ox is resolved BY PATH because `medium` needs a build that has it. It is on
+# oxbox main as of 41c7c3f and no longer an unmerged branch, but main is not a
+# release: the Homebrew `ox` on PATH still offers only low|high|max, verified
+# 2026-09-03. Falling back to PATH would therefore not fail -- it would silently
+# refuse the flag at argparse, which is loud, but a manifest-set effort would go
+# out at the built-in default instead. The tripwire below reads the level from
+# meta.json for exactly that reason.
 OX = "/Users/curtisg/src/oxbox/ox"
 
 ARMS = {
@@ -474,6 +481,13 @@ def venue_cost(status):
     as its own claim, and as a check: across ten successful runs the two agreed
     to the cent, which is the only independent test costcheck.py's pricing has.
     """
+    # ox records it in status.json from oxbox e8d722b on. Runs made before that
+    # -- including the ten this experiment is built on -- have no such key, so
+    # the response body stays the fallback. `in` rather than `.get()`: the field
+    # is None when the venue sent nothing and 0 when a run genuinely billed
+    # nothing, and those are different facts.
+    if status and "venue_cost" in status:
+        return status["venue_cost"]
     if not status or not status.get("log_dir"):
         return None
     path = os.path.join(status["log_dir"], "response.json")
