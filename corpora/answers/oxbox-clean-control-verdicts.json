@@ -79,11 +79,13 @@
           "id": "P2",
           "label": "Network probes treat every exception as enforcement; a host with no default route raises ENETUNREACH/gaierror and all three PASS",
           "accept": [
-            "CONFIRMED"
+            "REFUTED"
           ],
-          "recorded": "real",
+          "recorded": "recorded real 2026-09-02; re-decided REFUTED 2026-09-03",
           "settles_it": "jailtest.py:48-53 records blocked=True on any raise, probes unconditional. Under bubblewrap --unshare-net the jail's own denial is also ENETUNREACH, so no exception-type check can separate the two from inside. Fixed after the pin in 0090c35 via an outside-the-jail OXBOX_HOST_HAS_ROUTE oracle.",
-          "defect": "offline-probes-vacuous"
+          "defect": "offline-probes-vacuous",
+          "corrected": "2026-09-03, at the maintainer's direction. This row accepted CONFIRMED because the 2026-09-02 observation recorded the finding as real. Three of four verifier arms refuted it -- including or-fable, which is the model that WROTE this row on 2026-09-02 with tools and the whole repository, and whose reasoning today is nearly identical to Opus's. The reason is in the finding's own text: GPT-5.6 sol's stated failure scenario is 'The sandbox permits unrestricted networking but the host temporarily has no default route', and a sandbox permitting networking cannot exist at this pin -- jail.sb has (deny network*), oxbox passes --unshare-all, and neither is configurable. The contract asks whether the described failure occurs, and it does not. L1 stays CONFIRMED and this is not a contradiction: GLM-5.3 Flash's write-up of the same code makes the leak claim AND adds the argument that survives it -- that host-level network failure proves nothing about the jail -- and proposes the outside-the-jail oracle that became the fix in oxbox 0090c35. The two findings are not the same claim, and the arms distinguishing them was precision, not inconsistency. This makes the survey's standard explicit: a finding is scored as written, not as generously as it could be read.",
+          "defect_note": "Same underlying code behavior as L1, kept for traceability. It does not enter the real-defect set: the defect is real and L1 states it, this finding does not."
         },
         {
           "id": "P3",

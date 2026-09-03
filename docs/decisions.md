@@ -313,10 +313,23 @@ arm missed while confirming six of eight findings in that batch, and cost $0.90
 less while handing a human six more findings to read. A saving denominated in
 tokens against a cost denominated in human attention is not a saving.
 
-The first run also turned up a question worth more than the comparison did: the
-Opus arm **refuted a defect in one batch and confirmed the same defect in
-another**, the two batches differing only in how the candidate had worded the
-finding. If a verifier's verdict moves with the candidate's phrasing, that is a
-property of the verification step this survey has never measured, and it applies
-to the standing supervisor as much as to any replacement. Measuring it would
-change this decision more than another arm would.
+**A finding is scored as written, not as generously as it could be read.** This
+rule was forced by the third run and did not exist before it. The same model
+(Fable 5.1) recorded a finding as real on 2026-09-02 with tools and the whole
+repository, and refuted it on 2026-09-03 under this contract -- because the
+finding's stated failure scenario needs a sandbox that permits networking, and
+no such sandbox exists at the pin. Crediting an accurate mechanism whose stated
+consequence is unreachable is the generous reading, and it makes "invention"
+unscoreable across the whole corpus, because almost every invention contains an
+accurate observation somewhere. The strict reading is now the contract's, and
+`corpora/prompts/verify-findings.txt` says so in as many words.
+
+An earlier version of this section proposed measuring "wording sensitivity",
+after the Opus arm refuted a defect in one batch and confirmed what looked like
+the same defect in another. **That was an over-read and the proposal is
+withdrawn.** Reading the two findings verbatim shows they are not the same claim:
+one asserts only a leak on an impossible premise, the other asserts the leak and
+adds the argument that survives it, which is also the argument the upstream fix
+implements. Every arm treating them differently was precision. The lesson kept is
+narrower and about method: two findings that a summary calls "the same defect"
+may not be, and the way to find out is to read what each one actually said.

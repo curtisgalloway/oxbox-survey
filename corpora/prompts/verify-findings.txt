@@ -11,6 +11,11 @@ You did not write these findings and you are not being asked to improve them.
 For each finding, decide one thing: at this pin, does the described failure
 actually happen?
 
+Score the finding AS WRITTEN, not as generously as it could be read. If its
+stated failure scenario needs conditions this tree cannot produce, it is refuted
+even when the mechanism it describes is real and even when a better-worded
+version of it would hold. Do not repair a finding on its author's behalf.
+
 Read the cited lines, then read whatever else in the included source settles the
 question — the callers, the launcher, the sandbox profile, the configuration. A
 finding whose mechanism is accurately described but whose consequence cannot be

@@ -337,3 +337,94 @@ The wording-sensitivity experiment proposed above is now more urgent, not less -
 `or-gemini` catching P2 while every other arm missed it is either the phrasing
 effect again or a confirm bias, and those two have opposite implications. The
 same batch, re-run several times against each arm, separates them.
+
+
+---
+
+# Third generation: Fable 5.1 as the price ceiling, and what it did to P2
+
+`anthropic/claude-fable-5.1` added as the expensive control -- $10/$50 per
+million, 2x Opus 5 and 13x gemini-3.8-flash, at `high`, its own default. Same ox
+path, same pinned bytes, same contract.
+
+**It is also the arm with a conflict of interest, and that turned out to be the
+point.** Fable was the survey's first standing supervisor before the job moved to
+Opus on price, and it *wrote 11 of the 15 rows it was scored against* -- the
+sonnet, gemini-3.7 and gpt batches all carry `agent: claude-fable-5-1`. Only
+L1-L4 were Opus's. Its agreement score is circular by construction and is not
+reported as accuracy.
+
+## Paying more buys nothing
+
+| arm | confirmed | of which real | precision | defects | recall | usd |
+|---|---|---|---|---|---|---|
+| or-opus | 3 | 2 | 67% | 2 of 2 | 100% | $1.0946 |
+| or-gemini | 8 | 2 | 25% | 2 of 2 | 100% | $0.1938 |
+| or-fable | 3 | 2 | 67% | 2 of 2 | 100% | $1.9645 |
+
+Fable and Opus are identical on every headline number. They differ on individual
+rows in opposite directions -- Fable refuted P6 where Opus confirmed an
+invention, Opus refuted P7 where Fable confirmed one -- and net to the same
+score. **The expensive end of the curve is flat.** $0.87 more than Opus for no
+measurable difference, which is a cleaner answer to "is the supervisor
+underpowered" than any argument about it.
+
+## The control refuted its own verdict
+
+**Fable refuted P2 -- the row Fable wrote.** Its reasoning today is nearly
+word-for-word Opus's: the conflation of exceptions is real, but the finding's
+premise, a sandbox that permits networking, does not exist at this pin.
+
+Three of four arms refuted it, including its author. The finding's own text says
+why: GPT-5.6 sol's stated failure scenario is *"The sandbox permits unrestricted
+networking but the host temporarily has no default route"*, and `jail.sb`'s
+`(deny network*)` with `oxbox`'s `--unshare-all` makes that premise unreachable
+and unconfigurable. The contract asks whether the described failure occurs. It
+does not.
+
+**P2 is now REFUTED**, at the maintainer's direction, with the reasoning recorded
+in the key.
+
+### This retires the wording-sensitivity finding
+
+Generation 1 read P2-refuted-with-L1-confirmed as one defect getting opposite
+verdicts on phrasing, and called that worse than being wrong. **That was an
+over-read, and reading the two findings verbatim settles it.** They are not the
+same claim:
+
+- GPT's P2 asserts only the leak, on a premise that cannot hold here.
+- GLM's L1 asserts the leak *and* adds the argument that survives it -- "there is
+  no argument that host-level network failure proves anything about the jail" --
+  and proposes the outside-the-jail oracle that became the fix in `0090c35`.
+
+GLM's write-up says more, and the extra part is the true part. Every arm treating
+them differently was precision, not inconsistency. The proposed
+wording-sensitivity experiment is withdrawn: there is no effect to measure here.
+
+What the episode does establish is a rule the corpus did not have: **a finding is
+scored as written, not as generously as it could be read.** Fable-then credited
+an accurate mechanism and let an unreachable consequence pass; Fable-now, under a
+contract that says an unreachable consequence is not a defect, refuses to. Same
+model, same evidence, different standard -- so the standard has to be written
+down, which it now is.
+
+## The final answer
+
+Every arm found every real defect. Nobody missed anything. The whole difference
+between supervisors is what else they hand back:
+
+| supervisor | cost | findings a human reads | of which real | wasted reads |
+|---|---|---|---|---|
+| gemini-3.8-flash | $0.1938 | 8 | 2 | 6 |
+| claude-opus-5 | $1.0946 | 3 | 2 | 1 |
+| claude-fable-5.1 | $1.9645 | 3 | 2 | 1 |
+
+Going cheaper saves **$0.90** and buys **five extra findings to read** -- about
+eighteen cents a read, against minutes of human attention each. Going more
+expensive costs **$0.87** and buys **nothing at all**.
+
+So the answer to "can a cheap enough supervisor make untrusted super-cheap models
+economical" is no, and the reason is not that the cheap supervisor is bad at
+finding defects -- it found all of them. It is that a supervisor's product is a
+*short* list, and the cheap one cannot produce one. Opus sits at the efficient
+point of a curve that is flat above it and steep below.
