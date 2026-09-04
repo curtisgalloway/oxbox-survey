@@ -1,8 +1,8 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.0.0
-last_generator_review: 2026-08-23
+version: 2.1.0
+last_generator_review: 2026-09-03
 ---
 
 <!--
@@ -144,6 +144,35 @@ Then read the two Observed-tier sources, which together are the entire input to 
 
 If neither has anything new, part 2 is one line.
 
+### Effort, when writing the manifest
+
+The snapshot carries each model's `reasoning` block — `supported_efforts` and
+`default_effort`. That is where a manifest entry's `params.effort` comes from, and
+it is the only place it may come from. Three states; only the first may be pinned.
+
+- **Publishes `supported_efforts`.** Pin one of those levels. If the pinned level is
+  not the model's own `default_effort`, say so in `why` — the difference is a fact
+  about the run, not a detail. `z-ai/glm-5.3-flash` is `["max","high","low"]` with
+  `default_effort: max`, and every run this survey has on it went out at `high`,
+  below its own default.
+- **Accepts `reasoning` but not `reasoning_effort`, `supported_efforts: null`.**
+  Effort is not a knob on that model; omit the field. `minimax/minimax-m3:free`,
+  the current rank 1, is exactly this case — it reasons, but not on a dial.
+- **No `reasoning` block at all.** Omit the field.
+
+A venue that publishes no effort data for any model is not a fourth state to guess
+at — every `opencode` capture to date carries none — so omit `params.effort` for its
+entries. A level learned from an actual run belongs in an observation and may be
+cited in `why`; it does not become a pinned param on the strength of one run.
+
+Getting it wrong degrades rather than breaks: ox names and drops an effort it does
+not recognize, then falls back through explicit flag > entry `params` > manifest
+`defaults` > its own default of `high`. That is the reason to pin only what the
+snapshot says, not a license to guess — a wrong level runs, and runs wrong, quietly.
+
+ox's ladder is `low`, `medium`, `high`, `xhigh`, `max` (oxbox `41c7c3f`, on main
+since 2026-09-03). Anything else in `params.effort` is dropped with a warning.
+
 ## Report format
 
 Markdown. Keep it scannable — this is read weekly, not studied.
@@ -267,6 +296,11 @@ working generator.
 - **Label the tier of every claim.** Measured (the snapshot), Observed (oxbox runs),
   Reported (anything a vendor said). A card's structured fields are Measured; a card's
   prose description is marketing and is Reported.
+- **A manifest param is a claim too.** `params.effort` and `params.max_tokens` are
+  Measured only when they come from the snapshot's own fields. A level inferred from
+  a model's family, its name, or another venue's catalog is Reported in a Measured
+  coat: omit the field instead. The manifest is executable, so a guess there is not
+  a sentence a reader can discount — it is a parameter on a request that gets sent.
 - Vendor benchmarks are vendor benchmarks, they appear as a labeled aside, and they
   never move a recommendation.
 - A single-digit-sample community test is not a benchmark. Say "preliminary" and give
