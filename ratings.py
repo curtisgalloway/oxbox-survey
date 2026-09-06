@@ -688,6 +688,21 @@ def cost_rows(observations, prices, tasks=None, checker=None):
         if r["wall_s"] is not None:
             m["wall"] += r["wall_s"]
             m["timed"] += 1
+        # Two cases where the checking half is zero by construction and no
+        # window applies: a fixture scored mechanically (git-apply, json-parse),
+        # where the scorer is the check; and a review run that emitted nothing,
+        # where there is nothing to read. Decided 2026-09-06 while removing
+        # the "unpriced share" caveat: a write-up window is not a check.
+        task = tasks.get(r["fixture"] or "", {})
+        mechanical = task.get("verification") in ("git-apply", "json-parse")
+        empty = r["findings"] == 0 and r["hits"] is None
+        if mechanical or empty:
+            m["check_runs"] += 1
+            m["check_real"] += r["divisor"] or 0
+            m["check_model_usd"] += r["usd_model"] or 0
+            m["check_wall"] += r["wall_s"] or 0
+            m["check_timed"] += 1
+            continue
         if r["harness_window"]:
             w = windows[(r["harness_model"], r["harness_window"])]
             if w["usd"] is None:

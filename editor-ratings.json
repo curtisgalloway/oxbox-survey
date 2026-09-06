@@ -42,6 +42,12 @@
       "rating": "Acceptable",
       "date": "2026-09-06",
       "why": "Fast and mostly good. Z.ai's regulatory status is a concern though."
+    },
+    "deepseek/deepseek-v4-flash": {
+      "venue": "openrouter",
+      "rating": null,
+      "date": null,
+      "why": null
     }
   }
 }
