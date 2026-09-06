@@ -221,7 +221,11 @@ includes the standing regulatory-exposure bullet below.>
 ```
 
 **The cost comparison.** Run `python3 ratings.py --costs` and paste what it prints under
-"What it costs". It sets the paid frontier baselines, the cheap paid models and the free
+"What it costs". It prints one table per checking model, and the editor's standing
+direction (2026-09-06) is to run both Opus 5 and Fable 5.1 as checkers on each verified
+batch so both tables fill and a reader can choose; where a run was checked by both, the
+same-batch table shows each checker on its own tokens. A second checker is recorded as a
+check record (see `observations/README.md`), never by editing the run's observation. It sets the paid frontier baselines, the cheap paid models and the free
 models side by side on two halves: what the venue billed for the run, and what the
 supervisor's verification window cost at the supervisor's list price with cache reads
 and writes, counted once per window. The second half is why a free model is not free,
