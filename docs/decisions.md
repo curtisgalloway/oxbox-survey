@@ -333,3 +333,147 @@ adds the argument that survives it, which is also the argument the upstream fix
 implements. Every arm treating them differently was precision. The lesson kept is
 narrower and about method: two findings that a summary calls "the same defect"
 may not be, and the way to find out is to read what each one actually said.
+
+## The Editor's Rating replaces the status markers
+
+**Decided** 2026-09-06, in a design discussion with the user. The four status
+markers `USE` / `TRY` / `HOLD` / `AVOID` are retired. In their place, every
+model the survey tried gets a row in the catalog table with three measured
+digits, a disqualifier column, and an **Editor's Rating** of Good, Acceptable,
+Marginal, or Poor that the user writes and the generator never does. The
+manifest is derived from that row: a model is in it exactly when it is rated
+Good or Acceptable and has no disqualifier standing. This entry records the
+decision; the generator skill, `surveytest.py`, the observation frontmatter and
+the catalog table still carry the old markers until the follow-up lands.
+
+**Why the markers went.** They encoded two axes in four words: direction (go,
+wait, stop) and evidence (run-backed or card-backed), split asymmetrically so
+that only a run could earn `USE` while a card fact could earn `AVOID`. That
+asymmetry was the "a recommendation requires a run" rule made lexical, and it
+was sound. What failed was `HOLD`, which the 2026-08-24 edition used both for
+"the endpoint is 503ing, wait" and for "six findings, zero real, but n=1", and
+had to gloss each time. The bolted-on qualifiers `USE (expiring)` and
+`AVOID for review` were the other tell: time and scope are axes the words did
+not carry. The markers also predate the fixtures and the scorer; since
+2026-09-02 quality, cost and speed are measured, and a verdict word that hides
+the measurement is worse than the measurement.
+
+**What the user decided, in order.** The recommendation is the manifest: a
+model either gets in or it does not. The dimensions that decide it are how well
+it did the task, what it cost to extract that (a free model that burns
+supervisor tokens is not cheap), and speed, with disqualifiers held outside the
+ratings as a plain in-or-out gate. Each dimension gets a 0-5 digit so the row
+reads at a glance. If we tried to run it, it is in the table, failures
+included. The user is the editor and writes one rating per model as an
+editorial verdict, on the IIHS crash-test scale, under the name Editor's Rating.
+
+**The digits are buckets of a measurement, never typed.** Each level is a
+threshold on a value the run already records; a script buckets it and the
+threshold table is printed in every issue. 0 means measured and worst. An
+unrun dimension is a dash, per the "no data is the preferred answer" rule, so 0
+can never do `HOLD`'s old double duty. Every digit carries its fixture id and n,
+because the fixtures discriminate unequally: all five baselines scored 10 of 10
+on `oxbox-ask-grounding`, while the review batches spread from 13 of 15 to 0 of
+6. A bare digit would let a saturated fixture launder a weak model.
+
+| Dimension | Measured | 5 | 4 | 3 | 2 | 1 | 0 |
+|---|---|---|---|---|---|---|---|
+| Quality | seeded defects found, of those present | all | most, missed a minor one | about half | one or two | one, and minor | none, or no output |
+| Cost | USD per real defect, both halves, log scale against the Fable 5.1 ceiling | under 1/100 | under 1/10 | under 1x | up to 3x | up to 10x | over 10x, or no real defect to divide by |
+| Speed | wall clock per run | under 30 s | under 2 min | under 5 min | under 10 min | under 20 min | 20 min or more, or timed out |
+
+The speed row was checked against the recorded runs before it was adopted:
+gpt-5.6-sol at 12 s lands at 5, the MiniMax and Nemotron runs near two to three
+minutes at 3, glm-5.3-flash at nine minutes at 2, DeepSeek's 21-minute run at 0.
+A rubric that puts the real data in one bucket is not a rubric. The cost row is
+logarithmic for the same reason: costs here span a thousandth of a cent to
+dollars. The cost thresholds are provisional until one issue of both-halves
+figures exists to check them against, the way the speed row was checked.
+
+**Noise is charged once, on the cost row.** Quality is recall against the
+fixture's seeded set: did it find the bugs. A false finding costs supervisor
+tokens to refute, and cost per real defect already counts both halves, so
+folding precision into quality as well would charge the same fault twice and
+muddy quality's one question. Nemotron's 2 of 10 reads as a low quality digit
+from the misses and a poor cost digit from the eight refutations, which are the
+two separate facts a reader needs.
+
+**Gate-style fixtures own their mapping.** `oxbox-secret-scanner-fix` has three
+gates and eight verdicts, not a fraction; its quality rubric ("all gates and 8
+of 8" for a 5, "does not apply" for a 0) lives beside the task in
+`corpora/corpus-manifest.json`, so a frozen fixture's scoring freezes with it.
+
+**Quality digits come from fixtures only; real-work batches keep a raw column.**
+MiniMax's 13 of 15 is the strongest evidence in the repo and it came from real
+review batches on oxbox's own code, with no seeded set and no recall. Rather
+than rate real-work precision as quality with a flag, which is more generous
+and less comparable, the table gives real-work batches a raw "real / confirmed"
+column that feeds the cost digit and sits in plain view for the editor. The
+digit stays frozen-fixture comparable; the evidence stays visible.
+
+**Tried means in the table, and failures distinguish two ways.** A run the
+venue refused (404, 503, unauthorized) is a row with the disqualifier column
+filled and every digit dashed. A run the model answered with nothing, like
+glm-5.3-free's empty content with `finish_reason` set, is a row with quality 0.
+That one distinction is what `HOLD` versus `AVOID` never managed. Probes are not
+runs, per `observations/README.md`, so probe-only models have no row; their
+disqualifiers annotate the catalog listing instead. Baselines were tried, so
+they are rows too, with digits, marked baseline, ineligible for the manifest
+and carrying no Editor's Rating; a table where gpt-5.6-sol's speed 5 sits beside
+a 0 shows the reader what the scale means. This does not conflict with the rule
+that a baseline never carries a recommendation: digits are measurements.
+
+**The Editor's Rating is the manifest decision, on the IIHS scale.** Good,
+Acceptable, Marginal, Poor: four levels, no neutral middle, so the editor has
+to lean, and words whose public meaning a reader already knows. The manifest
+line falls where the IIHS's own top award puts it: Good and Acceptable are in,
+Goods ranked above Acceptables and the editor's order within each tier;
+Marginal and Poor are out. Marginal is a verdict on thin or mixed evidence (2 of
+10 with the one that mattered), not a deferral. Poor is an answer that was
+worthless (6 findings, 0 real). The one-line reason beside the rating is the
+manifest's existing `why` field, written once. The rating is per model, never
+per fixture, because the manifest cannot hedge, and that is also why there is
+no rollup rule for the digits: the rating is the rollup.
+
+The borrowed names carry a caution. IIHS ratings come off a fixed protocol, so
+the words imply a procedure produced them. Here the word is the editor's and
+the digits are the procedure. That holds only while the two sit in the same row
+and the issue says once, up top, that the rating is the editor's call and the
+digits are measured. Shown as words, never as the IIHS's green-through-red; the
+no-color-only rule stands.
+
+**Disqualifiers and ratings are orthogonal.** The disqualifier column records
+access and venue facts, dated so next week's run rechecks them: unreachable, no
+structured output, completion cap under the fixture's need, delisted, rate
+limit under the usable floor. The rating records the model's work. A row with a
+disqualifier standing keeps its last rating with its date and has no manifest
+entry; when the disqualifier clears it returns at that rating without a
+re-decision. A reliability dimension (429 rate is measurable) was considered
+and left out: a rated 2 inside the manifest still fails the reader's run, and
+three dimensions is the smallest set that orders the manifest.
+
+**The generator never writes the rating.** Same principle as the
+never-unattended rule for skill revisions, same failure mode: an agent writing
+the editor's opinion for them. Unattended runs carry last week's rating forward
+with its date visible, so a Good from three weeks ago on a model not run since
+is legible as stale rather than silently current. The rating lives in a single
+hand-edited file the generator reads; its path is an implementation detail,
+its writer is not.
+
+**What the follow-up must enforce**, in `surveytest.py`:
+
+- every manifest entry is rated Good or Acceptable;
+- every model rated Good or Acceptable with no open disqualifier is in the
+  manifest, and Goods precede Acceptables;
+- no digit appears in an issue that the bucketing script did not compute from
+  a recorded value, which in practice means observation frontmatter gains
+  the measured fields (defects found and present, or gates passed; real and
+  confirmed for real-work batches; wall seconds; both-halves USD) and the
+  digits are derived from them, never typed.
+
+**What would reverse it.** A model with enough batches on enough fixtures that
+a mechanical ordering (pass the disqualifiers, sort by cost per real defect,
+speed as tiebreaker) stops being noise; at that point the editor's ordering
+within a tier could yield to the formula, though the rating itself stays a
+human call. Or the cost thresholds failing their check against a real issue's
+figures, which revises the row, not the design.
