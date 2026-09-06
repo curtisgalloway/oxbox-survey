@@ -10,6 +10,11 @@ model: minimax/minimax-m3:free
 kind: findings
 source: oxbox-run
 agent: claude-opus-5
+run: 2026-08-30T01-11-26Z, 2026-08-30T01-14-28Z
+wall_s: 182
+findings: 15
+real: 13
+usd_model: 0
 ---
 
 # MiniMax M3 free: 13 of 15 findings real across two review batches, and two of them were fixed within the hour

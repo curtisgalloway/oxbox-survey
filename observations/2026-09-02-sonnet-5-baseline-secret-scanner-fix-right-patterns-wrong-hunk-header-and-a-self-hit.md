@@ -12,6 +12,13 @@ source: oxbox-run
 agent: claude-fable-5-1
 corpus: oxbox-secret-scanner-fix
 role: baseline
+run: 2026-09-03T02-24-15Z
+wall_s: 156
+applies: false
+hits: 8
+hits_of: 8
+self_hits: 1
+usd_model: 0.1845
 ---
 
 # Sonnet 5 baseline on the scanner fix: all eight verdicts right, hunk header wrong, and the patched scanner refuses ox's own source

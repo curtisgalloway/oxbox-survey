@@ -35,6 +35,18 @@ source: probe            # oxbox-run | probe | manual
 agent: claude-opus-5     # who observed it; a human name is fine too
 corpus: oxbox-review-queue  # optional: the fixture this run used, see corpora/
 role: candidate          # optional: candidate (default) | baseline, see below
+run: 2026-09-03T02-41-40Z   # the ox log directory (comma-separated if several)
+wall_s: 12                  # longest run's wall clock, from the log timestamps
+findings: 8                 # review mode: findings emitted ...
+real: 1                     # ... and how many verified real
+hits: 10                    # fixture with a seeded set: hits ...
+hits_of: 10                 # ... of the fixture's total (see the task's quality field)
+applies: true               # diff mode: did git apply --check pass at the pin
+self_hits: 0                # diff mode: the patched scanner refusing its own source
+usd_model: 0.0273           # the model's half, computed from the archived catalog
+usd_total: null             # both halves, when the harness window is per-run
+timed_out: false            # the request never returned
+disqualifier: not_found     # access/availability: the venue refused the run
 ---
 
 # Title
@@ -65,10 +77,28 @@ group observations without interpreting prose:
 
 ## Rules
 
-- **`source: probe` can never justify a `USE`.** A curl against an endpoint proves
-  the endpoint answers; it says nothing about review quality. Only `source:
-  oxbox-run` carries a recommendation. This is the v2 rule — a recommendation
-  requires a run — enforced at the evidence layer.
+- **A probe is not a run, and only a run gets a row.** A curl against an endpoint
+  proves the endpoint answers; it says nothing about review quality. Only
+  `source: oxbox-run` observations of kind `findings` or `hygiene` become rows in
+  the catalog table, and only rows can carry the measured fields above. A probe
+  may record a `disqualifier`, which annotates the catalog listing. This is the
+  v2 rule — a recommendation requires a run — enforced at the evidence layer.
+- **The measured fields are the record the digits are bucketed from.** Every
+  run-backed `findings` or `hygiene` observation from 2026-09-06 on carries
+  `run` and `wall_s`, plus `findings`/`real` for a review run or `hits`/`hits_of`
+  for a fixture with a seeded set (`applies` and `self_hits` in diff mode).
+  `ratings.py` turns them into the 0-5 digits; **never write a `quality`, `cost`
+  or `speed` key yourself.** `wall_s` comes from the log directory's timestamps
+  (its name is the start, its newest file the end) and reproduces the durations
+  the bodies state to within a second. Observations before 2026-09-06 had these
+  fields transcribed into their frontmatter from figures their bodies already
+  stated or their logs already held; nothing was measured after the fact.
+- **A disqualifier is open until a later run clears it.** `disqualifier:` on a
+  run-backed access or availability observation names why the venue refused
+  (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands
+  until a run-backed row for the same model is dated on or after it; a refusal
+  fixed the same afternoon is not standing. An open disqualifier holds a model
+  out of the manifest whatever its Editor's Rating.
 - **Never edit a published observation.** If it turns out wrong, write a new file
   that links the old one and says what changed. The archive's value is that it
   records what was believed at the time.
@@ -107,8 +137,14 @@ group observations without interpreting prose:
   y"). A free model is never a baseline. A paid model may be both a manifest
   entry and a baseline (`z-ai/glm-5.3-flash` is), and then its baseline
   observations are not what move its entry -- a candidate run is. Omitting
-  `role` means `candidate`. `surveytest.py` enforces the marker and free-model
-  rules.
-  Decided 2026-09-02; see `docs/decisions.md`.
+  `role` means `candidate`. A baseline run is a row in the catalog table with
+  digits like any other, marked baseline; a model whose only runs are baselines
+  carries no Editor's Rating and cannot enter the manifest. `surveytest.py`
+  enforces the rating and free-model rules.
+  Decided 2026-09-02, amended 2026-09-06; see `docs/decisions.md`.
+- **The Editor's Rating is not written here.** Good / Acceptable / Marginal / Poor
+  lives in `editor-ratings.json` at the repo root, written by the editor and only
+  read by the tools. An observation records what happened; the verdict is a
+  separate act by a different author.
 - **Counts and filenames, never adjectives.** "4 of 10 findings verified on
   `oxbox/ox`" is an observation; "good at review" is not.

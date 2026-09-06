@@ -12,6 +12,11 @@ source: oxbox-run
 agent: claude-fable-5-1
 corpus: oxbox-clean-control
 role: baseline
+run: 2026-09-03T02-27-05Z
+wall_s: 160
+findings: 2
+real: 0
+usd_model: 0.1611
 ---
 
 # Sonnet 5 baseline on the clean control: 2 findings emitted, 0 new and real, 1 invention; 3 UNCERTAIN items, all correctly hedged

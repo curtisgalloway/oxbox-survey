@@ -477,3 +477,36 @@ speed as tiebreaker) stops being noise; at that point the editor's ordering
 within a tier could yield to the formula, though the rating itself stays a
 human call. Or the cost thresholds failing their check against a real issue's
 figures, which revises the row, not the design.
+
+**Implemented 2026-09-06**, the same day, with four details the discussion
+left open and the code had to settle:
+
+- **The fractions behind the quality words.** "Most" is 3/4 or more, "about
+  half" is 1/2 or more, "one or two" is 1/4 or more, and anything above zero
+  is a 1. "Minor" is not machine-decidable, so the cut is on the fraction
+  alone. `ratings.py --rubric` prints the table an issue must carry.
+- **The cost ceiling is per fixture and null until Fable 5.1 runs it.** A
+  ceiling that is not a measurement would be the one typed number in a column
+  built to have none, so `cost_ceiling_usd_per_real` sits on each corpus task
+  as null and the cost digit is a dash until a Fable run fills it. The raw
+  model-half USD is shown meanwhile. This is the provisional status the entry
+  above already declared, made concrete.
+- **Wall clock is read from the ox log directory.** Its name is the start and
+  its newest file's mtime the end; checked against four durations the
+  observations state (21 m 29 s, 9 min, 188.9 s, 128.8 s) and within a second
+  of each. `wall_s` is transcribed into frontmatter so the repo's record does
+  not depend on a log tree outside it.
+- **Frontmatter on the twenty-two run-backed observations was backfilled**,
+  against the never-edit rule's letter and within its reason: every value
+  added is a figure the body already states or the log already holds, so the
+  record of what was believed at the time is unchanged, and the first table
+  is not a page of dashes. Nothing was measured after the fact. Two
+  fixtures, `oxbox-review-queue` and `oxbox-exposure-gate`, have no seeded set
+  by the corpus README's standing rule, so their quality digit is a dash and
+  the raw real-over-findings column carries MiniMax's 20 of 27.
+
+One consequence surfaced immediately: `z-ai/glm-5.3-flash` is rank 2 of the
+2026-09-01 manifest on the strength of the Ox Alpha reveal, and every run the
+repo has on it is a baseline. Under the rule it is baseline-only, cannot be
+rated, and cannot enter a manifest dated 2026-09-06 or later until it is run as
+a candidate. The 2026-09-01 manifest is grandfathered; the next one is not.

@@ -10,6 +10,10 @@ model: nemotron-3-ultra-free
 kind: findings
 source: oxbox-run
 agent: claude-fable-5-1
+run: 2026-08-30T22-29-19Z
+wall_s: 129
+findings: 10
+real: 2
 ---
 
 # Nemotron 3 Ultra free: 2 of 10 findings real on the exposure gate, and the one that mattered was filed as UNCERTAIN

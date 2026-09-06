@@ -10,6 +10,7 @@ model: x-preview-f-free
 kind: access
 source: oxbox-run
 agent: claude-opus-5
+disqualifier: user_agent_blocked
 ---
 
 # OpenCode Zen rejects the default urllib User-Agent, so ox could not reach it

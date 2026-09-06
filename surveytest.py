@@ -965,11 +965,12 @@ def test_repo_discipline():
     report(not problems, "every observation carries valid frontmatter", problems[:4])
 
     # A baseline is a reference point, not a candidate: a paid model run on
-    # the same fixture so a free model's count means something. It can never
-    # earn a marker, and a free model can never be one -- the free tier is what
-    # the survey is *about*. A paid model may wear both hats (glm-5.3-flash is
-    # rank 2 of the manifest and a baseline), and then the baseline
-    # observation is not what moves its manifest entry.
+    # the same fixture so a free model's count means something. A free model
+    # can never be one -- the free tier is what the survey is *about*. A paid
+    # model may wear both hats (glm-5.3-flash is rank 2 of the 2026-09-01
+    # manifest and a baseline), and then the baseline observation is not what
+    # moves its manifest entry. Whether a baseline can carry an Editor's
+    # Rating is test_ratings' question.
     roles = {"candidate", "baseline"}
     free_recommended = set()
     for path in sorted((HERE / "manifests").glob("*.json")):
@@ -978,7 +979,7 @@ def test_repo_discipline():
         for rec in json.loads(path.read_text(encoding="utf-8")).get("recommendations", []):
             if rec.get("cost") == "free":
                 free_recommended.add(rec.get("model"))
-    bad_roles, baseline_claims, baseline_in_manifest = [], [], []
+    bad_roles, baseline_in_manifest = [], []
     for path in obs:
         text = path.read_text(encoding="utf-8")
         head = re.search(r"^---\n(.*?)\n---\n", text, re.DOTALL | re.MULTILINE)
@@ -993,15 +994,10 @@ def test_repo_discipline():
             continue
         if role != "baseline":
             continue
-        if re.search(r"\*\*(USE|TRY|HOLD|AVOID)\b|^\s*\|[^|]*\b(USE|TRY|HOLD|AVOID)\b",
-                     text, re.MULTILINE):
-            baseline_claims.append(path.name)
         model = fields.get("model", "").strip('"')
         if model.endswith(":free") or model in free_recommended:
             baseline_in_manifest.append("%s: %s" % (path.name, model))
     report(not bad_roles, "every observation role is candidate or baseline", bad_roles)
-    report(not baseline_claims, "no baseline observation assigns a status marker",
-           baseline_claims)
     report(not baseline_in_manifest, "no free model is a baseline",
            baseline_in_manifest)
 
@@ -1026,18 +1022,9 @@ def test_repo_discipline():
     report(not uncosted, "every findings run since %s reports what it cost"
            % COST_RULE_FROM, uncosted)
 
-    # The load-bearing rule: a probe cannot recommend a model.
-    offenders = []
-    for path in obs:
-        text = path.read_text(encoding="utf-8")
-        match = re.search(r"^source:\s*(\S+)", text, re.MULTILINE)
-        # Match a marker being *assigned* -- bolded, or in a table cell -- not
-        # prose about the rule. "it cannot justify a `USE`" is the rule being
-        # stated correctly and must not trip this.
-        claims = re.search(r"\*\*USE\b|^\s*\|[^|]*\bUSE\b", text, re.MULTILINE)
-        if match and match.group(1) == "probe" and claims:
-            offenders.append(path.name)
-    report(not offenders, "no probe-sourced observation claims a USE", offenders)
+    # The load-bearing rule -- a probe cannot recommend a model -- now lives in
+    # test_ratings: a probe carries no measured fields, so it has no row, so it
+    # cannot be rated.
 
     # manifests/latest.json is what a consumer points --manifest at when it just
     # wants the current advice. A symlink rather than a copy, so it cannot drift
@@ -1093,6 +1080,151 @@ def test_repo_discipline():
     report(not missing, "every source and doc file carries an SPDX header", missing)
 
 
+def load_ratings():
+    source = (HERE / "ratings.py").read_text(encoding="utf-8")
+    source = source.replace('if __name__ == "__main__":', "if False:")
+    namespace = {"__name__": "ratingsmod", "__file__": str(HERE / "ratings.py")}
+    exec(compile(source, str(HERE / "ratings.py"), "exec"), namespace)
+    return namespace
+
+
+def test_ratings():
+    print("\n=== the digits and the Editor's Rating ===")
+    rt = load_ratings()
+
+    # The buckets. The speed row was checked against the recorded runs before
+    # it was adopted (docs/decisions.md): a rubric that puts the real data in
+    # one bucket is not a rubric.
+    speed, quality, cost = rt["speed_digit"], rt["quality_digit"], rt["cost_digit"]
+    report([speed(12), speed(189), speed(544), speed(1289)] == [5, 3, 2, 0],
+           "speed digits land the recorded runs in different buckets")
+    report(speed(None) is None and speed(30, timed_out=True) == 0,
+           "speed: unmeasured is a dash, a timeout is 0")
+    report([quality(10, 10), quality(8, 10), quality(5, 10), quality(3, 10),
+            quality(1, 10), quality(0, 10)] == [5, 4, 3, 2, 1, 0],
+           "quality digits follow the rubric's fractions")
+    report(quality(8, 8, required_ok=False) == 0 and quality(None, 8) is None,
+           "quality: a failed required gate is 0, no count is a dash")
+    report([cost(0.001, 1, 1.0), cost(0.05, 1, 1.0), cost(0.5, 1, 1.0),
+            cost(2, 1, 1.0), cost(8, 1, 1.0), cost(20, 1, 1.0)] == [5, 4, 3, 2, 1, 0],
+           "cost digits are logarithmic against the ceiling")
+    report(cost(1, 0, 1.0) == 0 and cost(1, 1, None) is None and cost(None, 1, 1.0) is None,
+           "cost: no real defect is 0, no ceiling or no total is a dash")
+
+    # The record the digits come from. Nobody types a digit: the derived keys
+    # are forbidden in frontmatter, and only a run carries measured fields.
+    obs = rt["load_observations"]()
+    tasks = rt["load_corpus"]()
+    # A field that is not a number would crash the bucketing below, and a
+    # traceback is a broken test rather than the report it should be; check
+    # the record before reading it.
+    unparsed = []
+    for o in obs:
+        for key in ("wall_s", "findings", "real", "hits", "hits_of", "self_hits",
+                    "usd_model", "usd_total"):
+            if key in o:
+                try:
+                    rt["_num"](o[key])
+                except ValueError:
+                    unparsed.append("%s: %s=%r" % (o["_file"], key, o[key]))
+    report(not unparsed, "every measured field is a number", unparsed)
+    if unparsed:
+        return
+    rows = rt["run_rows"](obs, tasks)
+    report(bool(rows), "run-backed observations produce catalog rows", len(rows))
+    typed = [o["_file"] for o in obs if any(k in o for k in rt["DERIVED_KEYS"])]
+    report(not typed, "no observation types a quality, cost or speed digit", typed)
+    measured = [k for k in rt["MEASURED_FIELDS"] if k != "disqualifier"]
+    probes = [o["_file"] for o in obs
+              if o.get("source") != "oxbox-run" and any(k in o for k in measured)]
+    report(not probes, "no probe or manual observation carries measured fields", probes)
+    missing = []
+    for o in obs:
+        if o.get("source") != "oxbox-run" or o.get("kind") not in rt["ROW_KINDS"]:
+            continue
+        if o.get("date", "") < rt["RULE_FROM"]:
+            continue
+        if "run" not in o or "wall_s" not in o:
+            missing.append("%s: no run or wall_s" % o["_file"])
+        if not (("findings" in o and "real" in o) or "hits" in o):
+            missing.append("%s: no findings/real or hits" % o["_file"])
+    report(not missing, "every run-backed row since %s carries run, wall_s and a count"
+           % rt["RULE_FROM"], missing)
+    undeclared = [tid for tid, t in tasks.items()
+                  if "quality" not in t or "cost_ceiling_usd_per_real" not in t]
+    report(not undeclared, "every corpus task declares its quality rubric and cost ceiling",
+           undeclared)
+    uncounted = [r["file"] for r in rows
+                 if r["fixture"] and (tasks.get(r["fixture"]) or {}).get("quality")
+                 and r["hits"] is None]
+    report(not uncounted, "every run on a fixture with a seeded set records its hits",
+           uncounted)
+
+    # The one hand-written column. On the scale or null, dated and explained
+    # when written, only for a model that was actually run, never for a model
+    # whose only runs are baselines.
+    path = HERE / "editor-ratings.json"
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    report("ratings" in data, "editor-ratings.json is committed")
+    ratings = data.get("ratings", {})
+    off_scale = [m for m, e in ratings.items()
+                 if e.get("rating") not in (None,) + tuple(rt["SCALE"])]
+    report(not off_scale, "every Editor's Rating is on the scale or null", off_scale)
+    undated = [m for m, e in ratings.items()
+               if e.get("rating") and not (e.get("date") and e.get("why"))]
+    report(not undated, "every written rating carries a date and a why", undated)
+    tried = {r["model"] for r in rows}
+    unknown = [m for m in ratings if m not in tried]
+    report(not unknown, "every rated model was actually run", unknown)
+    baselines = rt["baseline_only"](obs)
+    rated_baselines = [m for m, e in ratings.items() if e.get("rating") and m in baselines]
+    report(not rated_baselines, "no baseline-only model carries an Editor's Rating",
+           rated_baselines)
+
+    # The manifest is derived from the rating. Exercised on synthetic data so
+    # every branch is seen to bite, then applied to the real latest manifest
+    # once it is dated on or after the rule.
+    check = rt["check_manifest"]
+    synth = {"a": {"rating": "Good"}, "b": {"rating": "Acceptable"},
+             "c": {"rating": "Marginal"}, "d": {"rating": "Good"}}
+    disq = {"d": ("2026-09-06", "not_found")}
+
+    def manifest(*models):
+        return {"recommendations": [{"model": m} for m in models]}
+
+    report(not check(manifest("a", "b"), synth, disq, set()),
+           "Goods then Acceptables, minus the disqualified, is a valid manifest")
+    report(check(manifest("a", "c"), synth, disq, set()),
+           "a Marginal in the manifest is refused")
+    report(check(manifest("b", "a"), synth, disq, set()),
+           "an Acceptable ranked above a Good is refused")
+    report(check(manifest("a"), synth, disq, set()),
+           "a rated Acceptable missing from the manifest is refused")
+    report(check(manifest("a", "b", "d"), synth, disq, set()),
+           "a model with a standing disqualifier in the manifest is refused")
+    report(check(manifest("a", "b"), synth, {}, {"a"}),
+           "a baseline-only model in the manifest is refused")
+    report(check(manifest("a", "b", "z"), synth, disq, set()),
+           "an unrated model in the manifest is refused")
+    latest = json.loads((HERE / "manifests" / "latest.json").read_text(encoding="utf-8"))
+    if latest.get("issue_date", "") >= rt["RULE_FROM"]:
+        problems = check(latest, ratings, rt["open_disqualifiers"](obs), baselines)
+        report(not problems, "the latest manifest is derived from the Editor's Rating",
+               problems)
+    else:
+        print("[skip] manifest %s predates the rating rule (%s); grandfathered"
+              % (latest.get("issue_date"), rt["RULE_FROM"]))
+
+    # The disqualifier rule: open until a later run clears it, same day clears.
+    open_marks = rt["open_disqualifiers"]
+    stale = [{"model": "m", "source": "oxbox-run", "kind": "access", "date": "2026-09-01",
+              "disqualifier": "not_found", "role": "candidate", "_file": "x"}]
+    cleared = stale + [{"model": "m", "source": "oxbox-run", "kind": "findings",
+                        "date": "2026-09-01", "role": "candidate", "_file": "y"}]
+    report("m" in open_marks(stale) and "m" not in open_marks(cleared),
+           "a disqualifier stands until a run dated on or after it")
+
+
 def main():
     ox = load_oxsurvey()
     test_adapters(ox)
@@ -1106,6 +1238,7 @@ def main():
     test_pricing()
     test_usagereport()
     test_repo_discipline()
+    test_ratings()
 
     print("\nplatform: %s" % sys.platform)
     total = PASSES + len(FAILURES)

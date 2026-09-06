@@ -10,6 +10,11 @@ model: minimax/minimax-m3:free
 kind: findings
 source: oxbox-run
 agent: claude-fable-5-1
+run: 2026-08-30T22-26-09Z
+wall_s: 189
+findings: 12
+real: 7
+usd_model: 0
 ---
 
 # MiniMax M3 free: 7 of 12 findings real on the exposure gate, and a re-framed prompt found the defect the neutral one missed

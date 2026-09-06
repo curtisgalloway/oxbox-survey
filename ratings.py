@@ -1,0 +1,415 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Curtis Galloway
+# SPDX-License-Identifier: Apache-2.0
+"""The catalog table: measured digits per tried model, and the Editor's Rating.
+
+Every model the survey has put through ox gets a row, failures included. Three
+0-5 digits are bucketed from values the observation frontmatter records --
+quality (recall against the fixture's seeded set), cost (USD per real defect,
+both halves, against the fixture's ceiling) and speed (wall clock) -- and the
+thresholds are the table printed by `--rubric`. Nobody types a digit. Zero is
+measured and worst; a dash is unmeasured.
+
+The Editor's Rating (Good / Acceptable / Marginal / Poor) is the one column a
+human writes, in editor-ratings.json, and this script only reads it. The
+manifest is derived from that column: Good and Acceptable are in, Goods above
+Acceptables, Marginal and Poor out, and a standing disqualifier holds a model
+out whatever its rating. See docs/decisions.md, "The Editor's Rating replaces
+the status markers".
+
+    python3 ratings.py              # the two tables, markdown
+    python3 ratings.py --rubric     # the threshold table an issue must print
+    python3 ratings.py --json       # rows as JSON, for the generator
+"""
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+OBSERVATIONS = HERE / "observations"
+CORPUS = HERE / "corpora" / "corpus-manifest.json"
+EDITOR_RATINGS = HERE / "editor-ratings.json"
+
+SCALE = ("Good", "Acceptable", "Marginal", "Poor")
+IN_MANIFEST = ("Good", "Acceptable")
+RULE_FROM = "2026-09-06"  # manifests dated here or later are derived from ratings
+
+# Observation kinds that describe a run's output. Access and availability
+# observations contribute disqualifiers, never rows.
+ROW_KINDS = ("findings", "hygiene")
+MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "hits", "hits_of",
+                   "applies", "self_hits", "usd_model", "usd_total",
+                   "timed_out", "disqualifier")
+DERIVED_KEYS = ("quality", "cost", "speed")  # never typed into frontmatter
+
+
+# --- the buckets -----------------------------------------------------------
+#
+# The wording in docs/decisions.md ("most, missed a minor one", "about half")
+# is what a reader sees; these fractions are how a script decides it. "Minor"
+# is not machine-decidable, so the cut is on the fraction alone.
+
+def quality_digit(hits, of, required_ok=True):
+    """0-5 from hits over the fixture's total. A failed required gate is 0."""
+    if hits is None or not of:
+        return None
+    if not required_ok or hits <= 0:
+        return 0
+    if hits >= of:
+        return 5
+    frac = hits / float(of)
+    if frac >= 0.75:
+        return 4
+    if frac >= 0.5:
+        return 3
+    if frac >= 0.25:
+        return 2
+    return 1
+
+
+def cost_digit(usd_total, real, ceiling):
+    """0-5 from USD per real defect, both halves, on a log scale to the ceiling.
+
+    The ceiling is the fixture's Fable 5.1 cost per real defect and lives in
+    the corpus manifest; while it is null the digit is unmeasured. A run with
+    no real defect has nothing to divide by and is a 0 -- it spent money and
+    returned nothing usable.
+    """
+    if usd_total is None or ceiling is None or real is None:
+        return None
+    if real <= 0:
+        return 0
+    ratio = (usd_total / float(real)) / float(ceiling)
+    if ratio < 0.01:
+        return 5
+    if ratio < 0.1:
+        return 4
+    if ratio < 1:
+        return 3
+    if ratio <= 3:
+        return 2
+    if ratio <= 10:
+        return 1
+    return 0
+
+
+def speed_digit(wall_s, timed_out=False):
+    """0-5 from wall clock. Checked against the recorded runs before adoption."""
+    if timed_out:
+        return 0
+    if wall_s is None:
+        return None
+    if wall_s < 30:
+        return 5
+    if wall_s < 120:
+        return 4
+    if wall_s < 300:
+        return 3
+    if wall_s < 600:
+        return 2
+    if wall_s < 1200:
+        return 1
+    return 0
+
+
+RUBRIC = [
+    ("Quality", "seeded defects found, of those present",
+     ["all", "3/4 or more", "half or more", "a quarter or more", "any", "none, or no output"]),
+    ("Cost", "USD per real defect, both halves, against the fixture's Fable 5.1 ceiling",
+     ["under 1/100", "under 1/10", "under 1x", "up to 3x", "up to 10x",
+      "over 10x, or no real defect"]),
+    ("Speed", "wall clock per run",
+     ["under 30 s", "under 2 min", "under 5 min", "under 10 min", "under 20 min",
+      "20 min or more, or timed out"]),
+]
+
+
+def rubric_markdown():
+    lines = ["| Dimension | Measured | 5 | 4 | 3 | 2 | 1 | 0 |",
+             "|---|---|---|---|---|---|---|---|"]
+    for name, measured, levels in RUBRIC:
+        lines.append("| %s | %s | %s |" % (name, measured, " | ".join(levels)))
+    return "\n".join(lines)
+
+
+# --- reading the record ----------------------------------------------------
+
+def frontmatter(text):
+    head = re.search(r"^---\n(.*?)\n---\n", text, re.DOTALL | re.MULTILINE)
+    if not head:
+        return None
+    return dict(re.findall(r"^(\w+):\s*(.+)$", head.group(1), re.MULTILINE))
+
+
+def _num(value):
+    if value is None:
+        return None
+    value = value.strip().strip('"')
+    try:
+        return int(value)
+    except ValueError:
+        return float(value)
+
+
+def _bool(value):
+    if value is None:
+        return None
+    return value.strip().lower() in ("true", "yes")
+
+
+def load_observations(root=OBSERVATIONS):
+    """Every observation's frontmatter, plus the file it came from."""
+    out = []
+    for path in sorted(root.glob("*.md")):
+        if path.name == "README.md":
+            continue
+        fields = frontmatter(path.read_text(encoding="utf-8"))
+        if fields is None:
+            continue
+        fields = dict(fields)
+        fields["_file"] = path.name
+        fields["model"] = fields.get("model", "").strip('"')
+        fields.setdefault("role", "candidate")
+        out.append(fields)
+    return out
+
+
+def load_corpus(path=CORPUS):
+    data = json.loads(path.read_text(encoding="utf-8"))
+    tasks = {}
+    for project in data.get("projects", []):
+        for task in project.get("tasks", []):
+            tasks[task["id"]] = task
+    return tasks
+
+
+def load_editor_ratings(path=EDITOR_RATINGS):
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return data.get("ratings", {})
+
+
+# --- rows ------------------------------------------------------------------
+
+def measure(fields, tasks):
+    """One run-backed observation to its digits and raw figures."""
+    task = tasks.get(fields.get("corpus", ""), {})
+    rubric = task.get("quality") or {}
+    hits = _num(fields.get("hits"))
+    hits_of = _num(fields.get("hits_of")) or rubric.get("of")
+    required_ok = True
+    for name in rubric.get("requires", []):
+        if _bool(fields.get(name)) is False:
+            required_ok = False
+    real = _num(fields.get("real"))
+    row = {
+        "file": fields["_file"],
+        "date": fields.get("date"),
+        "venue": fields.get("venue"),
+        "model": fields["model"],
+        "role": fields.get("role", "candidate"),
+        "fixture": fields.get("corpus") or None,
+        "run": fields.get("run"),
+        "quality": quality_digit(hits, hits_of, required_ok) if rubric else None,
+        "cost": cost_digit(_num(fields.get("usd_total")), real,
+                           task.get("cost_ceiling_usd_per_real")),
+        "speed": speed_digit(_num(fields.get("wall_s")), _bool(fields.get("timed_out"))),
+        "hits": hits, "hits_of": hits_of,
+        "findings": _num(fields.get("findings")), "real": real,
+        "usd_model": _num(fields.get("usd_model")),
+        "usd_total": _num(fields.get("usd_total")),
+        "wall_s": _num(fields.get("wall_s")),
+    }
+    return row
+
+
+def run_rows(observations, tasks):
+    """One row per run-backed findings or hygiene observation."""
+    rows = []
+    for fields in observations:
+        if fields.get("source") != "oxbox-run" or fields.get("kind") not in ROW_KINDS:
+            continue
+        if fields["model"] in ("", "-"):
+            continue
+        rows.append(measure(fields, tasks))
+    return rows
+
+
+def open_disqualifiers(observations):
+    """model -> (date, reason) for a disqualifier no later run has cleared.
+
+    A disqualifier is open while no run-backed row for the same model is
+    dated on or after it. Same-day success clears it: the record is dated by
+    day, and a refusal fixed the same afternoon is not standing.
+    """
+    latest_success = {}
+    marks = {}
+    for fields in observations:
+        if fields.get("source") != "oxbox-run":
+            continue
+        model = fields["model"]
+        date = fields.get("date", "")
+        if fields.get("disqualifier"):
+            if date >= marks.get(model, ("", ""))[0]:
+                marks[model] = (date, fields["disqualifier"])
+        elif fields.get("kind") in ROW_KINDS:
+            latest_success[model] = max(latest_success.get(model, ""), date)
+    return {m: mark for m, mark in marks.items()
+            if latest_success.get(m, "") < mark[0]}
+
+
+def per_fixture(rows):
+    """(model, fixture) -> n and the worst digit seen on that fixture."""
+    out = {}
+    for row in rows:
+        key = (row["venue"], row["model"], row["fixture"])
+        cell = out.setdefault(key, {"n": 0, "quality": None, "cost": None,
+                                    "speed": None, "role": row["role"],
+                                    "findings": 0, "real": 0, "usd_model": None,
+                                    "any_raw": False})
+        cell["n"] += 1
+        for dim in DERIVED_KEYS:
+            if row[dim] is not None:
+                cell[dim] = row[dim] if cell[dim] is None else min(cell[dim], row[dim])
+        if row["findings"] is not None:
+            cell["findings"] += row["findings"]
+            cell["real"] += row["real"] or 0
+            cell["any_raw"] = True
+        if row["usd_model"] is not None:
+            cell["usd_model"] = (cell["usd_model"] or 0) + row["usd_model"]
+    return out
+
+
+def baseline_only(observations):
+    """Models whose every run-backed observation is a baseline."""
+    roles = {}
+    for fields in observations:
+        if fields.get("source") != "oxbox-run" or fields["model"] in ("", "-"):
+            continue
+        roles.setdefault(fields["model"], set()).add(fields.get("role", "candidate"))
+    return {m for m, r in roles.items() if r == {"baseline"}}
+
+
+def manifest_expected(ratings, disqualifiers, baseline_models):
+    """The models a derived manifest must carry, in tier order.
+
+    Goods first, then Acceptables; within a tier the editor's order is the
+    file's order. A standing disqualifier or baseline-only status holds a
+    model out regardless of its rating.
+    """
+    expected = []
+    for tier in IN_MANIFEST:
+        for model, entry in ratings.items():
+            if entry.get("rating") != tier:
+                continue
+            if model in disqualifiers or model in baseline_models:
+                continue
+            expected.append(model)
+    return expected
+
+
+def check_manifest(manifest, ratings, disqualifiers, baseline_models):
+    """Problems with a manifest against the rating rule. Empty means it holds."""
+    problems = []
+    entries = manifest.get("recommendations", [])
+    models = [e.get("model") for e in entries]
+    for model in models:
+        rating = (ratings.get(model) or {}).get("rating")
+        if rating not in IN_MANIFEST:
+            problems.append("%s is in the manifest rated %r" % (model, rating))
+        if model in disqualifiers:
+            problems.append("%s is in the manifest with %s standing since %s"
+                            % (model, disqualifiers[model][1], disqualifiers[model][0]))
+        if model in baseline_models:
+            problems.append("%s is in the manifest on baseline runs only" % model)
+    expected = manifest_expected(ratings, disqualifiers, baseline_models)
+    for model in expected:
+        if model not in models:
+            problems.append("%s is rated %s and missing from the manifest"
+                            % (model, ratings[model]["rating"]))
+    tiers = [IN_MANIFEST.index((ratings.get(m) or {}).get("rating"))
+             for m in models if (ratings.get(m) or {}).get("rating") in IN_MANIFEST]
+    if tiers != sorted(tiers):
+        problems.append("an Acceptable is ranked above a Good")
+    return problems
+
+
+# --- rendering -------------------------------------------------------------
+
+def _d(value):
+    return "-" if value is None else str(value)
+
+
+def catalog_markdown(observations=None, tasks=None, ratings=None):
+    observations = load_observations() if observations is None else observations
+    tasks = load_corpus() if tasks is None else tasks
+    ratings = load_editor_ratings() if ratings is None else ratings
+    rows = run_rows(observations, tasks)
+    cells = per_fixture(rows)
+    disq = open_disqualifiers(observations)
+    baselines = baseline_only(observations)
+
+    out = ["## Tried", "",
+           "| Model | Venue | Runs | Disqualifier | Editor's Rating | Why |",
+           "|---|---|---|---|---|---|"]
+    models = {}
+    for (venue, model, _), cell in cells.items():
+        entry = models.setdefault((venue, model), {"n": 0, "role": cell["role"]})
+        entry["n"] += cell["n"]
+    for (venue, model), entry in sorted(models.items(), key=lambda kv: kv[0][1]):
+        rating = ratings.get(model) or {}
+        if model in baselines:
+            shown, why = "baseline", "reference only, never in the manifest"
+        elif rating.get("rating"):
+            shown = "%s (%s)" % (rating["rating"], rating.get("date", "undated"))
+            why = rating.get("why") or ""
+        else:
+            shown, why = "unrated", ""
+        mark = disq.get(model)
+        out.append("| `%s` | %s | %d | %s | %s | %s |" % (
+            model, venue, entry["n"],
+            "%s since %s" % (mark[1], mark[0]) if mark else "none",
+            shown, why))
+
+    out += ["", "## Per fixture", "",
+            "| Model | Fixture | n | Quality | Cost | Speed | Real / findings | Model USD |",
+            "|---|---|---|---|---|---|---|---|"]
+    for (venue, model, fixture), cell in sorted(cells.items(),
+                                                key=lambda kv: (kv[0][1], kv[0][2] or "")):
+        raw = "%d / %d" % (cell["real"], cell["findings"]) if cell["any_raw"] else "-"
+        usd = "-" if cell["usd_model"] is None else "$%.4f" % cell["usd_model"]
+        out.append("| `%s` | %s | %d | %s | %s | %s | %s | %s |" % (
+            model, fixture or "(real work)", cell["n"], _d(cell["quality"]),
+            _d(cell["cost"]), _d(cell["speed"]), raw, usd))
+    out += ["", "Digits are bucketed from recorded values; the worst run on a fixture "
+            "is shown when n > 1. A dash is unmeasured, never zero. Rubric:", "",
+            rubric_markdown()]
+    return "\n".join(out)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--rubric", action="store_true", help="print the threshold table")
+    parser.add_argument("--json", action="store_true", help="rows as JSON")
+    args = parser.parse_args(argv)
+    if args.rubric:
+        print(rubric_markdown())
+        return 0
+    if args.json:
+        observations = load_observations()
+        rows = run_rows(observations, load_corpus())
+        print(json.dumps({"rows": rows,
+                          "disqualifiers": open_disqualifiers(observations),
+                          "baseline_only": sorted(baseline_only(observations)),
+                          "ratings": load_editor_ratings()}, indent=2))
+        return 0
+    print(catalog_markdown())
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -38,9 +38,10 @@ repo measures review quality at scale — not the catalog, and not a vendor benc
 built to score patch generation. A ranking of 22 models on evidence covering two of
 them would be a ranking of vibes with a table around it.
 
-**The rule that keeps this honest: a recommendation requires a run.** See the status
-markers below — `USE` is reserved for models the user has actually put through oxbox.
-Card facts can earn a model a `TRY`, never a `USE`.
+**The rule that keeps this honest: a recommendation requires a run.** The
+recommendation is the manifest, and the manifest is derived from the Editor's Rating,
+which only a tried model can carry. Card facts can put a model on the editor's list of
+things to run next; they can never put it in the manifest.
 
 ## The job being surveyed for
 
@@ -109,8 +110,8 @@ report what the evidence shows:
   because it impeaches the catalog.
 
 **A probe is not a run.** An `observations/` file with `source: probe` proves an endpoint
-answers; it says nothing about review quality and can never justify a `USE`. Only
-`source: oxbox-run` carries a recommendation.
+answers; it says nothing about review quality and never gets a row in the catalog
+table. Only `source: oxbox-run` carries measured fields, and only a row can be rated.
 
 **If nothing was run this week, say exactly that in one line and move on.** An empty
 observations section is an honest report of a quiet week. Do not pad it with last
@@ -192,8 +193,12 @@ paragraph only for entries whose limitation needs explaining.>
 days left, terms, suspected or confirmed attribution with the evidence and the
 base rate of such guesses being wrong.>
 
+## Tried
+<`python3 ratings.py` output: every model ever run, its disqualifier, its Editor's
+Rating with date, then the per-fixture digits. Then the rubric.>
+
 ## Tried this week
-<Per model actually run: the observations above, with counts and filenames.
+<Per model actually run this week: the observations above, with counts and filenames.
 One line if nothing was run.>
 
 ## Caveats
@@ -206,18 +211,25 @@ One line if nothing was run.>
 <See below.>
 ```
 
-**Status markers, and what earns each:**
+**The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
+it prints. Every model ever put through ox is a row, failures included: a run the
+venue refused shows its disqualifier and dashed digits; a run that answered with
+nothing shows quality 0. Three 0-5 digits per fixture, bucketed by the script from
+observation frontmatter, never typed: quality (seeded defects found), cost (USD per real
+defect, both halves, against the fixture's Fable 5.1 ceiling), speed (wall clock). A
+dash is unmeasured, never zero. Every digit sits beside its fixture id and n, because
+the fixtures discriminate unequally. Print the rubric (`ratings.py --rubric`) in every
+issue, and say once, up top, that the digits are measured and the rating is the editor's.
 
-| Marker | Requires |
-|---|---|
-| `USE` | Run through oxbox, results in part 2, and they were good. |
-| `TRY` | A specific card fact makes it worth a run. Name the fact. |
-| `HOLD` | Was tried, or has a card fact, that says wait — expiring, degraded, churning. |
-| `AVOID` | Tried and bad, or a card fact that disqualifies it for this job. |
-
-Never a `USE` on a model nobody ran. **Markers must not rely on color** — use the text
-labels, never a red/green dot as the only carrier of meaning, and never "the green ones"
-in prose.
+The Editor's Rating is Good / Acceptable / Marginal / Poor, from `editor-ratings.json`.
+**You never write that file.** If a tried model has no rating, the row says `unrated`
+and the issue says the editor has not rated it yet; if the rating is older than the
+model's newest run, show its date and say so. The manifest follows the rating: Good and
+Acceptable are in, Goods ranked above Acceptables in the editor's order, Marginal and
+Poor out, and a standing disqualifier holds a model out whatever its rating. Baseline
+rows carry no rating and never enter the manifest. **Ratings must not rely on color** —
+the word, never a red/green dot as the only carrier of meaning, and never "the green
+ones" in prose.
 
 ## Maintaining providers/ (a separate report)
 

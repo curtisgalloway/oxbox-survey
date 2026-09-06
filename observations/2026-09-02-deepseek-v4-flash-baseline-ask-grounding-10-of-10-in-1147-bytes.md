@@ -12,6 +12,11 @@ source: oxbox-run
 agent: claude-opus-5
 corpus: oxbox-ask-grounding
 role: baseline
+run: 2026-09-03T03-05-25Z
+wall_s: 24
+hits: 10
+hits_of: 10
+usd_model: 0.0009
 ---
 
 # DeepSeek V4 Flash baseline on ask-grounding: 10 of 10 in 1,147 bytes, the bait cited and re-scoped

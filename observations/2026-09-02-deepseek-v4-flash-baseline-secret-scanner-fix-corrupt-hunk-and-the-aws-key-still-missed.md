@@ -12,6 +12,13 @@ source: oxbox-run
 agent: claude-fable-5-1
 corpus: oxbox-secret-scanner-fix
 role: baseline
+run: 2026-09-03T02-43-57Z
+wall_s: 1289
+applies: false
+hits: 7
+hits_of: 8
+self_hits: 0
+usd_model: 0.0014
 ---
 
 # DeepSeek V4 Flash baseline on the scanner fix: corrupt hunk header, 7 of 8 verdicts, and 21 minutes for 5,000 tokens

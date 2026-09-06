@@ -12,6 +12,11 @@ source: oxbox-run
 agent: claude-fable-5-1
 corpus: oxbox-ask-grounding
 role: baseline
+run: 2026-09-03T02-26-52Z
+wall_s: 14
+hits: 10
+hits_of: 10
+usd_model: 0.0416
 ---
 
 # Sonnet 5 baseline on ask-grounding: 10 of 10, including "not settled" on all three unsettled questions

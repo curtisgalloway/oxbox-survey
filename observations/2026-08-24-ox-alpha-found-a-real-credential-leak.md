@@ -10,6 +10,9 @@ model: x-preview-f-free
 kind: findings
 source: oxbox-run
 agent: claude-opus-5
+wall_s: 900
+findings: 5
+real: 5
 ---
 
 # Ox Alpha found a real credential leak in oxbox: 5 findings, 0 false positives

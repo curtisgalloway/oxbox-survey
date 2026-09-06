@@ -140,13 +140,17 @@ fixture of that venue's real catalog shape, so a parser change that silently
 drops the free tier fails there rather than in a committed snapshot. And it
 checks the rules this repo states in prose — a class B `free` is null and never
 false, every observation carries valid frontmatter, no `source: probe`
-observation assigns a `USE`, every active corpus fixture can still be reproduced,
+observation carries measured fields, every manifest from 2026-09-06 on is
+derived from the Editor's Rating, every active corpus fixture can still be reproduced,
 every provider page dates its verification, every file carries an SPDX header. **A rule that lives only in a README is a hope.**
 
 Every assertion is mutation-checked: break the behavior in `oxsurvey` and
 confirm the test goes red before trusting it. Two of the original assertions
 were wrong rather than the code — T7 correctly fires on a stealth-free catalog,
-and "it cannot justify a `USE`" is the rule being stated, not broken.
+and a retired marker check once tripped on the rule being stated rather than
+broken. The manifest-derivation checks run on synthetic manifests as well as the
+real one, so every refusal branch is seen to bite even in a week when the real
+manifest is clean.
 
 ## Rules
 
@@ -196,8 +200,17 @@ and "it cannot justify a `USE`" is the rule being stated, not broken.
 - **Never apply a generator revision unattended.** The skill proposes edits to its
   own SKILL.md as a diff and stops. The user decides whether the landscape moved
   or whether it was noise.
-- **No color-only status.** Use the text labels `USE` / `TRY` / `HOLD` / `AVOID`.
-  Never "the green ones".
+- **The Editor's Rating is the editor's; the digits are the record's.** Every
+  tried model gets a catalog row: three 0-5 digits `ratings.py` buckets from
+  observation frontmatter (quality, cost, speed), a dated disqualifier column,
+  and an Editor's Rating of Good / Acceptable / Marginal / Poor from
+  `editor-ratings.json`. Never type a digit, and never write that file; an
+  unattended run carries last week's rating forward with its date showing. The
+  manifest is derived: Good and Acceptable in, Goods above Acceptables, a
+  standing disqualifier holds a model out. The old `USE` / `TRY` / `HOLD` /
+  `AVOID` markers are retired; see `docs/decisions.md`.
+- **No color-only status.** The rating is shown as its word, never as the IIHS
+  green-through-red it borrows from. Never "the green ones".
 - **"No data" is an allowed answer** and the preferred one. Do not interpolate a
   missing axis from an adjacent benchmark.
 
@@ -212,6 +225,8 @@ manifests/latest.json             symlink to the newest manifest, for --manifest
 manifests/oxbox-manifest-*.json   which model ox should call — regenerated per issue
 corpora/corpus-manifest.json      what to send it — pinned targets, see corpora/README.md
 costcheck.py                      what a run cost: the model's tokens, and the harness's
+ratings.py                        the catalog table: digits bucketed from observations, and the rating
+editor-ratings.json               the Editor's Rating per tried model -- the editor writes it, tools read it
 providers/<venue>.md              standing notes per venue — see providers/README.md
 .claude/skills/oxbox-survey/      the generator, and how it reviews its own rules
 .github/workflows/snapshot.yml    manual dispatch only — see below

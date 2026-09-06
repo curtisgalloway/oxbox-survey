@@ -12,6 +12,11 @@ source: oxbox-run
 agent: claude-opus-5
 corpus: oxbox-clean-control
 role: baseline
+run: 2026-09-03T03-05-50Z
+wall_s: 329
+findings: 0
+real: 0
+usd_model: 0.0005
 ---
 
 # DeepSeek V4 Flash baseline on the clean control: 0 emitted, 0 real, 0 invented — the key's best possible result, from the cheapest model

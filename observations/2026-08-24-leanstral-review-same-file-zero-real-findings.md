@@ -10,6 +10,8 @@ model: mistral/leanstral-1-5
 kind: findings
 source: oxbox-run
 agent: claude-opus-5
+findings: 6
+real: 0
 ---
 
 # leanstral on the same file: 6 findings, 0 real defects, 1 factually wrong
