@@ -18,6 +18,12 @@ hits: 10
 hits_of: 10
 usd_model: 0.0010
 usd_total: 0.0010
+harness_model: claude-fable-5-1
+harness_window: 2026-09-06T23:00Z..2026-09-06T23:03Z
+harness_in: 96
+harness_out: 9282
+harness_cache_read: 2322362
+harness_cache_write: 11631
 ---
 
 # DeepSeek V4 Flash as a candidate on ask-grounding: 10 of 10 in 37 seconds for a tenth of a cent, served by a third provider
@@ -66,3 +72,29 @@ route.
 
 The verification half on this fixture is the answer key, so `usd_total`
 equals `usd_model`.
+
+## Cost
+
+### Under test
+
+| run | model | mode | context | prompt | completion | reasoning | usd |
+|---|---|---|---|---|---|---|---|
+| `2026-09-06T22-46-02Z` | `deepseek/deepseek-v4-flash` | ask | 39,467 B | 9,906 | 1,283 | 936 | $0.0009 |
+
+usd is computed from the archived catalog price (2026-09-01.json), not billed: OpenRouter returns the billed figure only when asked, and ox does not ask. Reasoning tokens are inside completion and priced as output.
+
+### Harness
+
+| model | lane | turns | input | output | thinking | cache read | cache write |
+|---|---|---|---|---|---|---|---|
+| `claude-fable-5-1` | main | 3 | 96 | 9,282 | 2,017 | 2,322,362 | 11,631 |
+| **total** | | 3 | 96 | 9,282 | 2,017 | 2,322,362 | 11,631 |
+
+Window: 2026-09-06T23:00:00 .. 2026-09-06T23:03:00 (given).
+Turns observed span 2026-09-06T23:00:08 .. 2026-09-06T23:01:28.
+
+**Upper bound.** Anything else the session did in this window is counted here too.
+
+Harness input+output is 0.8x the model's prompt+completion (9,378 vs 11,189); with cache reads it is 208.4x (2,331,740).
+
+The window covers reading the ten answers against the key in the survey session; the run itself was a background job. The verification half on this fixture is the key, so `usd_total` equals `usd_model`.
