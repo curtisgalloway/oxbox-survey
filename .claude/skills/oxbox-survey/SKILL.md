@@ -202,7 +202,8 @@ Rating with date, then the per-fixture digits. Then the rubric.>
 One line if nothing was run.>
 
 ## Caveats
-<Bulleted. Anything that would make a number in this report misleading.>
+<Bulleted. Anything that would make a number in this report misleading. Always
+includes the standing regulatory-exposure bullet below.>
 
 ## Churn since last report
 <Added, delisted, repriced, revealed. One line each, from the fetcher's diff.>
@@ -230,6 +231,34 @@ Poor out, and a standing disqualifier holds a model out whatever its rating. Bas
 rows carry no rating and never enter the manifest. **Ratings must not rely on color** —
 the word, never a red/green dot as the only carrier of meaning, and never "the green
 ones" in prose.
+
+**The standing regulatory-exposure caveat.** Every issue's Caveats section carries
+this, updated to the week's catalog, because a model's vendor can be on a United
+States restricted-party list and nothing in a catalog card says so. Added at the
+user's direction on 2026-09-06. State it as facts about lists, tiered, with a link to
+the primary source for each, and never as legal advice; say once that a reader in a
+regulated setting should check the lists themselves and their own procurement rules.
+
+- **The BIS Entity List** (Commerce Department export controls) restricts supplying
+  listed companies with United States-origin items. Zhipu AI, the vendor behind the
+  `z-ai/` models, was added effective 2025-01-16 `[M]`
+  ([Federal Register, 2025-00704](https://www.federalregister.gov/documents/2025/01/16/2025-00704/addition-of-entities-to-and-revision-of-entry-on-the-entity-list)).
+  Being listed does not by itself forbid a customer from calling the vendor's hosted
+  API, but procurement and compliance policies commonly key on the list.
+- **The 1260H list** (Defense Department, "Chinese military companies") bars the
+  department from contracting with listed companies and, from June 2027, from buying
+  their products through third parties. The June 2026 update added Alibaba, the vendor
+  behind Qwen, and Baidu `[M]`
+  ([WilmerHale, 2026-06-11](https://www.wilmerhale.com/en/insights/client-alerts/20260611-pentagon-adds-65-new-entities-to-the-1260h-list-of-chinese-military-companies);
+  [CNBC, 2026-06-09](https://www.cnbc.com/2026/06/09/alibaba-baidu-byd-named-on-pentagons-china-military-list-.html)).
+- **Pending additions.** The user reports that further Chinese AI vendors are on a
+  non-public backlog for Entity List addition `[?]`. No citable source as of
+  2026-09-06; name no vendor under this bullet until one exists.
+
+When a vendor in the week's catalog is on either list, say so in the catalog table's
+limitation column for each of its models, in the same words each week. A listing is a
+card fact: it can never earn a rating, and it is not a disqualifier in the table's
+sense, since the venue serves the model; it is a fact the editor weighs when rating.
 
 ## Maintaining providers/ (a separate report)
 

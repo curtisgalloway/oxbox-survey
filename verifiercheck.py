@@ -84,14 +84,14 @@ EVIDENCE = ["jailtest.py", "oxbox", "profiles/jail.sb", "guardtest.py", ".gitign
 # The question is what a supervisor actually costs to run, and a matched rung
 # would price a setting nobody would choose.
 #
-# ox is resolved BY PATH because `medium` needs a build that has it. It is on
-# oxbox main as of 41c7c3f and no longer an unmerged branch, but main is not a
-# release: the Homebrew `ox` on PATH still offers only low|high|max, verified
-# 2026-09-03. Falling back to PATH would therefore not fail -- it would silently
-# refuse the flag at argparse, which is loud, but a manifest-set effort would go
-# out at the built-in default instead. The tripwire below reads the level from
-# meta.json for exactly that reason.
-OX = "/Users/curtisg/src/oxbox/ox"
+# The send command is resolved from PATH as `oxbox send`: oxbox 0.7.0
+# (2026-09-06) renamed `ox` and put the script off PATH, and that release is
+# the first Homebrew build with the full effort ladder, so the checkout path
+# this used to pin (chosen on 2026-09-03 because the brew `ox` then lacked
+# `medium`) is no longer needed and no longer exists. The tripwire below still
+# reads the level from meta.json, because a build that silently dropped an
+# effort would run at its default without failing.
+OX = ["oxbox", "send"]
 
 ARMS = {
     "opus": {
@@ -178,7 +178,7 @@ def ox_command(arm, pin, stem):
     files = ",".join(os.path.join(pin, name) for name in EVIDENCE)
     return [
         "op", "run", "--env-file", ".env", "--",
-        OX,
+        *OX,
         "--force",
         "--venue", "openrouter",
         "--model", arm["model"],

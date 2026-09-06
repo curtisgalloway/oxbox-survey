@@ -71,11 +71,12 @@ fixture is a file with nothing left to find.
 
 ## Running a task
 
-Check the project out at its pin, then feed the prompt file on stdin:
+Check the project out at its pin, then feed the prompt file on stdin (`oxbox send`
+is the command from oxbox 0.7.0; it was `ox` before, with the same flags):
 
 ```bash
 git -C /path/to/oxbox checkout 6072d56
-ox --mode review --stdin \
+oxbox send --mode review --stdin \
    --files .claude/skills/ox-review/scripts/oxreview.py,jailtest.py \
    --max-tokens 100000 --temperature 0.2 --effort high \
    --manifest /path/to/oxbox-survey/manifests/oxbox-manifest-2026-08-29.json \

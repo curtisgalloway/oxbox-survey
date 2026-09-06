@@ -36,6 +36,12 @@
       "rating": null,
       "date": null,
       "why": null
+    },
+    "z-ai/glm-5.3-flash": {
+      "venue": "openrouter",
+      "rating": null,
+      "date": null,
+      "why": null
     }
   }
 }
