@@ -231,8 +231,13 @@ includes the standing regulatory-exposure bullet below.>
 <See below.>
 ```
 
-**The cost comparison.** Run `python3 ratings.py --costs` and paste what it prints under
-"What it costs". It prints one table per checking model, and the editor's standing
+**The cost comparison.** Run `python3 ratings.py --costs` for the text form and
+`uv run --with openpyxl python3 costsheet.py <out.xlsx>` for the workbook, upload the
+workbook to the Oxbox Survey Drive folder (it converts to a Google Sheet, one tab per
+checking model plus the same-batch, per-fixture, ratings and rubric tabs), and link the
+Sheet from "What it costs" rather than pasting twelve-column tables into prose; the
+editor found the pasted form unreadable (2026-09-06). Paste only the same-batch table and
+the two-sentence reading inline. It prints one table per checking model, and the editor's standing
 direction (2026-09-06) is to run both Opus 5 and Fable 5.1 as checkers on each verified
 batch so both tables fill and a reader can choose; where a run was checked by both, the
 same-batch table shows each checker on its own tokens. A second checker is recorded as a
