@@ -118,6 +118,15 @@ group observations without interpreting prose:
   did. Checking work the window does not contain (a subagent, another session)
   goes in `harness_unpriced` as text, so the table can say a share is missing
   rather than silently understate it.
+- **A check record is how a run gets a second checker.** An observation of
+  `kind: efficiency`, `source: manual`, that names a `run:` and carries the
+  `harness_*` fields for a supervisor other than the one on the run's own
+  observation (or a cleaner measurement by the same one) attaches to that run
+  as a check by `harness_model`. `ratings.py --costs` prints one cost table per
+  checking model and, where a run has two checks, a same-batch table on each
+  checker's own tokens. A check record carries no run-output fields; the run's
+  own observation has those. `harness_seconds` may give the check's exact
+  duration where the window's minute granularity is too coarse.
 - **A disqualifier is open until a later run clears it.** `disqualifier:` on a
   run-backed access or availability observation names why the venue refused
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands

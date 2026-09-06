@@ -1134,10 +1134,18 @@ def test_ratings():
     report(bool(rows), "run-backed observations produce catalog rows", len(rows))
     typed = [o["_file"] for o in obs if any(k in o for k in rt["DERIVED_KEYS"])]
     report(not typed, "no observation types a quality, cost or speed digit", typed)
-    measured = [k for k in rt["MEASURED_FIELDS"] if k != "disqualifier"]
+    # Run-output fields belong to runs. A check record (a manual observation
+    # that names a run and carries harness_* fields) is the one exception, and
+    # it may carry only the harness fields plus the run it checked.
+    run_output = [k for k in rt["MEASURED_FIELDS"]
+                  if k not in ("disqualifier", "run") and not k.startswith("harness_")]
     probes = [o["_file"] for o in obs
-              if o.get("source") != "oxbox-run" and any(k in o for k in measured)]
-    report(not probes, "no probe or manual observation carries measured fields", probes)
+              if o.get("source") != "oxbox-run" and any(k in o for k in run_output)]
+    report(not probes, "no probe or manual observation carries run-output fields", probes)
+    orphan_checks = [o["_file"] for o in obs
+                     if o.get("harness_window") and o.get("kind") not in rt["ROW_KINDS"]
+                     and not o.get("run")]
+    report(not orphan_checks, "every check record names the run it checked", orphan_checks)
     missing = []
     for o in obs:
         if o.get("source") != "oxbox-run" or o.get("kind") not in rt["ROW_KINDS"]:

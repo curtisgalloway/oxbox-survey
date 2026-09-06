@@ -44,7 +44,8 @@ MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "hits", "hits_of",
                    "applies", "self_hits", "usd_model", "usd_total",
                    "timed_out", "disqualifier", "harness_model", "harness_window",
                    "harness_in", "harness_out", "harness_cache_read",
-                   "harness_cache_write", "harness_unpriced")
+                   "harness_cache_write", "harness_unpriced", "harness_note",
+                   "harness_seconds")
 
 # The checking half is priced at the supervisor's own list price from the
 # archived OpenRouter catalog, cache reads and writes included; the harness
@@ -495,7 +496,49 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
     return "\n".join(out)
 
 
-def cost_rows(observations, prices, tasks=None):
+def checkers_in(observations):
+    """Every supervisor that has checked a run-backed row, in the record."""
+    names = set()
+    for f in observations:
+        if f.get("harness_window") and f.get("harness_model"):
+            names.add(f["harness_model"])
+    return sorted(names)
+
+
+def same_batch(observations, prices):
+    """Runs checked by more than one supervisor: per checker, tokens, USD, time."""
+    by_run = {}
+    # Rows' own windows first, then check records, so a deliberate check of a
+    # run replaces the window the row's session happened to record.
+    ordered = sorted((f for f in observations
+                      if f.get("run") and f.get("harness_window") and f.get("harness_model")),
+                     key=lambda f: 0 if f.get("kind") in ROW_KINDS else 1)
+    for f in ordered:
+        if f.get("kind") in ROW_KINDS and "," in f["run"]:
+            continue
+        for run_id in [x.strip() for x in f["run"].split(",")]:
+            by_run.setdefault(run_id, {})[f["harness_model"]] = f
+    out = []
+    for run_id, per in sorted(by_run.items()):
+        if len(per) < 2:
+            continue
+        entry = {"run": run_id, "checkers": []}
+        for name, f in sorted(per.items()):
+            entry["checkers"].append({
+                "checker": name,
+                "input": _num(f.get("harness_in")), "output": _num(f.get("harness_out")),
+                "cache_read": _num(f.get("harness_cache_read")),
+                "cache_write": _num(f.get("harness_cache_write")),
+                "usd": price_window(f, prices),
+                "seconds": _num(f.get("harness_seconds")) if f.get("harness_seconds")
+                           else window_seconds(f["harness_window"]),
+                "note": f.get("harness_note"),
+            })
+        out.append(entry)
+    return out
+
+
+def cost_rows(observations, prices, tasks=None, checker=None):
     """Per model: the model half and the checking half, per run and per real.
 
     The model half is the mean of usd_model over the model's priced rows. The
@@ -509,6 +552,28 @@ def cost_rows(observations, prices, tasks=None):
     """
     tasks = load_corpus() if tasks is None else tasks
     rows = run_rows(observations, tasks)
+    # A check record is any observation that names a run and carries harness
+    # fields: a deliberate measurement of checking that run, by the checker it
+    # names. It replaces the row's own window for the same checker, and adds a
+    # window for a different one, so a run checked twice has two entries.
+    checks = {}
+    for f in observations:
+        if f.get("run") and f.get("harness_window") and f.get("kind") not in ROW_KINDS:
+            for run_id in [x.strip() for x in f["run"].split(",")]:
+                checks.setdefault(run_id, {})[f.get("harness_model")] = f
+    for r in rows:
+        r["checks"] = {}
+        if r["harness_window"]:
+            r["checks"][r["harness_model"]] = r["_fields"]
+        for run_id in [x.strip() for x in (r["run"] or "").split(",") if x.strip()]:
+            r["checks"].update(checks.get(run_id, {}))
+    if checker is not None:
+        for r in rows:
+            f = r["checks"].get(checker)
+            r["harness_model"] = checker if f else None
+            r["harness_window"] = f.get("harness_window") if f else None
+            r["_fields"] = f if f else r["_fields"]
+            r["harness_unpriced"] = f.get("harness_unpriced") if f else None
     windows = {}
     for r in rows:
         if r["harness_window"]:
@@ -582,9 +647,7 @@ def costs_markdown(observations=None, prices=None):
         prices, catalog = load_prices()
     else:
         catalog = "given"
-    rows = cost_rows(observations, prices)
     order = {"frontier": 0, "cheap paid": 1, "paid, price unknown": 2, "free": 3}
-    rows.sort(key=lambda r: (order.get(r["tier"], 9), -(r["model_usd_per_run"] or 0), r["model"]))
 
     def usd(v):
         return "-" if v is None else "$%.4f" % v
@@ -594,24 +657,44 @@ def costs_markdown(observations=None, prices=None):
             return "-"
         return "%d s" % round(v) if v < 120 else "%.0f min" % (v / 60)
 
-    supervisors = sorted({r["checked_by"] for r in rows if r["checked_by"]})
-    out = ["## What it costs", "",
-           "| Tier | Model | Runs | Model half, per run | Model time, per run | Checked by | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |",
-           "|---|---|---|---|---|---|---|---|---|---|---|---|"]
-    for r in rows:
-        check = usd(r["check_usd_per_run"])
-        if r["check_unpriced"]:
-            check += " + an unpriced share"
-        if r["check_runs"] and r["check_runs"] < r["runs"]:
-            check += " (%d of %d runs)" % (r["check_runs"], r["runs"])
-        out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %s | %s | %d | %s |" % (
-            r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]), clock(r["wall_per_run"]),
-            r["checked_by"] or "-", check, clock(r["check_seconds_per_run"]),
-            usd(r["total_usd_per_run"]), clock(r["total_seconds_per_run"]),
-            r["real"], usd(r["usd_per_real"])))
-    out += ["",
-            "The model half is what the venue billed or the catalog computes for the run. "
-            "The checking half is the supervisor's tokens in the window that verified the run, "
+    out = ["## What it costs", ""]
+    for name in checkers_in(observations):
+        rows = cost_rows(observations, prices, checker=name)
+        unchecked = sorted(r["model"] for r in rows if not r["check_runs"])
+        rows = [r for r in rows if r["check_runs"]]
+        rows.sort(key=lambda r: (order.get(r["tier"], 9), -(r["model_usd_per_run"] or 0), r["model"]))
+        out += ["### Checked by %s (%s)" % (name, supervisor_price_line(HARNESS_MODEL_IDS.get(name, ""), prices)), "",
+                "| Tier | Model | Runs | Model half, per run | Model time, per run | Checked runs | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |",
+                "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+        for r in rows:
+            check = usd(r["check_usd_per_run"])
+            if r["check_unpriced"]:
+                check += " + an unpriced share"
+            out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %s | %s | %d | %s |" % (
+                r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]), clock(r["wall_per_run"]),
+                "%d of %d" % (r["check_runs"], r["runs"]) if r["check_runs"] else "none",
+                check, clock(r["check_seconds_per_run"]),
+                usd(r["total_usd_per_run"]), clock(r["total_seconds_per_run"]),
+                r["real"], usd(r["usd_per_real"])))
+        if unchecked:
+            out += ["", "No run checked by this supervisor: %s." % ", ".join("`%s`" % m for m in unchecked)]
+        out.append("")
+    pairs = same_batch(observations, prices)
+    if pairs:
+        out += ["### The same batch, checked by more than one supervisor", ""]
+        for entry in pairs:
+            out += ["Run `%s`:" % entry["run"], "",
+                    "| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |",
+                    "|---|---|---|---|---|---|---|"]
+            for c in entry["checkers"]:
+                out.append("| %s | %s | %s | %s | %s | %s | %s |" % (
+                    c["checker"], commas(c["input"]), commas(c["output"]) + (" (derived)" if c["note"] else ""),
+                    commas(c["cache_read"]), commas(c["cache_write"]), usd(c["usd"]), clock(c["seconds"])))
+            notes = ["%s: %s" % (c["checker"], c["note"]) for c in entry["checkers"] if c["note"]]
+            if notes:
+                out += ["", "Derived. " + " ".join(n + "." for n in notes)]
+            out.append("")
+    out += ["The model half is what the venue billed or the catalog computes for the run. The checking half is the supervisor's tokens in the window that verified the run, "
             "priced at the supervisor's list price on the %s OpenRouter catalog with cache reads "
             "and writes, counted once per window and split across the runs it covers. A window "
             "holds whatever else the session did, so it is an upper bound. A real finding is a "
@@ -620,23 +703,20 @@ def costs_markdown(observations=None, prices=None):
             "runs produced. Cheap paid means a list "
             "completion price at or under $%.2f per million. Time is a cost too: model time is the "
             "run's wall clock from the log timestamps; checking time is the verification window's "
-            "span, split across the runs it covers, an upper bound like the dollars beside it. The total is both halves per checked "
-            "run, so an unchecked run's model half is not averaged against a checking half it "
-            "never had; total time is the model's wall clock plus the checking window share, per "
-            "checked run. On the "
-            "matched checker pair, Fable 5.1 took 117 s and Opus 5 took 308 s for the same four "
-            "findings." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK),
+            "span, split across the runs it covers, an upper bound like the dollars beside it. The "
+            "total is both halves per checked run, so an unchecked run's model half is not averaged "
+            "against a checking half it never had; total time is the model's wall clock plus the "
+            "checking window share, per checked run." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK),
             "",
-            "**The checking model sets the checking half.** Supervisors in this table and the "
-            "prices used for them: " + "; ".join(
-                "%s at %s" % (name, supervisor_price_line(HARNESS_MODEL_IDS.get(name, ""), prices))
-                for name in supervisors) +
-            ". A different supervisor is a different bill and a different token count, not a "
-            "repricing: on the one matched pair measured (2026-09-06, four findings, identical "
-            "instructions and files), Opus 5 spent 1.2x Fable 5.1's tokens and 1.5x its output and "
-            "still cost 32% less at its own list price, where repricing Fable's tokens at Opus's "
-            "rates had predicted 47% less. USD per real uses the supervisor that actually checked."]
+            "**One table per checking model, because the checking model sets the checking half.** "
+            "A different supervisor is a different bill and a different token count, not a repricing; "
+            "where one run was checked by more than one supervisor the same-batch table above shows "
+            "each on its own tokens. USD per real finding uses the supervisor that actually checked."]
     return "\n".join(out)
+
+
+def commas(value):
+    return "-" if value is None else "{:,}".format(int(value))
 
 
 def main(argv=None):

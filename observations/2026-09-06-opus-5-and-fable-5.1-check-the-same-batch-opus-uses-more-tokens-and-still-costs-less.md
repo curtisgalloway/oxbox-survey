@@ -11,6 +11,15 @@ kind: efficiency
 source: manual
 agent: claude-fable-5-1
 checkers: claude-opus-5, claude-fable-5-1
+run: 2026-09-06T21-30-07Z
+harness_model: claude-opus-5
+harness_window: 2026-09-06T21:59Z..2026-09-06T22:05Z
+harness_in: 8
+harness_out: 10758
+harness_cache_read: 184557
+harness_cache_write: 87230
+harness_seconds: 308
+harness_note: output is the Agent tool's reported total (97,996) minus input and cache writes; subagent transcripts do not record final output
 ---
 
 # Opus 5 and Fable 5.1 check the same four findings: Opus spends 1.2x the tokens and 1.5x the output, and still costs 32% less, not the 47% that repricing Fable's tokens predicted
