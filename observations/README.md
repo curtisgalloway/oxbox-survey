@@ -117,7 +117,12 @@ group observations without interpreting prose:
   once. It is an upper bound, because a window holds whatever else the session
   did. Checking work the window does not contain (a subagent, another session)
   goes in `harness_unpriced` as text, so the table can say a share is missing
-  rather than silently understate it.
+  rather than silently understate it. A subagent transcript does not record its
+  final output tokens, and deriving them from the Agent tool's reported total
+  failed on 2026-09-06 (the residue came out smaller than the visible reply), so
+  when the derivation is implausible leave `harness_out` off and say in
+  `harness_unpriced` that the output is unmeasured. A derived figure that is
+  recorded must carry a `harness_note` saying how.
 - **A check record is how a run gets a second checker.** An observation of
   `kind: efficiency`, `source: manual`, that names a `run:` and carries the
   `harness_*` fields for a supervisor other than the one on the run's own

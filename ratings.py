@@ -351,8 +351,41 @@ def measure(fields, tasks):
     return row
 
 
-def run_rows(observations, tasks):
-    """One row per run-backed findings or hygiene observation."""
+CEILING_CHECKER = "claude-fable-5-1"  # the ruler's own checking, for both-halves totals
+
+
+def attach_checks(rows, observations):
+    """Give each row its check records, keyed by checker.
+
+    A check record is any observation that names a run and carries harness
+    fields: a deliberate measurement of checking that run, by the checker it
+    names. It replaces the row's own window for the same checker, and adds a
+    window for a different one, so a run checked twice has two entries.
+    """
+    checks = {}
+    for f in observations:
+        if f.get("run") and f.get("harness_window") and f.get("kind") not in ROW_KINDS:
+            for run_id in [x.strip() for x in f["run"].split(",")]:
+                checks.setdefault(run_id, {})[f.get("harness_model")] = f
+    for r in rows:
+        r["checks"] = {}
+        if r["harness_window"]:
+            r["checks"][r["harness_model"]] = r["_fields"]
+        for run_id in [x.strip() for x in (r["run"] or "").split(",") if x.strip()]:
+            r["checks"].update(checks.get(run_id, {}))
+
+
+def run_rows(observations, tasks, prices=None):
+    """One row per run-backed findings or hygiene observation.
+
+    A row's both-halves total is its own usd_total field when the observation
+    recorded one (a mechanically scored fixture, where the checker is the
+    scorer). Otherwise, when the ceiling checker has a check record for the
+    run, the total is the model half plus that check's priced window, and the
+    cost digit follows from it. A row with neither has no cost digit.
+    """
+    if prices is None:
+        prices, _ = load_prices()
     rows = []
     for fields in observations:
         if fields.get("source") != "oxbox-run" or fields.get("kind") not in ROW_KINDS:
@@ -360,6 +393,16 @@ def run_rows(observations, tasks):
         if fields["model"] in ("", "-"):
             continue
         rows.append(measure(fields, tasks))
+    attach_checks(rows, observations)
+    for r in rows:
+        if r["usd_total"] is None and r["usd_model"] is not None:
+            check = r["checks"].get(CEILING_CHECKER)
+            check_usd = price_window(check, prices) if check and check is not r["_fields"] else None
+            if check_usd is not None:
+                r["usd_total"] = r["usd_model"] + check_usd
+                r["usd_total_from"] = "check record"
+                task = tasks.get(r["fixture"] or "", {})
+                r["cost"] = cost_digit(r["usd_total"], r["divisor"], task.get("cost_ceiling_usd_per_real"))
     return rows
 
 
@@ -613,22 +656,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
     that have a window, so an unwindowed run's findings do not dilute it.
     """
     tasks = load_corpus() if tasks is None else tasks
-    rows = run_rows(observations, tasks)
-    # A check record is any observation that names a run and carries harness
-    # fields: a deliberate measurement of checking that run, by the checker it
-    # names. It replaces the row's own window for the same checker, and adds a
-    # window for a different one, so a run checked twice has two entries.
-    checks = {}
-    for f in observations:
-        if f.get("run") and f.get("harness_window") and f.get("kind") not in ROW_KINDS:
-            for run_id in [x.strip() for x in f["run"].split(",")]:
-                checks.setdefault(run_id, {})[f.get("harness_model")] = f
-    for r in rows:
-        r["checks"] = {}
-        if r["harness_window"]:
-            r["checks"][r["harness_model"]] = r["_fields"]
-        for run_id in [x.strip() for x in (r["run"] or "").split(",") if x.strip()]:
-            r["checks"].update(checks.get(run_id, {}))
+    rows = run_rows(observations, tasks, prices)
     if checker is not None:
         for r in rows:
             f = r["checks"].get(checker)
