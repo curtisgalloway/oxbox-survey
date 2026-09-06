@@ -524,3 +524,13 @@ the hour it was added. The pair also exposed that subagent transcripts store
 start-of-stream usage, so their output tokens are not in the record and
 `costcheck.py`'s subagent lane has always undercounted them; it now says so.
 See `observations/2026-09-06-opus-5-and-fable-5.1-check-the-same-batch-*.md`.
+
+**Amended 2026-09-06, evening: reproduce first.** The C3 dispute (Fable 5.1
+CONFIRMED, Opus 5 REFUTED, same files, same instructions) was settled not by a
+third reading but by running the finding on macOS and Linux, at an ordinary
+uid and at uid 0. Every factual claim either checker made turned out true and
+the finding's stated cause turned out false, in under a minute of execution.
+The editor's direction: reproduction is the default baseline for verifying a
+finding wherever the failure can be executed against the pin in a jail, and
+reading is the fallback. Recorded in `observations/README.md` and the skill.
+The ruling on C3 itself remains the editor's.

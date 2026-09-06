@@ -109,6 +109,17 @@ report what the evidence shows:
   say so plainly. That is the most valuable single observation the section can produce,
   because it impeaches the catalog.
 
+**Verify by reproducing, not by reading, wherever the failure can be run.** A finding
+that says "X happens when Y" is checked by making Y happen against the pin in a jail and
+watching for X, on the platform the finding names or on both; the source is read to
+decide what to run and to explain the result, not in place of running it. Two capable
+checkers reading the same lines reached opposite verdicts on 2026-09-06 and four commands
+settled it. The editor's standing direction from that day: reproduction is the default
+baseline for a verdict. Record the reproduction as an observation with a `reproduces:`
+field. Name both platforms (macOS seatbelt, Linux bubblewrap) when a finding could hold
+on one and not the other; the prompts do not, and the models only learn it from the
+payload.
+
 **A probe is not a run.** An `observations/` file with `source: probe` proves an endpoint
 answers; it says nothing about review quality and never gets a row in the catalog
 table. Only `source: oxbox-run` carries measured fields, and only a row can be rated.

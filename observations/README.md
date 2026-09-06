@@ -133,6 +133,14 @@ group observations without interpreting prose:
   until a run-backed row for the same model is dated on or after it; a refusal
   fixed the same afternoon is not standing. An open disqualifier holds a model
   out of the manifest whatever its Editor's Rating.
+- **Reproduce first; read as the fallback.** Where a finding's stated failure can
+  be executed against the pin inside a jail, run it, on the platform the finding
+  names or on both, and let the output be the verdict's evidence. Two checkers
+  read the same lines of `jailtest.py` on 2026-09-06 and reached opposite
+  verdicts on C3; four commands on a Linux host settled every factual point.
+  The editor's direction that day: this is the default baseline for verifying a
+  finding, not an extra step. Record the run as an observation with a
+  `reproduces:` field naming the finding and its run.
 - **Never edit a published observation.** If it turns out wrong, write a new file
   that links the old one and says what changed. The archive's value is that it
   records what was believed at the time.
