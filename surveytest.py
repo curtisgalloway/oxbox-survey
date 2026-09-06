@@ -1298,8 +1298,28 @@ def test_ratings():
               "disqualifier": "not_found", "role": "candidate", "_file": "x"}]
     cleared = stale + [{"model": "m", "source": "oxbox-run", "kind": "findings",
                         "date": "2026-09-01", "role": "candidate", "_file": "y"}]
-    report("m" in open_marks(stale) and "m" not in open_marks(cleared),
+    report("m" in open_marks(stale, catalog_root=Path(tempfile.gettempdir()) / "no-catalogs-here")
+           and "m" not in open_marks(cleared, catalog_root=Path(tempfile.gettempdir()) / "no-catalogs-here"),
            "a disqualifier stands until a run dated on or after it")
+    # Delisting: absent from the venue's newest archived catalog, dated by it,
+    # and a later run does not clear it.
+    with tempfile.TemporaryDirectory() as tmp:
+        cat = Path(tmp) / "openrouter"
+        cat.mkdir()
+        (cat / "2026-09-01.json").write_text(json.dumps(
+            {"payload": {"data": [{"id": "vendor/listed"}]}}), encoding="utf-8")
+        rows = [{"model": "vendor/listed", "venue": "openrouter", "source": "oxbox-run",
+                 "kind": "findings", "date": "2026-09-06", "role": "candidate", "_file": "l"},
+                {"model": "vendor/gone", "venue": "openrouter", "source": "oxbox-run",
+                 "kind": "findings", "date": "2026-09-06", "role": "candidate", "_file": "g"}]
+        marks = open_marks(rows, catalog_root=Path(tmp))
+        report(marks.get("vendor/gone") == ("2026-09-01", "delisted") and "vendor/listed" not in marks,
+               "a model missing from its venue's newest catalog is delisted, dated by that catalog")
+    live = open_marks(obs)
+    report(live.get("x-preview-f-free", ("", ""))[1] == "delisted"
+           and live.get("z-ai/glm-5.3-free", ("", ""))[1] == "delisted"
+           and "minimax/minimax-m3:free" not in live,
+           "the two delisted rows in the record are marked and the listed ones are not")
 
 
 def main():

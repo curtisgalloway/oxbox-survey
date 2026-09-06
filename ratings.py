@@ -363,15 +363,55 @@ def run_rows(observations, tasks):
     return rows
 
 
-def open_disqualifiers(observations):
+CATALOG_ROOT = HERE / "catalogs"
+
+
+def listed_models(venue, catalog_root=CATALOG_ROOT):
+    """(catalog date, set of model ids) from a venue's newest archived catalog.
+
+    The archive holds every model the venue served, paid and free, so absence
+    from it is delisting rather than a change of price. None if the venue has
+    no archive.
+    """
+    paths = sorted((catalog_root / venue).glob("*.json")) if venue else []
+    if not paths:
+        return None, None
+    data = json.loads(paths[-1].read_text(encoding="utf-8"))
+    payload = data.get("payload") or {}
+    rows = payload.get("data") or payload.get("models") or (payload if isinstance(payload, list) else [])
+    ids = {r.get("id") or r.get("model") or r.get("name") for r in rows if isinstance(r, dict)}
+    return paths[-1].stem, ids
+
+
+def open_disqualifiers(observations, catalog_root=CATALOG_ROOT):
     """model -> (date, reason) for a disqualifier no later run has cleared.
 
     A disqualifier is open while no run-backed row for the same model is
     dated on or after it. Same-day success clears it: the record is dated by
     day, and a refusal fixed the same afternoon is not standing.
+
+    Delisting is a disqualifier too, decided 2026-09-06: a model absent from
+    the newest archived catalog of the venue its rows name is `delisted`,
+    dated by that catalog, and a later run cannot clear it, only a catalog
+    that lists it again. A rating on a delisted row stays on the record; the
+    manifest cannot carry a model the venue no longer serves.
     """
     latest_success = {}
     marks = {}
+    venues = {}
+    for fields in observations:
+        if fields.get("source") == "oxbox-run" and fields.get("kind") in ROW_KINDS:
+            venues.setdefault(fields["model"], fields.get("venue"))
+    delisted = {}
+    listings = {}
+    for model, venue in venues.items():
+        if model in ("", "-") or not venue:
+            continue
+        if venue not in listings:
+            listings[venue] = listed_models(venue, catalog_root)
+        date, ids = listings[venue]
+        if ids is not None and model not in ids:
+            delisted[model] = (date, "delisted")
     for fields in observations:
         if fields.get("source") != "oxbox-run":
             continue
@@ -382,8 +422,11 @@ def open_disqualifiers(observations):
                 marks[model] = (date, fields["disqualifier"])
         elif fields.get("kind") in ROW_KINDS:
             latest_success[model] = max(latest_success.get(model, ""), date)
-    return {m: mark for m, mark in marks.items()
-            if latest_success.get(m, "") < mark[0]}
+    standing = {m: mark for m, mark in marks.items()
+                if latest_success.get(m, "") < mark[0]}
+    for model, mark in delisted.items():
+        standing.setdefault(model, mark)
+    return standing
 
 
 def per_fixture(rows):
