@@ -679,7 +679,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
                                               "check_model_usd": 0.0, "unpriced": False,
                                               "checked_by": set(), "wall": 0.0, "timed": 0,
                                               "check_seconds": 0.0, "check_timed": 0,
-                                              "check_wall": 0.0})
+                                              "check_wall": 0.0, "output_unmeasured": False})
         m["runs"] += 1
         if r["usd_model"] is not None:
             m["usd_sum"] += r["usd_model"]
@@ -717,8 +717,11 @@ def cost_rows(observations, prices, tasks=None, checker=None):
                 m["check_runs"] += 1
                 m["check_real"] += r["divisor"] or 0
                 m["check_model_usd"] += r["usd_model"] or 0
-            if r["harness_unpriced"]:
-                m["unpriced"] = True
+            note = (r["harness_unpriced"] or "").strip().lower()
+            if note.startswith("output unmeasured"):
+                m["output_unmeasured"] = True   # every in-harness check has this; a floor
+            elif note:
+                m["unpriced"] = True            # work outside the window entirely
     out = []
     for model, m in per_model.items():
         model_avg = (m["usd_sum"] / m["priced"]) if m["priced"] else None
@@ -736,6 +739,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
                                  if m["check_runs"] else None,
             "checked_by": ", ".join(sorted(m["checked_by"])),
             "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
+            "output_unmeasured": m["output_unmeasured"],
             "wall_per_run": (m["wall"] / m["timed"]) if m["timed"] else None,
             "check_seconds_per_run": (m["check_seconds"] / m["check_timed"]) if m["check_timed"] else None,
             "total_seconds_per_run": ((m["check_wall"] + m["check_seconds"]) / m["check_runs"])
@@ -773,6 +777,8 @@ def costs_markdown(observations=None, prices=None):
                 "|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in rows:
             check = usd(r["check_usd_per_run"])
+            if r["output_unmeasured"]:
+                check += " †"
             if r["check_unpriced"]:
                 check += " + an unpriced share"
             out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %s | %s | %d | %s |" % (
@@ -781,6 +787,9 @@ def costs_markdown(observations=None, prices=None):
                 check, clock(r["check_seconds_per_run"]),
                 usd(r["total_usd_per_run"]), clock(r["total_seconds_per_run"]),
                 r["real"], usd(r["usd_per_real"])))
+        if any(r["output_unmeasured"] for r in rows):
+            out += ["", "† Checked by a fresh subagent whose output tokens the harness does not record; "
+                        "input and cache are priced, output is not, so the figure is a floor."]
         if unchecked:
             out += ["", "No run checked by this supervisor: %s." % ", ".join("`%s`" % m for m in unchecked)]
         out.append("")

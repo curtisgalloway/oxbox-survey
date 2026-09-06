@@ -9,7 +9,9 @@ The Editor's Rating column, for the editor to fill in. Every model the survey ha
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
 
-**Where the digits stand.** The cost digit exists on ask-grounding, against Fable 5.1's ceiling of $0.0276 per hit. It cannot exist on the scanner fix: Fable refuses that prompt, with and without a motivation preamble, as "violative cyber content." It does not yet exist on the clean control or on real-work batches, where the verification half is a session window rather than a per-run figure. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Every rating is now in, and the rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, which is the current order.
+**Where the digits stand.** The cost digit exists on ask-grounding (Fable's ceiling $0.0276 per hit) and now on the clean control ($0.9152 per real finding, from Fable's run plus Fable's own check of it). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Six ratings are in; DeepSeek V4 Flash is the seventh row and awaits yours. The rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, the current order.
+
+**The cost tables have moved to a Sheet**, one tab per checking model plus the same-batch, per-fixture, ratings and rubric tabs, regenerated from the record each round: [Oxbox Survey costs](https://docs.google.com/spreadsheets/d/1gl6yELjYxiNski90Sqr3gLpZwWeCmZFJzVO8A9dmJ34/edit). This document keeps the same-batch table and the reading.
 
 Backticks around model names do not survive the conversion to a Doc; ignore that.
 
@@ -77,6 +79,22 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 **Why:** Fast and mostly good. Z.ai's regulatory status is a concern though.
 
+## deepseek/deepseek-v4-flash (OpenRouter, paid; new candidate rows this round)
+
+**Quality.** Run as a candidate on all three fixtures under your rule that a cheap enough model is a candidate; at $0.07 in and $0.14 out per million it is the cheapest paid row in the survey. Ask-grounding: 10 of 10 in 37 seconds, a 5, terse and right. Scanner fix: corrupt hunk header, the patch does not apply without a recount, 8 of 8 verdicts and zero self-hits behind it, a 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. Clean control: no answer at all. It spent 99,999 of 100,000 completion tokens reasoning and returned empty content after 33 minutes, the failure mode GLM-5.3 free showed in August; as a baseline four days earlier it had returned the fixture's ideal empty finding list in five and a half minutes.
+
+**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0024, no digit. Clean control $0.016 for nothing. Four runs on OpenRouter went to three different providers at the same list price.
+
+**Speed.** 37 s on ask, a 4. 16 minutes on the scanner fix, a 1. 33 minutes to produce nothing on the clean control, a 0.
+
+**Disqualifier.** None. Vendor note: DeepSeek is not on either list in the regulatory section; you reported a non-public backlog, uncited.
+
+**My read.** On ask mode it is as good as anything in the table and cheaper than all of it. On the two harder fixtures it has now failed the apply gate twice and blown a budget once. That is Marginal on the record as it stands, and the ask result is the reason not to call it Poor; a second clean-control run would tell you whether the blowout is the route or the model.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
 ## nemotron-3-ultra-free (OpenCode Zen, listed)
 
 **Quality.** No quality digit, no seeded set. 2 of 10 findings real on the exposure gate on 2026-08-30, a matched payload against MiniMax's 7 of 12. The one defect in the file that mattered was filed as UNCERTAIN with "low but non-zero" confidence.
@@ -143,32 +161,41 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## What it costs, by checking model
 
-Both halves of every checked run, one table per supervisor that did the checking, then the one run so far that both supervisors checked. Your direction is to run both Opus 5 and Fable 5.1 as checkers from here on, so both tables fill over time; today Fable has checked everything and Opus has checked one run. Time is a cost and both clocks are in.
+The full tables are in the [costs Sheet](https://docs.google.com/spreadsheets/d/1gl6yELjYxiNski90Sqr3gLpZwWeCmZFJzVO8A9dmJ34/edit), one tab per checking model. Your direction to run both Opus 5 and Fable 5.1 as checkers is in force: today every candidate and baseline batch that needed a reader has been checked by both, and the September 2 runs whose checking had been an unmeasured Opus subagent were re-checked by both, so the "unpriced share" caveat you asked about is gone. What replaced it is narrower and permanent: a subagent's output tokens are not in its transcript and cannot be derived from the harness total (the residue came out within two percent of 20,000 on four different checks), so every in-harness checking figure is a floor over input and cache, footnoted as such. The only route to a fully metered checking half is sending the verification through OpenRouter, as the verifier comparison did, which is toolless checking with the evidence inlined, a different job.
 
-#### Checked by claude-fable-5-1 ($10/$50, cache read $0.25, write $12.5 per M)
-
-| Tier | Model | Runs | Model half, per run | Model time, per run | Checked runs | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| frontier | `anthropic/claude-fable-5.1` | 2 | $0.3210 | 62 s | 2 of 2 | $0.8662 | 6 min | $1.1871 | 8 min | 12 | $0.1979 |
-| frontier | `anthropic/claude-sonnet-5` | 3 | $0.1291 | 110 s | 3 of 3 | $1.0950 | 4 min | $1.2241 | 6 min | 10 | $0.3672 |
-| frontier | `google/gemini-3.7-flash` | 3 | $0.0778 | 3 min | 3 of 3 | $1.0575 | 10 min | $1.1353 | 13 min | 19 | $0.1793 |
-| frontier | `openai/gpt-5.6-sol` | 3 | $0.0509 | 58 s | 3 of 3 | $0.8124 | 6 min | $0.8633 | 7 min | 19 | $0.1363 |
-| cheap paid | `z-ai/glm-5.3-flash` | 6 | $0.0036 | 5 min | 6 of 6 | $0.5338 + an unpriced share | 4 min | $0.5374 | 8 min | 29 | $0.1112 |
-| cheap paid | `deepseek/deepseek-v4-flash` | 3 | $0.0009 | 9 min | 3 of 3 | $0.1967 + an unpriced share | 4 min | $0.1977 | 13 min | 10 | $0.0593 |
-| free | `minimax/minimax-m3:free` | 2 | $0.0000 | 3 min | 1 of 2 | $2.5698 | 12 min | $2.5698 | 16 min | 20 | $0.3671 |
-| free | `nemotron-3-ultra-free` | 1 | - | 2 min | 1 of 1 | $2.5698 | 12 min | $2.5698 | 15 min | 2 | $1.2849 |
-
-No run checked by this supervisor: `mistral/leanstral-1-5`, `x-preview-f-free`, `z-ai/glm-5.3-free`.
-
-#### Checked by claude-opus-5 ($5/$25, cache read $0.5, write $6.25 per M)
-
-| Tier | Model | Runs | Model half, per run | Model time, per run | Checked runs | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| cheap paid | `z-ai/glm-5.3-flash` | 6 | $0.0036 | 5 min | 1 of 6 | $0.9065 | 6 min | $0.9099 | 8 min | 29 | - |
-
-No run checked by this supervisor: `anthropic/claude-fable-5.1`, `anthropic/claude-sonnet-5`, `deepseek/deepseek-v4-flash`, `google/gemini-3.7-flash`, `minimax/minimax-m3:free`, `mistral/leanstral-1-5`, `nemotron-3-ultra-free`, `openai/gpt-5.6-sol`, `x-preview-f-free`, `z-ai/glm-5.3-free`.
+The reading: under either checker the model half never decides a run's cost; the checking half does. The free models' checking is the most expensive in the table because their runs were hand-verified real-work batches of ten to twelve findings. Fixture runs scored by a key or a scorer have a zero checking half by rule.
 
 #### The same batch, checked by more than one supervisor
+
+Run `2026-09-03T03-05-25Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 | 66 | - | 130,427 | 41,989 | $0.5581 | 40 s |
+| claude-opus-5 | 16 | - | 440,152 | 47,193 | $0.5151 | 60 s |
+
+Run `2026-09-03T03-20-23Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 | 98 | - | 193,423 | 46,404 | $0.6294 | 47 s |
+| claude-opus-5 | 16 | - | 434,642 | 47,340 | $0.5133 | 61 s |
+
+Run `2026-09-03T03-21-05Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 | 66 | - | 114,659 | 75,485 | $0.9729 | 90 s |
+| claude-opus-5 | 10 | - | 252,658 | 80,094 | $0.6270 | 2 min |
+
+Run `2026-09-06T21-22-57Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 | 66 | 9,744 (derived) | 114,776 | 75,805 | $1.4641 | 3 min |
+| claude-opus-5 | 12 | - | 345,900 | 99,363 | $0.7940 | 6 min |
+
+Derived. claude-fable-5-1: output is the Agent tool's reported total (85,615) minus input and cache writes; plausible against the visible reply, but see the Opus record of the same batch for a case where that derivation fails.
 
 Run `2026-09-06T21-30-07Z`:
 
@@ -179,9 +206,16 @@ Run `2026-09-06T21-30-07Z`:
 
 Derived. claude-fable-5-1: output is the Agent tool's reported total (83,047) minus input and cache writes; subagent transcripts do not record final output. claude-opus-5: output is the Agent tool's reported total (97,996) minus input and cache writes; subagent transcripts do not record final output.
 
-The model half is what the venue billed or the catalog computes for the run. The checking half is the supervisor's tokens in the window that verified the run, priced at the supervisor's list price on the 2026-09-01.json OpenRouter catalog with cache reads and writes, counted once per window and split across the runs it covers. A window holds whatever else the session did, so it is an upper bound. A real finding is a verified-real finding on a review run or a correct hit on a seeded fixture, and USD per real finding is both halves over the checked runs divided by the real findings those runs produced. Cheap paid means a list completion price at or under $1.00 per million. Time is a cost too: model time is the run's wall clock from the log timestamps; checking time is the verification window's span, split across the runs it covers, an upper bound like the dollars beside it. The total is both halves per checked run, so an unchecked run's model half is not averaged against a checking half it never had; total time is the model's wall clock plus the checking window share, per checked run.
+## Two checkers, three batches
 
-**One table per checking model, because the checking model sets the checking half.** A different supervisor is a different bill and a different token count, not a repricing; where one run was checked by more than one supervisor the same-batch table above shows each on its own tokens. USD per real finding uses the supervisor that actually checked.
+| Batch | Fable 5.1 | Opus 5 | Record |
+|---|---|---|---|
+| GLM-5.3 Flash candidate, clean control (C1..C4) | C3 confirmed | C3 refuted | you ruled refuted after the runs |
+| Fable 5.1 baseline, clean control (F1..F5) | F1 refuted, F2..F5 confirmed | same, F4 uncertain on host state | F2, F3 counted as true-and-negligible, not real |
+| GLM-5.3 Flash baseline, clean control (G1..G4) | all four refuted | G1 confirmed, rest refuted | G1 is real (L1, fixed upstream) |
+| Both models' baseline ask-grounding (10 each) | 10 of 10 | 10 of 10 | 10 of 10 |
+
+Nine agreements in ten on the first two batches and one split each way overall. Both splits are the same shape: a finding with the right mechanism and a stated consequence the tree cannot produce. On C3 Fable was generous; on G1 Fable was strict and Opus credited the mechanism, which is what the record and the upstream fix did. The rule says as written, and as written G1's scenario, an offline host certifying a jail that permits egress, needs a jail that permits egress. I have left G1 as the record has it and flag the tension: the same reading that refuted C3 would refute G1.
 
 ## The C3 ruling
 
@@ -196,6 +230,19 @@ Two checkers split on finding C3 of the GLM-5.3 Flash clean-control candidate ru
 
 The stat succeeded at both uids, so the `/etc` bind is the cause and uid 0 is not. Your ruling: follow the real-world evidence. C3 is refuted; the run is 0 real of 4, recorded as a correction observation that the tooling overlays onto the original row, which stays as written. Two rules came out of it, both now in the repo: reproduction is the default baseline for a verdict wherever the failure can be run against the pin in a jail, and prompts should name both platforms, since the current ones do not and the models learn about seatbelt and bubblewrap only from the payload.
 
+## What each fixture can prove
+
+You asked whether every test now has a real-world result to check against. Not yet, and the fixtures differ in kind.
+
+| Fixture | How a result is checked today | Executable? |
+|---|---|---|
+| secret-scanner-fix | `git apply --check` at the pin, eight measured pattern verdicts, a self-scan of `ox` | yes, fully; the scorer is the check |
+| ask-grounding | an answer key with line citations, read by a checker | no; seven of ten questions could be executed against the pinned `ox` (defaults, the manifest-version exit, the base_url warning, the payload limit) with a small harness, and the three unsettled ones are the calibration measure by design |
+| clean-control | the two known defects can be reproduced (the stat oracle was, today, on both platforms; the offline-host one needs a host with no route), everything else is read | per finding, on demand |
+| review-queue, exposure-gate | human verification, and fixes that shipped upstream | no answer key by design |
+
+Reproduce-first is now the rule for any finding whose failure can be run. Making ask-grounding executable would be one small scorer; making the review fixtures executable would mean answer keys, which the corpus rule forbids. Whether to build the ask scorer is a question below.
+
 ## Regulatory exposure
 
 Added at your direction. This is a standing caveat the generator will now carry in every issue, tiered and linked, never as legal advice. What is in the record as of 2026-09-06:
@@ -206,12 +253,52 @@ Added at your direction. This is a standing caveat the generator will now carry 
 
 A listing is a card fact: it can never earn a rating and it is not a disqualifier in the table's sense, since the venue serves the model. It is a fact you weigh when rating, and the catalog table will state it in each affected model's limitation column in the same words every week.
 
+## Models to try next
+
+Every model below is listed and, where the venue was probed, reachable. Card facts from the 2026-09-01 catalog; nothing here is a rating. The completion cap matters because ox sends 100,000 by default and a lower cap has to go in the manifest's params.
+
+**Free, reachable, never run** (OpenRouter unless noted):
+
+| Model | Context | Completion cap | Reasoning | response_format | Note |
+|---|---|---|---|---|---|
+| minimax/minimax-m2.7:free | 197K | 177K | yes | yes | the sibling of the rank-1 model |
+| cohere/north-mini-code:free | 256K | 64K | yes | no | a code model; no structured output |
+| dots-studio/dots-3-note-preview:free | 512K | 461K | yes | yes | also free on ZenMux |
+| inclusionai/ling-3.0-flash-fin:free | 262K | 32K | yes | no | Ant Group; low cap |
+| google/gemma-4-31b-it:free, gemma-4-26b-a4b-it:free | 262K | 32K | yes | yes | rate-limited at probe time, not closed |
+| z-ai/glm-5.2:free | 256K | 230K | yes | yes | rate-limited at probe; Zhipu, Entity List |
+| ZenMux: z-ai/glm-4.7-flash-free, glm-4.6v-flash-free, ling-3.0-tiny | | | | | your balance covers them; Zhipu rows carry the list note |
+| Requesty: google/gemma-4-31b-it, nvidia/muse-glimmer-30b, nemotron-3-super-120b-a12b, nemotron-3.5-lightning-30b-a3b | | | | | answered the probe; class B, no published price |
+
+**Cheap paid, under the dollar line, plausible for review:**
+
+| Model | In/out $/M | Context | Completion cap | Note |
+|---|---|---|---|---|
+| openai/gpt-oss-120b | 0.037/0.17 | 131K | 118K | the obvious next cheap paid candidate; US vendor |
+| openai/gpt-oss-20b | 0.03/0.13 | 131K | 118K | same family, smaller |
+| qwen/qwen3-coder-next | 0.12/0.80 | 262K | 236K | no reasoning field; Alibaba, 1260H |
+| qwen/qwen3.6-35b-a3b | 0.10/0.90 | 262K | 236K | Alibaba, 1260H |
+| nvidia/nemotron-3-super-120b-a12b | 0.085/0.40 | 1M | 16K | cap needs a manifest param |
+| nvidia/nemotron-3.5-lightning | 0.08/0.20 | 262K | 131K | |
+| google/gemma-4-31b-it | 0.09/0.34 | 262K | 16K | cap needs a manifest param |
+| mistralai/mistral-small-2603 | 0.15/0.60 | 262K | 210K | EU vendor |
+| mistralai/codestral-2508 | 0.30/0.90 | 256K | 205K | no reasoning field; code model |
+| xiaomi/mimo-v2.5 | 0.14/0.28 | 1M | 131K | listed on OpenCode Zen too |
+| stepfun/step-3.5-flash | 0.10/0.30 | 262K | 65K | no response_format |
+| tencent/hy3 | 0.08/0.33 | 262K | 128K | |
+| inception/mercury-2 | 0.25/0.75 | 128K | 50K | a diffusion model, unusual |
+| arcee-ai/trinity-large-thinking | 0.25/0.80 | 262K | 80K | no response_format; US vendor |
+
+My suggestion for the first batch: the four reachable free rows plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, on all three fixtures, both checkers. That is 24 runs at a few cents of model cost and, at today's rates, roughly a dollar of checking per hand-verified batch. Mark the ones you want, strike the ones you do not, and I will queue them.
+
 ## Open questions
 
-1. **Delisted models.** Still open. Nothing mechanical marks x-preview-f-free or glm-5.3-free as out; your Marginal and Poor keep them out this round, but a Good on a delisted row would pull it into the manifest. I propose that ratings.py treat absence from the newest snapshot of the model's venue as a standing `delisted` disqualifier, dated by that snapshot. Yes or no?
+1. **Reproducible safe-direction failures.** Both checkers confirmed Fable's F2 and F3, which the record counts as true-and-negligible rather than real. With reproduce-first in force those are demonstrable in seconds. Should a confirmed, reproducible, safe-direction failure count as real, count separately, or stay as it is?
 
-2. **The scanner-fix ceiling.** Fable refuses the prompt with and without a stated motivation, so the trigger is the material: a source file whose pattern list is a catalog of credential formats, plus a task about matching more of them. The fixture keeps a null ceiling and its cost column stays a dash. A cheap diagnostic pair, the pattern list alone versus the full file, would name the trigger exactly but would not rescue the ceiling. Run it, or leave it?
+2. **G1.** Fable's checker refuted it on the same reading you used to refute C3; Opus, the record and the upstream fix hold it real. Stands, or reversed?
 
-3. **The clean-control ceiling.** Now that check records exist, a Fable check of a Fable clean-control run as a fresh subagent would give a per-run both-halves figure and a ceiling for that fixture. It costs about a dollar. Shall I?
+3. **A metered checking half.** The in-harness checkers cannot report output tokens. The verifier comparison already sends verification through OpenRouter, where every token is billed, at the cost of the checker being toolless. Do you want the cost table's checking half measured that way, in-harness with the floor footnote, or both?
 
-4. **Cheap paid as a class.** Your rule that a cheap enough model is a candidate now has a number in the tooling, a list completion price at or under $1 per million, and DeepSeek V4 Flash qualifies under it as glm-5.3-flash did. It has only baseline runs. Run it as a candidate so it can be rated?
+4. **An executable ask-grounding.** Seven of its ten questions can be run against the pinned `ox` with a small scorer. Build it?
+
+5. **DeepSeek's clean-control blowout.** One run to StreamLake spent the whole budget reasoning; the baseline run elsewhere did not. Re-run once to separate route from model before you rate it?

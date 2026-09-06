@@ -40,11 +40,12 @@ for name in rt.checkers_in(obs):
     rows.sort(key=lambda r: (order.get(r["tier"], 9), -(r["model_usd_per_run"] or 0), r["model"]))
     sheet("Checked by " + name.replace("claude-", ""),
           ["Tier", "Model", "Venue", "Runs", "Checked runs", "Model half USD/run", "Model time s/run",
-           "Checking half USD/run (upper bound)", "Checking time s/run", "Unpriced share?",
+           "Checking half USD/run (upper bound)", "Checking time s/run", "Checker output unmeasured (floor)?", "Unpriced share outside any window?",
            "Total USD/checked run", "Total time s/checked run", "Real findings", "USD per real finding"],
           [[r["tier"], r["model"], r["venue"], r["runs"], r["check_runs"], money(r["model_usd_per_run"]),
             secs(r["wall_per_run"]), money(r["check_usd_per_run"]), secs(r["check_seconds_per_run"]),
-            "yes" if r["check_unpriced"] else "", money(r["total_usd_per_run"]), secs(r["total_seconds_per_run"]),
+            "yes" if r.get("output_unmeasured") else "", "yes" if r["check_unpriced"] else "",
+            money(r["total_usd_per_run"]), secs(r["total_seconds_per_run"]),
             r["real"], money(r["usd_per_real"])] for r in rows],
           "Checker %s at %s. Prices from the %s OpenRouter catalog. Windows are upper bounds, counted once and split across the runs they cover. Real finding: verified-real on a review run or a correct hit on a seeded fixture." % (name, rt.supervisor_price_line(rt.HARNESS_MODEL_IDS.get(name, ""), prices), catalog))
 pairs = rt.same_batch(obs, prices)
