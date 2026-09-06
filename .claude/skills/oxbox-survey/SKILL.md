@@ -199,10 +199,11 @@ Rating with date, then the per-fixture digits. Then the rubric.>
 
 ## What it costs
 <`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
-the model half per run, the checking half per run as an upper bound, and USD per real
-finding or hit with both halves. Then two sentences saying what the table shows this
-week: what a free model's findings cost to check against what a cheap paid model
-costs to run and check.>
+the model half per run, who checked it and at what prices, the checking half per run
+as an upper bound, the same checking repriced at the standing supervisor, and USD per
+real finding or hit with both halves. Then two sentences saying what the table shows
+this week: what a free model's findings cost to check, under which checking model,
+against what a cheap paid model costs to run and check.>
 
 ## Tried this week
 <Per model actually run this week: the observations above, with counts and filenames.
@@ -224,7 +225,10 @@ includes the standing regulatory-exposure bullet below.>
 models side by side on two halves: what the venue billed for the run, and what the
 supervisor's verification window cost at the supervisor's list price with cache reads
 and writes, counted once per window. The second half is why a free model is not free,
-and the table exists to say so with the record's own numbers. Never adjust a figure by
+and the table exists to say so with the record's own numbers. **Always name the
+checking model**: the checking half is that model's bill, and the table carries a
+"Checked by" column and a repriced column for exactly that reason; a checking cost
+quoted without its supervisor is a number without a unit. Never adjust a figure by
 hand; if a window is shared or missing, the table says so and the caveat stands.
 
 **The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
