@@ -71,12 +71,13 @@ def quality_digit(hits, of, required_ok=True):
 
 
 def cost_digit(usd_total, real, ceiling):
-    """0-5 from USD per real defect, both halves, on a log scale to the ceiling.
+    """0-5 from USD per real result, both halves, on a log scale to the ceiling.
 
-    The ceiling is the fixture's Fable 5.1 cost per real defect and lives in
-    the corpus manifest; while it is null the digit is unmeasured. A run with
-    no real defect has nothing to divide by and is a 0 -- it spent money and
-    returned nothing usable.
+    "Real" is a verified-real finding on a review run, or a hit on a fixture
+    with a seeded set. The ceiling is Fable 5.1's USD per real result on the
+    same fixture and lives in the corpus manifest; while it is null the digit
+    is unmeasured. A run with nothing real has nothing to divide by and is a
+    0 -- it spent money and returned nothing usable.
     """
     if usd_total is None or ceiling is None or real is None:
         return None
@@ -118,9 +119,9 @@ def speed_digit(wall_s, timed_out=False):
 RUBRIC = [
     ("Quality", "seeded defects found, of those present",
      ["all", "3/4 or more", "half or more", "a quarter or more", "any", "none, or no output"]),
-    ("Cost", "USD per real defect, both halves, against the fixture's Fable 5.1 ceiling",
+    ("Cost", "USD per real finding or hit, both halves, against the fixture's Fable 5.1 ceiling",
      ["under 1/100", "under 1/10", "under 1x", "up to 3x", "up to 10x",
-      "over 10x, or no real defect"]),
+      "over 10x, or nothing real"]),
     ("Speed", "wall clock per run",
      ["under 30 s", "under 2 min", "under 5 min", "under 10 min", "under 20 min",
       "20 min or more, or timed out"]),
@@ -206,6 +207,11 @@ def measure(fields, tasks):
         if _bool(fields.get(name)) is False:
             required_ok = False
     real = _num(fields.get("real"))
+    # The cost divisor: verified-real findings on a review run, hits on a
+    # fixture with a seeded set.
+    divisor = real if real is not None else hits
+    if not required_ok and divisor is not None:
+        divisor = 0  # a patch that does not apply bought nothing, whatever it hit
     row = {
         "file": fields["_file"],
         "date": fields.get("date"),
@@ -215,7 +221,7 @@ def measure(fields, tasks):
         "fixture": fields.get("corpus") or None,
         "run": fields.get("run"),
         "quality": quality_digit(hits, hits_of, required_ok) if rubric else None,
-        "cost": cost_digit(_num(fields.get("usd_total")), real,
+        "cost": cost_digit(_num(fields.get("usd_total")), divisor,
                            task.get("cost_ceiling_usd_per_real")),
         "speed": speed_digit(_num(fields.get("wall_s")), _bool(fields.get("timed_out"))),
         "hits": hits, "hits_of": hits_of,

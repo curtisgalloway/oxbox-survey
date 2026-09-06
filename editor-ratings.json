@@ -1,30 +1,35 @@
 {
   "note": "The Editor's Rating, one per tried model, written by the editor and read by ratings.py and surveytest.py. The generator never writes this file; an unattended run carries the previous rating forward with its date showing. Good and Acceptable are in the manifest, Goods above Acceptables; Marginal and Poor are out. A standing disqualifier (see ratings.py) holds a model out whatever its rating, and a model whose only runs are baselines cannot be rated. A null rating is unrated, not Poor. See docs/decisions.md, \"The Editor's Rating replaces the status markers\".",
-  "scale": ["Good", "Acceptable", "Marginal", "Poor"],
+  "scale": [
+    "Good",
+    "Acceptable",
+    "Marginal",
+    "Poor"
+  ],
   "ratings": {
     "minimax/minimax-m3:free": {
       "venue": "openrouter",
-      "rating": null,
-      "date": null,
-      "why": null
+      "rating": "Good",
+      "date": "2026-09-06",
+      "why": "Decent performance, OK speed."
     },
     "nemotron-3-ultra-free": {
       "venue": "opencode",
-      "rating": null,
-      "date": null,
-      "why": null
+      "rating": "Poor",
+      "date": "2026-09-06",
+      "why": "2/10 is pretty poor performance."
     },
     "x-preview-f-free": {
       "venue": "opencode",
-      "rating": null,
-      "date": null,
-      "why": null
+      "rating": "Marginal",
+      "date": "2026-09-06",
+      "why": "Great performance, terrible speed."
     },
     "mistral/leanstral-1-5": {
       "venue": "requesty",
-      "rating": null,
-      "date": null,
-      "why": null
+      "rating": "Poor",
+      "date": "2026-09-06",
+      "why": "0/6 findings is the definition of Poor."
     },
     "z-ai/glm-5.3-free": {
       "venue": "zenmux",

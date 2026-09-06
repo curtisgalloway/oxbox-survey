@@ -19,6 +19,7 @@ hits: 8
 hits_of: 8
 self_hits: 1
 usd_model: 0.1845
+usd_total: 0.1845
 ---
 
 # Sonnet 5 baseline on the scanner fix: all eight verdicts right, hunk header wrong, and the patched scanner refuses ox's own source

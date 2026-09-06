@@ -19,6 +19,7 @@ hits: 7
 hits_of: 8
 self_hits: 0
 usd_model: 0.0014
+usd_total: 0.0014
 ---
 
 # DeepSeek V4 Flash baseline on the scanner fix: corrupt hunk header, 7 of 8 verdicts, and 21 minutes for 5,000 tokens

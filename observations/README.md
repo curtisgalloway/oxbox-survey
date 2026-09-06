@@ -44,7 +44,7 @@ hits_of: 10                 # ... of the fixture's total (see the task's quality
 applies: true               # diff mode: did git apply --check pass at the pin
 self_hits: 0                # diff mode: the patched scanner refusing its own source
 usd_model: 0.0273           # the model's half, computed from the archived catalog
-usd_total: null             # both halves, when the harness window is per-run
+usd_total: 0.0273           # both halves; equals usd_model on a mechanically scored fixture
 timed_out: false            # the request never returned
 disqualifier: not_found     # access/availability: the venue refused the run
 ---
@@ -93,6 +93,14 @@ group observations without interpreting prose:
   the bodies state to within a second. Observations before 2026-09-06 had these
   fields transcribed into their frontmatter from figures their bodies already
   stated or their logs already held; nothing was measured after the fact.
+- **`usd_total` is both halves, and on a mechanically scored fixture the second
+  half is the scorer.** A run on `oxbox-secret-scanner-fix` or
+  `oxbox-ask-grounding` is verified by `corpora/scorers/` or the answer key, not
+  by a reviewing agent, so its `usd_total` equals its `usd_model` and the cost
+  digit can be computed. A human-verified run (`oxbox-clean-control`, any real
+  batch) carries `usd_total` only when the verification half was measured for
+  that run alone; a shared window is an upper bound, not a figure, and the digit
+  stays a dash.
 - **A disqualifier is open until a later run clears it.** `disqualifier:` on a
   run-backed access or availability observation names why the venue refused
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands
