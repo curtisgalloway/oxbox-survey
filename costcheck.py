@@ -340,6 +340,13 @@ def render(runs, totals, span, window, state):
     lines.append("")
     lines.append("**Upper bound.** Anything else the session did in this window is "
                  "counted here too.")
+    if any(lane == "subagent" for _, lane in totals):
+        lines.append("")
+        lines.append("**Subagent output is undercounted.** A subagent transcript stores each "
+                     "message's start-of-stream usage (a few output tokens, no stop_reason); "
+                     "input and cache figures are final, output is not. Read the harness's "
+                     "reported subagent total for output, or say it is unmeasured. Observed "
+                     "2026-09-06.")
 
     if under["completion"]:
         model_total = under["prompt"] + under["completion"]

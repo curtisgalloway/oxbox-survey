@@ -223,9 +223,6 @@ def load_prices(catalog_dir=CATALOGS):
     return {r.get("id"): (r.get("pricing") or {}) for r in rows if isinstance(r, dict)}, paths[-1].name
 
 
-REPRICE_AS = "anthropic/claude-opus-5"  # the standing supervisor, on price
-
-
 def supervisor_price_line(model_id, prices):
     """'$10/$50, cache $0.25/$12.50 per M' for a supervisor's catalog row."""
     pricing = prices.get(model_id) or {}
@@ -503,9 +500,7 @@ def cost_rows(observations, prices, tasks=None):
     for r in rows:
         if r["harness_window"]:
             key = (r["harness_model"], r["harness_window"])
-            w = windows.setdefault(key, {"usd": price_window(r["_fields"], prices),
-                                        "repriced": price_window(r["_fields"], prices, REPRICE_AS),
-                                        "rows": 0})
+            w = windows.setdefault(key, {"usd": price_window(r["_fields"], prices), "rows": 0})
             w["rows"] += 1
     per_model = {}
     for r in rows:
@@ -513,7 +508,7 @@ def cost_rows(observations, prices, tasks=None):
                                               "priced": 0, "real": 0, "check": 0.0,
                                               "check_runs": 0, "check_real": 0,
                                               "check_model_usd": 0.0, "unpriced": False,
-                                              "repriced": 0.0, "checked_by": set()})
+                                              "checked_by": set()})
         m["runs"] += 1
         if r["usd_model"] is not None:
             m["usd_sum"] += r["usd_model"]
@@ -525,8 +520,6 @@ def cost_rows(observations, prices, tasks=None):
                 m["unpriced"] = True
             else:
                 m["check"] += w["usd"] / w["rows"]
-                if w["repriced"] is not None:
-                    m["repriced"] += w["repriced"] / w["rows"]
                 m["checked_by"].add(r["harness_model"])
                 m["check_runs"] += 1
                 m["check_real"] += r["divisor"] or 0
@@ -544,7 +537,6 @@ def cost_rows(observations, prices, tasks=None):
             "tier": tier_of(model, prices, model_avg),
             "model_usd_per_run": model_avg,
             "check_usd_per_run": (m["check"] / m["check_runs"]) if m["check_runs"] else None,
-            "repriced_per_run": (m["repriced"] / m["check_runs"]) if m["check_runs"] else None,
             "checked_by": ", ".join(sorted(m["checked_by"])),
             "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
             "real": m["real"], "check_real": m["check_real"],
@@ -568,18 +560,17 @@ def costs_markdown(observations=None, prices=None):
 
     supervisors = sorted({r["checked_by"] for r in rows if r["checked_by"]})
     out = ["## What it costs", "",
-           "| Tier | Model | Runs | Model half, per run | Checked by | Checking half, per run (upper bound) | Same checking at Opus 5 prices | Real | USD per real, both halves, over checked runs |",
-           "|---|---|---|---|---|---|---|---|---|"]
+           "| Tier | Model | Runs | Model half, per run | Checked by | Checking half, per run (upper bound) | Real | USD per real, both halves, over checked runs |",
+           "|---|---|---|---|---|---|---|---|"]
     for r in rows:
         check = usd(r["check_usd_per_run"])
         if r["check_unpriced"]:
             check += " + an unpriced share"
         if r["check_runs"] and r["check_runs"] < r["runs"]:
             check += " (%d of %d runs)" % (r["check_runs"], r["runs"])
-        out.append("| %s | `%s` | %d | %s | %s | %s | %s | %d | %s |" % (
+        out.append("| %s | `%s` | %d | %s | %s | %s | %d | %s |" % (
             r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]),
-            r["checked_by"] or "-", check, usd(r["repriced_per_run"]),
-            r["real"], usd(r["usd_per_real"])))
+            r["checked_by"] or "-", check, r["real"], usd(r["usd_per_real"])))
     out += ["",
             "The model half is what the venue billed or the catalog computes for the run. "
             "The checking half is the supervisor's tokens in the window that verified the run, "
@@ -593,9 +584,11 @@ def costs_markdown(observations=None, prices=None):
             "prices used for them: " + "; ".join(
                 "%s at %s" % (name, supervisor_price_line(HARNESS_MODEL_IDS.get(name, ""), prices))
                 for name in supervisors) +
-            ". The repriced column is the same tokens at %s (%s), the standing supervisor on price; "
-            "it is arithmetic on the record, not a measurement. USD per real uses the supervisor that "
-            "actually checked." % (REPRICE_AS, supervisor_price_line(REPRICE_AS, prices))]
+            ". A different supervisor is a different bill and a different token count, not a "
+            "repricing: on the one matched pair measured (2026-09-06, four findings, identical "
+            "instructions and files), Opus 5 spent 1.2x Fable 5.1's tokens and 1.5x its output and "
+            "still cost 32% less at its own list price, where repricing Fable's tokens at Opus's "
+            "rates had predicted 47% less. USD per real uses the supervisor that actually checked."]
     return "\n".join(out)
 
 

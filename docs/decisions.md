@@ -510,3 +510,17 @@ One consequence surfaced immediately: `z-ai/glm-5.3-flash` is rank 2 of the
 repo has on it is a baseline. Under the rule it is baseline-only, cannot be
 rated, and cannot enter a manifest dated 2026-09-06 or later until it is run as
 a candidate. The 2026-09-01 manifest is grandfathered; the next one is not.
+
+**Amended 2026-09-06, later the same day.** Two things the cost table learned
+from the editor. The checking half is the checking model's bill, so the table
+names the supervisor on every row and prints its prices; every window in the
+record so far is Fable 5.1's. And a comparison between supervisors cannot be
+made by repricing one model's tokens at another's rates, because the token
+count is the model's too: a matched pair on 2026-09-06 (four findings,
+identical instructions and files, two fresh subagents) had Opus 5 spend 1.2x
+Fable's tokens and 1.5x its output, and still cost 32% less at its own list
+price where the repricing had predicted 47%. The repriced column was withdrawn
+the hour it was added. The pair also exposed that subagent transcripts store
+start-of-stream usage, so their output tokens are not in the record and
+`costcheck.py`'s subagent lane has always undercounted them; it now says so.
+See `observations/2026-09-06-opus-5-and-fable-5.1-check-the-same-batch-*.md`.

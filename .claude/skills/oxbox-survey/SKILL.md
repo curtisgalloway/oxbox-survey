@@ -200,8 +200,7 @@ Rating with date, then the per-fixture digits. Then the rubric.>
 ## What it costs
 <`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
 the model half per run, who checked it and at what prices, the checking half per run
-as an upper bound, the same checking repriced at the standing supervisor, and USD per
-real finding or hit with both halves. Then two sentences saying what the table shows
+as an upper bound, and USD per real finding or hit with both halves. Then two sentences saying what the table shows
 this week: what a free model's findings cost to check, under which checking model,
 against what a cheap paid model costs to run and check.>
 
@@ -228,7 +227,10 @@ and writes, counted once per window. The second half is why a free model is not 
 and the table exists to say so with the record's own numbers. **Always name the
 checking model**: the checking half is that model's bill, and the table carries a
 "Checked by" column and a repriced column for exactly that reason; a checking cost
-quoted without its supervisor is a number without a unit. Never adjust a figure by
+quoted without its supervisor is a number without a unit. Never reprice one supervisor's
+tokens at another's rates: the 2026-09-06 matched pair showed Opus 5 spending more
+tokens than Fable 5.1 on the same job, so a comparison between supervisors is a second
+run, not a multiplication. Never adjust a figure by
 hand; if a window is shared or missing, the table says so and the caveat stands.
 
 **The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
