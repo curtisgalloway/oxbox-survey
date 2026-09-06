@@ -9,7 +9,7 @@ The Editor's Rating column, for the editor to fill in. Every model the survey ha
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
 
-**Where the digits stand.** The cost digit now exists on ask-grounding: Fable 5.1 ran it at $0.2756, so that fixture's ceiling is $0.0276 per hit. It cannot exist on the scanner fix, because Fable refuses that prompt outright (content filter, twice, no tokens billed). It does not yet exist on the clean control or on real-work batches, because the verification half there is a shared session window rather than a per-run figure. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate, whose runs were on review batches with no such set. For those you are rating on the raw column, real findings over findings emitted, plus speed, plus the color.
+**Where the digits stand.** The cost digit exists on ask-grounding, against Fable 5.1's ceiling of $0.0276 per hit. It cannot exist on the scanner fix: Fable refuses that prompt, with and without a motivation preamble, as "violative cyber content." It does not yet exist on the clean control or on real-work batches, where the verification half is a session window rather than a per-run figure. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Every rating is now in, and the rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, which is the current order.
 
 Backticks around model names do not survive the conversion to a Doc; ignore that.
 
@@ -63,7 +63,7 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## z-ai/glm-5.3-flash (OpenRouter, paid, rank 2 of the current manifest; new candidate rows this round)
 
-**Quality.** Run as a candidate on all three fixtures this afternoon, at your direction. Ask-grounding: 10 of 10 in 25 seconds, a 5. Scanner fix: corrupt hunk header, the patch does not apply without a recount, all 8 verdicts hold and zero self-hits behind it, but gate 1 is the gate, a 0. Clean control: 4 findings, 1 real, 3 inventions. The same model ran the same three payloads as a baseline on 2026-09-02 and got a clean apply on the scanner fix and a different one of the two known defects on the clean control. So n=2 on each fixture: one pass and one fail on the mechanical half of a diff, one of two defects each time on the review, and two of its three inventions repeated verbatim.
+**Quality.** Run as a candidate on all three fixtures, at your direction. Ask-grounding: 10 of 10 in 25 seconds, a 5. Scanner fix: corrupt hunk header, the patch does not apply without a recount, all 8 verdicts hold and zero self-hits behind it, but gate 1 is the gate, a 0. Clean control: 4 findings, 0 real, 4 inventions, after your C3 ruling (below); it had been recorded as 1 real. The same model ran the same three payloads as a baseline on 2026-09-02 and got a clean apply on the scanner fix and one real defect on the clean control. So n=2 on each fixture: one pass and one fail on the mechanical half of a diff, one real finding in eight on the review, and three inventions repeated.
 
 **Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0090, no digit because that fixture has no ceiling. Clean control billed $0.0034, double the catalog computation, because OpenRouter routed that one run to SiliconFlow at $0.15 and $0.50 per million instead of Z.AI at $0.075 and $0.25. The catalog price is the price of one route.
 
@@ -73,9 +73,9 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 **My read.** In ask mode this route is fast, cheap and right, twice. In diff mode it reasons for ten minutes and then miscounts a hunk header half the time. On review it reaches one real defect per run and repeats its inventions. The Ox Alpha evidence that put it at rank 2 was a 5-of-5 review with zero false positives; the paid route has not reproduced that on any fixture, and the clean-control invention rate is the reason to hesitate. Acceptable on the ask and the price; whether diff-mode reliability drags it to Marginal is your call.
 
-**Editor's Rating:** ____
+**Editor's Rating:** Acceptable
 
-**Why:** ____
+**Why:** Fast and mostly good. Z.ai's regulatory status is a concern though.
 
 ## nemotron-3-ultra-free (OpenCode Zen, listed)
 
@@ -139,7 +139,62 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 **Editor's Rating:** Poor
 
-**Why:** ____
+**Why:** It's delisted.
+
+## What it costs, by checking model
+
+Both halves of every checked run, one table per supervisor that did the checking, then the one run so far that both supervisors checked. Your direction is to run both Opus 5 and Fable 5.1 as checkers from here on, so both tables fill over time; today Fable has checked everything and Opus has checked one run. Time is a cost and both clocks are in.
+
+#### Checked by claude-fable-5-1 ($10/$50, cache read $0.25, write $12.5 per M)
+
+| Tier | Model | Runs | Model half, per run | Model time, per run | Checked runs | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| frontier | `anthropic/claude-fable-5.1` | 2 | $0.3210 | 62 s | 2 of 2 | $0.8662 | 6 min | $1.1871 | 8 min | 12 | $0.1979 |
+| frontier | `anthropic/claude-sonnet-5` | 3 | $0.1291 | 110 s | 3 of 3 | $1.0950 | 4 min | $1.2241 | 6 min | 10 | $0.3672 |
+| frontier | `google/gemini-3.7-flash` | 3 | $0.0778 | 3 min | 3 of 3 | $1.0575 | 10 min | $1.1353 | 13 min | 19 | $0.1793 |
+| frontier | `openai/gpt-5.6-sol` | 3 | $0.0509 | 58 s | 3 of 3 | $0.8124 | 6 min | $0.8633 | 7 min | 19 | $0.1363 |
+| cheap paid | `z-ai/glm-5.3-flash` | 6 | $0.0036 | 5 min | 6 of 6 | $0.5338 + an unpriced share | 4 min | $0.5374 | 8 min | 29 | $0.1112 |
+| cheap paid | `deepseek/deepseek-v4-flash` | 3 | $0.0009 | 9 min | 3 of 3 | $0.1967 + an unpriced share | 4 min | $0.1977 | 13 min | 10 | $0.0593 |
+| free | `minimax/minimax-m3:free` | 2 | $0.0000 | 3 min | 1 of 2 | $2.5698 | 12 min | $2.5698 | 16 min | 20 | $0.3671 |
+| free | `nemotron-3-ultra-free` | 1 | - | 2 min | 1 of 1 | $2.5698 | 12 min | $2.5698 | 15 min | 2 | $1.2849 |
+
+No run checked by this supervisor: `mistral/leanstral-1-5`, `x-preview-f-free`, `z-ai/glm-5.3-free`.
+
+#### Checked by claude-opus-5 ($5/$25, cache read $0.5, write $6.25 per M)
+
+| Tier | Model | Runs | Model half, per run | Model time, per run | Checked runs | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Total time, per checked run | Real findings | USD per real finding |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| cheap paid | `z-ai/glm-5.3-flash` | 6 | $0.0036 | 5 min | 1 of 6 | $0.9065 | 6 min | $0.9099 | 8 min | 29 | - |
+
+No run checked by this supervisor: `anthropic/claude-fable-5.1`, `anthropic/claude-sonnet-5`, `deepseek/deepseek-v4-flash`, `google/gemini-3.7-flash`, `minimax/minimax-m3:free`, `mistral/leanstral-1-5`, `nemotron-3-ultra-free`, `openai/gpt-5.6-sol`, `x-preview-f-free`, `z-ai/glm-5.3-free`.
+
+#### The same batch, checked by more than one supervisor
+
+Run `2026-09-06T21-30-07Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 | 66 | 7,123 (derived) | 114,892 | 75,858 | $1.3338 | 117 s |
+| claude-opus-5 | 8 | 10,758 (derived) | 184,557 | 87,230 | $0.9065 | 5 min |
+
+Derived. claude-fable-5-1: output is the Agent tool's reported total (83,047) minus input and cache writes; subagent transcripts do not record final output. claude-opus-5: output is the Agent tool's reported total (97,996) minus input and cache writes; subagent transcripts do not record final output.
+
+The model half is what the venue billed or the catalog computes for the run. The checking half is the supervisor's tokens in the window that verified the run, priced at the supervisor's list price on the 2026-09-01.json OpenRouter catalog with cache reads and writes, counted once per window and split across the runs it covers. A window holds whatever else the session did, so it is an upper bound. A real finding is a verified-real finding on a review run or a correct hit on a seeded fixture, and USD per real finding is both halves over the checked runs divided by the real findings those runs produced. Cheap paid means a list completion price at or under $1.00 per million. Time is a cost too: model time is the run's wall clock from the log timestamps; checking time is the verification window's span, split across the runs it covers, an upper bound like the dollars beside it. The total is both halves per checked run, so an unchecked run's model half is not averaged against a checking half it never had; total time is the model's wall clock plus the checking window share, per checked run.
+
+**One table per checking model, because the checking model sets the checking half.** A different supervisor is a different bill and a different token count, not a repricing; where one run was checked by more than one supervisor the same-batch table above shows each on its own tokens. USD per real finding uses the supervisor that actually checked.
+
+## The C3 ruling
+
+Two checkers split on finding C3 of the GLM-5.3 Flash clean-control candidate run: Fable 5.1 confirmed it, Opus 5 refuted it. At your direction it was run rather than read again, on argenta (macOS, seatbelt) and dev (Debian 13, bubblewrap), with the `/etc/shadow`-first scenario forced on Linux at an ordinary uid and at uid 0.
+
+| Host, uid, first path in the list | Read probe | Stat oracle | `open("/etc/shadow")` in the jail | The oracle's FAIL is |
+|---|---|---|---|---|
+| macOS, ordinary user, `~/.ssh` | shadow not in the list on darwin | PASS | no such file on macOS | nothing to judge |
+| Linux, ordinary user, real home | PASS | PASS on `~/.ssh` | PermissionError | nothing to judge |
+| Linux, ordinary user, shadow forced first | PASS | FAIL, exit 1 | PermissionError | false, the jail holds |
+| Linux, uid 0, shadow forced first | skipped by the uid-0 rule | FAIL, exit 1 | readable, 923 bytes | true, root reads the host's shadow file |
+
+The stat succeeded at both uids, so the `/etc` bind is the cause and uid 0 is not. Your ruling: follow the real-world evidence. C3 is refuted; the run is 0 real of 4, recorded as a correction observation that the tooling overlays onto the original row, which stays as written. Two rules came out of it, both now in the repo: reproduction is the default baseline for a verdict wherever the failure can be run against the pin in a jail, and prompts should name both platforms, since the current ones do not and the models learn about seatbelt and bubblewrap only from the payload.
 
 ## Regulatory exposure
 
@@ -153,10 +208,10 @@ A listing is a card fact: it can never earn a rating and it is not a disqualifie
 
 ## Open questions
 
-1. **glm-5.3-flash** was run as a candidate; its section is above and it can now be rated. Done.
+1. **Delisted models.** Still open. Nothing mechanical marks x-preview-f-free or glm-5.3-free as out; your Marginal and Poor keep them out this round, but a Good on a delisted row would pull it into the manifest. I propose that ratings.py treat absence from the newest snapshot of the model's venue as a standing `delisted` disqualifier, dated by that snapshot. Yes or no?
 
-2. **Delisted models.** Still open. Nothing mechanical marks x-preview-f-free or glm-5.3-free as out; your Marginal and Poor keep them out this round, but a Good on a delisted row would pull it into the manifest. I propose that ratings.py treat absence from the newest snapshot of the model's venue as a standing `delisted` disqualifier, dated by that snapshot. Yes or no?
+2. **The scanner-fix ceiling.** Fable refuses the prompt with and without a stated motivation, so the trigger is the material: a source file whose pattern list is a catalog of credential formats, plus a task about matching more of them. The fixture keeps a null ceiling and its cost column stays a dash. A cheap diagnostic pair, the pattern list alone versus the full file, would name the trigger exactly but would not rescue the ceiling. Run it, or leave it?
 
-3. **Cost ceilings.** Fable ran all three fixtures. Ask-grounding has its ceiling and every row on it has a cost digit. The scanner fix cannot have one: Fable refuses the prompt as "violative cyber content," twice, and a different ruler for one fixture would make the digits incomparable, so that column stays a dash there. The clean control needs a per-run verification cost before any model's both-halves figure exists; the tooling reports the verification half only as a shared session window today. Two options: accept the dash on human-verified fixtures until costcheck can attribute a window to one run, or define the ceiling there from Fable's model half alone and say so. I lean to the dash.
+3. **The clean-control ceiling.** Now that check records exist, a Fable check of a Fable clean-control run as a fresh subagent would give a per-run both-halves figure and a ceiling for that fixture. It costs about a dollar. Shall I?
 
-4. **glm-5.3-free's why.** Your Poor is recorded in the Doc but not yet in the ratings file, because the checks refuse a rating without a why. One line will do.
+4. **Cheap paid as a class.** Your rule that a cheap enough model is a candidate now has a number in the tooling, a list completion price at or under $1 per million, and DeepSeek V4 Flash qualifies under it as glm-5.3-flash did. It has only baseline runs. Run it as a candidate so it can be rated?
