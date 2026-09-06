@@ -558,6 +558,10 @@ def cost_rows(observations, prices, tasks=None):
             "tier": tier_of(model, prices, model_avg),
             "model_usd_per_run": model_avg,
             "check_usd_per_run": (m["check"] / m["check_runs"]) if m["check_runs"] else None,
+            # Both halves over the checked runs only, so an unchecked run's model
+            # half is not averaged in against a checking half it never had.
+            "total_usd_per_run": ((m["check_model_usd"] + m["check"]) / m["check_runs"])
+                                 if m["check_runs"] else None,
             "checked_by": ", ".join(sorted(m["checked_by"])),
             "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
             "wall_per_run": (m["wall"] / m["timed"]) if m["timed"] else None,
@@ -588,18 +592,18 @@ def costs_markdown(observations=None, prices=None):
 
     supervisors = sorted({r["checked_by"] for r in rows if r["checked_by"]})
     out = ["## What it costs", "",
-           "| Tier | Model | Runs | Model half, per run | Model time, per run | Checked by | Checking half, per run (upper bound) | Checking time, per run (window share) | Real | USD per real, both halves, over checked runs |",
-           "|---|---|---|---|---|---|---|---|---|---|"]
+           "| Tier | Model | Runs | Model half, per run | Model time, per run | Checked by | Checking half, per run (upper bound) | Checking time, per run (window share) | Total, per checked run | Real | USD per real, both halves, over checked runs |",
+           "|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         check = usd(r["check_usd_per_run"])
         if r["check_unpriced"]:
             check += " + an unpriced share"
         if r["check_runs"] and r["check_runs"] < r["runs"]:
             check += " (%d of %d runs)" % (r["check_runs"], r["runs"])
-        out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %d | %s |" % (
+        out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %s | %d | %s |" % (
             r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]), clock(r["wall_per_run"]),
             r["checked_by"] or "-", check, clock(r["check_seconds_per_run"]),
-            r["real"], usd(r["usd_per_real"])))
+            usd(r["total_usd_per_run"]), r["real"], usd(r["usd_per_real"])))
     out += ["",
             "The model half is what the venue billed or the catalog computes for the run. "
             "The checking half is the supervisor's tokens in the window that verified the run, "
@@ -609,7 +613,9 @@ def costs_markdown(observations=None, prices=None):
             "findings on a review run or hits on a seeded fixture. Cheap paid means a list "
             "completion price at or under $%.2f per million. Time is a cost too: model time is the "
             "run's wall clock from the log timestamps; checking time is the verification window's "
-            "span, split across the runs it covers, an upper bound like the dollars beside it. On the "
+            "span, split across the runs it covers, an upper bound like the dollars beside it. The total is both halves per checked "
+            "run, so an unchecked run's model half is not averaged against a checking half it "
+            "never had. On the "
             "matched checker pair, Fable 5.1 took 117 s and Opus 5 took 308 s for the same four "
             "findings." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK),
             "",

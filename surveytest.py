@@ -1246,8 +1246,9 @@ def test_ratings():
     b = dict(base, model="b", findings="4", real="2", usd_model="0", _file="b")
     costs = {r["model"]: r for r in rt["cost_rows"]([a, b], prices, tasks={})}
     report(abs(costs["a"]["check_usd_per_run"] - 2.5) < 1e-9
-           and abs(costs["a"]["usd_per_real"] - 1.25) < 1e-9,
-           "a $5 window shared by two runs is charged $2.50 to each, once")
+           and abs(costs["a"]["usd_per_real"] - 1.25) < 1e-9
+           and abs(costs["a"]["total_usd_per_run"] - 2.5) < 1e-9,
+           "a $5 window shared by two runs is charged $2.50 to each, once, and the total adds the model half")
     gated = dict(base, model="g", corpus="oxbox-secret-scanner-fix", hits="8", hits_of="8",
                  applies="false", usd_model="0.01", _file="g")
     task = {"oxbox-secret-scanner-fix": {"quality": {"of": 8, "requires": ["applies"]}}}
