@@ -1230,6 +1230,9 @@ def test_ratings():
            "a harness window is priced from the supervisor's catalog row, cache included")
     report(rt["price_window"]({"harness_model": "nobody", "harness_window": "w"}, prices) is None,
            "a window whose supervisor the catalog does not price is unpriced, not zero")
+    report(rt["window_seconds"]("2026-09-06T21:22Z..2026-09-06T21:27Z") == 300
+           and rt["window_seconds"]("w") is None,
+           "a window's span is read from its key; a keyless window has no time")
     tier = rt["tier_of"]
     report([tier("nemotron-3-ultra-free", prices, None), tier("z-ai/glm-5.3-flash", prices, 0.001),
             tier("anthropic/claude-sonnet-5", prices, 0.04), tier("mistral/leanstral-1-5", prices, None)]

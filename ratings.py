@@ -234,6 +234,19 @@ def supervisor_price_line(model_id, prices):
         per_m("input_cache_write"))
 
 
+def window_seconds(window):
+    """Seconds spanned by a harness_window like 2026-09-06T21:22Z..2026-09-06T21:27Z."""
+    if not window or ".." not in window:
+        return None
+    from datetime import datetime
+    try:
+        start, end = (datetime.strptime(part.strip(), "%Y-%m-%dT%H:%MZ")
+                      for part in window.split("..", 1))
+    except ValueError:
+        return None
+    return (end - start).total_seconds()
+
+
 def price_window(fields, prices, as_model=None):
     """USD for one harness window from its token counts, or None if unpriced.
 
@@ -500,7 +513,8 @@ def cost_rows(observations, prices, tasks=None):
     for r in rows:
         if r["harness_window"]:
             key = (r["harness_model"], r["harness_window"])
-            w = windows.setdefault(key, {"usd": price_window(r["_fields"], prices), "rows": 0})
+            w = windows.setdefault(key, {"usd": price_window(r["_fields"], prices),
+                                        "seconds": window_seconds(r["harness_window"]), "rows": 0})
             w["rows"] += 1
     per_model = {}
     for r in rows:
@@ -508,12 +522,16 @@ def cost_rows(observations, prices, tasks=None):
                                               "priced": 0, "real": 0, "check": 0.0,
                                               "check_runs": 0, "check_real": 0,
                                               "check_model_usd": 0.0, "unpriced": False,
-                                              "checked_by": set()})
+                                              "checked_by": set(), "wall": 0.0, "timed": 0,
+                                              "check_seconds": 0.0, "check_timed": 0})
         m["runs"] += 1
         if r["usd_model"] is not None:
             m["usd_sum"] += r["usd_model"]
             m["priced"] += 1
         m["real"] += r["divisor"] or 0
+        if r["wall_s"] is not None:
+            m["wall"] += r["wall_s"]
+            m["timed"] += 1
         if r["harness_window"]:
             w = windows[(r["harness_model"], r["harness_window"])]
             if w["usd"] is None:
@@ -521,6 +539,9 @@ def cost_rows(observations, prices, tasks=None):
             else:
                 m["check"] += w["usd"] / w["rows"]
                 m["checked_by"].add(r["harness_model"])
+                if w["seconds"] is not None:
+                    m["check_seconds"] += w["seconds"] / w["rows"]
+                    m["check_timed"] += 1
                 m["check_runs"] += 1
                 m["check_real"] += r["divisor"] or 0
                 m["check_model_usd"] += r["usd_model"] or 0
@@ -539,6 +560,8 @@ def cost_rows(observations, prices, tasks=None):
             "check_usd_per_run": (m["check"] / m["check_runs"]) if m["check_runs"] else None,
             "checked_by": ", ".join(sorted(m["checked_by"])),
             "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
+            "wall_per_run": (m["wall"] / m["timed"]) if m["timed"] else None,
+            "check_seconds_per_run": (m["check_seconds"] / m["check_timed"]) if m["check_timed"] else None,
             "real": m["real"], "check_real": m["check_real"],
             "usd_per_real": per_real,
         })
@@ -558,19 +581,25 @@ def costs_markdown(observations=None, prices=None):
     def usd(v):
         return "-" if v is None else "$%.4f" % v
 
+    def clock(v):
+        if v is None:
+            return "-"
+        return "%d s" % round(v) if v < 120 else "%.0f min" % (v / 60)
+
     supervisors = sorted({r["checked_by"] for r in rows if r["checked_by"]})
     out = ["## What it costs", "",
-           "| Tier | Model | Runs | Model half, per run | Checked by | Checking half, per run (upper bound) | Real | USD per real, both halves, over checked runs |",
-           "|---|---|---|---|---|---|---|---|"]
+           "| Tier | Model | Runs | Model half, per run | Model time, per run | Checked by | Checking half, per run (upper bound) | Checking time, per run (window share) | Real | USD per real, both halves, over checked runs |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         check = usd(r["check_usd_per_run"])
         if r["check_unpriced"]:
             check += " + an unpriced share"
         if r["check_runs"] and r["check_runs"] < r["runs"]:
             check += " (%d of %d runs)" % (r["check_runs"], r["runs"])
-        out.append("| %s | `%s` | %d | %s | %s | %s | %d | %s |" % (
-            r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]),
-            r["checked_by"] or "-", check, r["real"], usd(r["usd_per_real"])))
+        out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %d | %s |" % (
+            r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]), clock(r["wall_per_run"]),
+            r["checked_by"] or "-", check, clock(r["check_seconds_per_run"]),
+            r["real"], usd(r["usd_per_real"])))
     out += ["",
             "The model half is what the venue billed or the catalog computes for the run. "
             "The checking half is the supervisor's tokens in the window that verified the run, "
@@ -578,7 +607,11 @@ def costs_markdown(observations=None, prices=None):
             "and writes, counted once per window and split across the runs it covers. A window "
             "holds whatever else the session did, so it is an upper bound. Real is verified-real "
             "findings on a review run or hits on a seeded fixture. Cheap paid means a list "
-            "completion price at or under $%.2f per million." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK),
+            "completion price at or under $%.2f per million. Time is a cost too: model time is the "
+            "run's wall clock from the log timestamps; checking time is the verification window's "
+            "span, split across the runs it covers, an upper bound like the dollars beside it. On the "
+            "matched checker pair, Fable 5.1 took 117 s and Opus 5 took 308 s for the same four "
+            "findings." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK),
             "",
             "**The checking model sets the checking half.** Supervisors in this table and the "
             "prices used for them: " + "; ".join(

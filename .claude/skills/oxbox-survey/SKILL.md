@@ -199,8 +199,9 @@ Rating with date, then the per-fixture digits. Then the rubric.>
 
 ## What it costs
 <`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
-the model half per run, who checked it and at what prices, the checking half per run
-as an upper bound, and USD per real finding or hit with both halves. Then two sentences saying what the table shows
+the model half per run and its wall clock, who checked it and at what prices, the
+checking half per run and its window time as upper bounds, and USD per real finding or
+hit with both halves. Time is a cost; both clocks stay in the table. Then two sentences saying what the table shows
 this week: what a free model's findings cost to check, under which checking model,
 against what a cheap paid model costs to run and check.>
 
