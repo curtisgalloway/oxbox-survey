@@ -1140,8 +1140,24 @@ def test_ratings():
     run_output = [k for k in rt["MEASURED_FIELDS"]
                   if k not in ("disqualifier", "run") and not k.startswith("harness_")]
     probes = [o["_file"] for o in obs
-              if o.get("source") != "oxbox-run" and any(k in o for k in run_output)]
-    report(not probes, "no probe or manual observation carries run-output fields", probes)
+              if o.get("source") != "oxbox-run" and not o.get("corrects")
+              and any(k in o for k in run_output)]
+    report(not probes, "no probe or manual observation carries run-output fields (a correction may)", probes)
+    dangling = [o["_file"] for o in obs if o.get("corrects")
+                and o["corrects"].strip().split("/")[-1] not in {x["_file"] for x in obs}]
+    report(not dangling, "every correction names an observation that exists", dangling)
+    corrected = [o["_file"] for o in obs if o.get("_corrected_by")]
+    synthetic = [{"_file": "a.md", "model": "m", "real": "3", "findings": "4", "role": "candidate"},
+                 {"_file": "b.md", "model": "m", "corrects": "a.md", "real": "0", "role": "candidate"}]
+    by = {x["_file"]: x for x in synthetic}
+    for x in synthetic:
+        t = by.get(x.get("corrects", ""))
+        if t:
+            for key in rt["CORRECTABLE"]:
+                if key in x:
+                    t[key] = x[key]
+    report(by["a.md"]["real"] == "0" and by["a.md"]["findings"] == "4",
+           "a correction overlays only the fields it carries")
     orphan_checks = [o["_file"] for o in obs
                      if o.get("harness_window") and o.get("kind") not in rt["ROW_KINDS"]
                      and not o.get("run")]

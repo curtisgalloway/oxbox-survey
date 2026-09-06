@@ -181,8 +181,18 @@ def _bool(value):
     return value.strip().lower() in ("true", "yes")
 
 
+CORRECTABLE = ("findings", "real", "hits", "hits_of", "applies", "self_hits",
+               "wall_s", "usd_model", "usd_total", "timed_out", "disqualifier")
+
+
 def load_observations(root=OBSERVATIONS):
-    """Every observation's frontmatter, plus the file it came from."""
+    """Every observation's frontmatter, plus the file it came from.
+
+    A published observation is never edited. A later observation that names
+    it in `corrects:` and carries measured fields overlays those fields here,
+    so the digits follow the corrected record while the original stays as
+    written; the overlay is recorded on the target as `_corrected_by`.
+    """
     out = []
     for path in sorted(root.glob("*.md")):
         if path.name == "README.md":
@@ -195,6 +205,15 @@ def load_observations(root=OBSERVATIONS):
         fields["model"] = fields.get("model", "").strip('"')
         fields.setdefault("role", "candidate")
         out.append(fields)
+    by_file = {f["_file"]: f for f in out}
+    for f in out:
+        target = by_file.get((f.get("corrects") or "").strip().split("/")[-1])
+        if not target:
+            continue
+        for key in CORRECTABLE:
+            if key in f:
+                target[key] = f[key]
+        target.setdefault("_corrected_by", []).append(f["_file"])
     return out
 
 

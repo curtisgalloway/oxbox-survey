@@ -143,7 +143,11 @@ group observations without interpreting prose:
   `reproduces:` field naming the finding and its run.
 - **Never edit a published observation.** If it turns out wrong, write a new file
   that links the old one and says what changed. The archive's value is that it
-  records what was believed at the time.
+  records what was believed at the time. When the change is to a measured field
+  the digits are bucketed from (`real`, `hits`, `applies`, ...), the new file
+  carries `corrects: <the old file's name>` and the corrected fields; `ratings.py`
+  overlays them onto the old observation's row, so the table follows the ruling
+  while the original stays as written. First used 2026-09-06 for C3.
 - **Paste the real evidence,** exact request and response, so a reader can judge
   it rather than trust the summary. Redact keys; never paste a prompt containing
   anything but public code.
