@@ -17,6 +17,13 @@ wall_s: 329
 findings: 0
 real: 0
 usd_model: 0.0005
+harness_model: claude-fable-5-1
+harness_window: 2026-09-03T03:22Z..2026-09-03T03:45Z
+harness_in: 394
+harness_out: 10474
+harness_cache_read: 1735897
+harness_cache_write: 17504
+harness_unpriced: Opus 5 verification ran as a subagent, 109,182 tokens, not in this window
 ---
 
 # DeepSeek V4 Flash baseline on the clean control: 0 emitted, 0 real, 0 invented — the key's best possible result, from the cheapest model

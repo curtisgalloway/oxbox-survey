@@ -15,6 +15,12 @@ wall_s: 189
 findings: 12
 real: 7
 usd_model: 0
+harness_model: claude-fable-5-1
+harness_window: 2026-09-01T21:45Z..2026-09-01T22:10Z
+harness_in: 1048
+harness_out: 60206
+harness_cache_read: 1693923
+harness_cache_write: 135631
 ---
 
 # MiniMax M3 free: 7 of 12 findings real on the exposure gate, and a re-framed prompt found the defect the neutral one missed

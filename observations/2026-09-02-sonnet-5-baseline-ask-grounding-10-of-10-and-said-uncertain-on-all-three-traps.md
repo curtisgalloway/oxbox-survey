@@ -18,6 +18,12 @@ hits: 10
 hits_of: 10
 usd_model: 0.0416
 usd_total: 0.0416
+harness_model: claude-fable-5-1
+harness_window: 2026-09-03T02:24Z..2026-09-03T02:36Z
+harness_in: 3638
+harness_out: 37379
+harness_cache_read: 2492296
+harness_cache_write: 60532
 ---
 
 # Sonnet 5 baseline on ask-grounding: 10 of 10, including "not settled" on all three unsettled questions

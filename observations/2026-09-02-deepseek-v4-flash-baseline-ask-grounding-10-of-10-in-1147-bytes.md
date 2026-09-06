@@ -18,6 +18,13 @@ hits: 10
 hits_of: 10
 usd_model: 0.0009
 usd_total: 0.0009
+harness_model: claude-fable-5-1
+harness_window: 2026-09-03T03:22Z..2026-09-03T03:45Z
+harness_in: 394
+harness_out: 10474
+harness_cache_read: 1735897
+harness_cache_write: 17504
+harness_unpriced: Opus 5 verification ran as a subagent, 109,182 tokens, not in this window
 ---
 
 # DeepSeek V4 Flash baseline on ask-grounding: 10 of 10 in 1,147 bytes, the bait cited and re-scoped

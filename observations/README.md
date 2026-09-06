@@ -47,6 +47,13 @@ usd_model: 0.0273           # the model's half, computed from the archived catal
 usd_total: 0.0273           # both halves; equals usd_model on a mechanically scored fixture
 timed_out: false            # the request never returned
 disqualifier: not_found     # access/availability: the venue refused the run
+harness_model: claude-fable-5-1                       # who verified, as the transcript names it
+harness_window: 2026-09-06T21:22Z..2026-09-06T21:27Z  # the costcheck window; shared windows repeat it
+harness_in: 164             # the window's harness tokens, from costcheck's table ...
+harness_out: 7442           # ... output (thinking included)
+harness_cache_read: 1944599
+harness_cache_write: 18906
+harness_unpriced: Opus 5 subagent, 109,182 tokens   # optional: checking work the window does not hold
 ---
 
 # Title
@@ -101,6 +108,16 @@ group observations without interpreting prose:
   batch) carries `usd_total` only when the verification half was measured for
   that run alone; a shared window is an upper bound, not a figure, and the digit
   stays a dash.
+- **The checking half is recorded as a window, priced later, counted once.** The
+  `harness_*` fields transcribe the `### Harness` table costcheck.py printed for
+  the run: who verified, the window, and its four token counts. `ratings.py
+  --costs` prices them from the supervisor's own row in the archived OpenRouter
+  catalog, cache reads and writes included, and splits a window evenly across
+  every run that names it, so a window shared by three observations is charged
+  once. It is an upper bound, because a window holds whatever else the session
+  did. Checking work the window does not contain (a subagent, another session)
+  goes in `harness_unpriced` as text, so the table can say a share is missing
+  rather than silently understate it.
 - **A disqualifier is open until a later run clears it.** `disqualifier:` on a
   run-backed access or availability observation names why the venue refused
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands

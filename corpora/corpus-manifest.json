@@ -75,6 +75,21 @@
           "notes": "The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8. No cost ceiling: Fable 5.1 refuses this fixture (content_filter, twice on 2026-09-06), so the cost digit stays a dash here for every model."
         },
         {
+          "id": "oxbox-secret-scanner-fix-v2",
+          "mode": "diff",
+          "files": ["ox"],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix-v2.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "quality": {"unit": "gate verdicts held", "of": 8, "requires": ["applies"]},
+          "cost_ceiling_usd_per_real": null,
+          "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
+          "status": "proposed",
+          "verification": "git-apply",
+          "evidence": ["observations/2026-09-06-fable-5.1-refuses-the-scanner-fix-with-the-motivation-stated.md"],
+          "notes": "PROPOSED, and so far only a diagnostic. The scanner-fix prompt with a motivation preamble (what ox is, that the scanner is a refusal gate, that the change is defensive, that the values are placeholders); the rest of the prompt and the payload are byte-identical to oxbox-secret-scanner-fix, so the same scorer applies. Written 2026-09-06 to test whether Fable 5.1's content_filter refusal was about framing. It was not: refused again the same afternoon. Kept so the experiment is on the record. Not run against any other model."
+        },
+        {
           "id": "oxbox-clean-control",
           "mode": "review",
           "files": ["jailtest.py"],

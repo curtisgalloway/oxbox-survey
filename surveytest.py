@@ -1215,6 +1215,55 @@ def test_ratings():
         print("[skip] manifest %s predates the rating rule (%s); grandfathered"
               % (latest.get("issue_date"), rt["RULE_FROM"]))
 
+    # The cost comparison: the checking half is priced from the catalog, a
+    # shared window is charged once, a free-tier id is free even when the venue
+    # publishes no price, and a failed gate buys nothing.
+    prices = {"anthropic/claude-fable-5.1": {"prompt": "0.00001", "completion": "0.00005",
+                                             "input_cache_read": "0.00000025",
+                                             "input_cache_write": "0.0000125"},
+              "z-ai/glm-5.3-flash": {"prompt": "0.000000075", "completion": "0.00000025"},
+              "anthropic/claude-sonnet-5": {"prompt": "0.000002", "completion": "0.00001"}}
+    window = {"harness_model": "claude-fable-5-1", "harness_window": "w",
+              "harness_in": "1000000", "harness_out": "1000000",
+              "harness_cache_read": "1000000", "harness_cache_write": "1000000"}
+    report(abs(rt["price_window"](window, prices) - 72.75) < 1e-9,
+           "a harness window is priced from the supervisor's catalog row, cache included")
+    report(rt["price_window"]({"harness_model": "nobody", "harness_window": "w"}, prices) is None,
+           "a window whose supervisor the catalog does not price is unpriced, not zero")
+    tier = rt["tier_of"]
+    report([tier("nemotron-3-ultra-free", prices, None), tier("z-ai/glm-5.3-flash", prices, 0.001),
+            tier("anthropic/claude-sonnet-5", prices, 0.04), tier("mistral/leanstral-1-5", prices, None)]
+           == ["free", "cheap paid", "frontier", "paid, price unknown"],
+           "tiers: free by id or bill, cheap and frontier by list price, unknown named as such")
+    base = {"source": "oxbox-run", "kind": "findings", "role": "candidate", "venue": "v",
+            "harness_model": "claude-fable-5-1", "harness_window": "shared",
+            "harness_in": "0", "harness_out": "100000", "harness_cache_read": "0",
+            "harness_cache_write": "0"}
+    a = dict(base, model="a", findings="4", real="2", usd_model="0", _file="a")
+    b = dict(base, model="b", findings="4", real="2", usd_model="0", _file="b")
+    costs = {r["model"]: r for r in rt["cost_rows"]([a, b], prices, tasks={})}
+    report(abs(costs["a"]["check_usd_per_run"] - 2.5) < 1e-9
+           and abs(costs["a"]["usd_per_real"] - 1.25) < 1e-9,
+           "a $5 window shared by two runs is charged $2.50 to each, once")
+    gated = dict(base, model="g", corpus="oxbox-secret-scanner-fix", hits="8", hits_of="8",
+                 applies="false", usd_model="0.01", _file="g")
+    task = {"oxbox-secret-scanner-fix": {"quality": {"of": 8, "requires": ["applies"]}}}
+    g = rt["cost_rows"]([gated], prices, tasks=task)[0]
+    report(g["real"] == 0 and g["usd_per_real"] is None,
+           "hits behind a failed gate count for nothing in the cost table")
+    harness_numeric = []
+    for o in obs:
+        for key in ("harness_in", "harness_out", "harness_cache_read", "harness_cache_write"):
+            if key in o:
+                try:
+                    rt["_num"](o[key])
+                except ValueError:
+                    harness_numeric.append("%s: %s" % (o["_file"], key))
+        if ("harness_window" in o) != ("harness_model" in o):
+            harness_numeric.append("%s: window without model or model without window" % o["_file"])
+    report(not harness_numeric, "every harness field is numeric and every window names its supervisor",
+           harness_numeric)
+
     # The disqualifier rule: open until a later run clears it, same day clears.
     open_marks = rt["open_disqualifiers"]
     stale = [{"model": "m", "source": "oxbox-run", "kind": "access", "date": "2026-09-01",

@@ -20,6 +20,13 @@ hits_of: 8
 self_hits: 0
 usd_model: 0.0014
 usd_total: 0.0014
+harness_model: claude-fable-5-1
+harness_window: 2026-09-03T03:22Z..2026-09-03T03:45Z
+harness_in: 394
+harness_out: 10474
+harness_cache_read: 1735897
+harness_cache_write: 17504
+harness_unpriced: Opus 5 verification ran as a subagent, 109,182 tokens, not in this window
 ---
 
 # DeepSeek V4 Flash baseline on the scanner fix: corrupt hunk header, 7 of 8 verdicts, and 21 minutes for 5,000 tokens

@@ -14,6 +14,12 @@ run: 2026-08-30T22-29-19Z
 wall_s: 129
 findings: 10
 real: 2
+harness_model: claude-fable-5-1
+harness_window: 2026-09-01T21:45Z..2026-09-01T22:10Z
+harness_in: 1048
+harness_out: 60206
+harness_cache_read: 1693923
+harness_cache_write: 135631
 ---
 
 # Nemotron 3 Ultra free: 2 of 10 findings real on the exposure gate, and the one that mattered was filed as UNCERTAIN

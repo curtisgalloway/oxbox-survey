@@ -42,7 +42,26 @@ RULE_FROM = "2026-09-06"  # manifests dated here or later are derived from ratin
 ROW_KINDS = ("findings", "hygiene")
 MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "hits", "hits_of",
                    "applies", "self_hits", "usd_model", "usd_total",
-                   "timed_out", "disqualifier")
+                   "timed_out", "disqualifier", "harness_model", "harness_window",
+                   "harness_in", "harness_out", "harness_cache_read",
+                   "harness_cache_write", "harness_unpriced")
+
+# The checking half is priced at the supervisor's own list price from the
+# archived OpenRouter catalog, cache reads and writes included; the harness
+# names its model the way the transcript does, the catalog the way OpenRouter
+# does. Measured, not a multiplier: Fable's cache read is $0.25 per million
+# on the 2026-09-01 catalog, a quarter of the usual 10%-of-input guess.
+HARNESS_MODEL_IDS = {
+    "claude-fable-5-1": "anthropic/claude-fable-5.1",
+    "claude-opus-5": "anthropic/claude-opus-5",
+    "claude-sonnet-5": "anthropic/claude-sonnet-5",
+}
+CATALOGS = HERE / "catalogs" / "openrouter"
+
+# "Cheap paid" for the cost comparison: a list completion price at or under
+# this, per million tokens. Provisional; the editor's rule is "cheap enough
+# is a candidate" and this is the first number put to it.
+CHEAP_COMPLETION_USD_PER_MTOK = 1.0
 DERIVED_KEYS = ("quality", "cost", "speed")  # never typed into frontmatter
 
 
@@ -194,6 +213,50 @@ def load_editor_ratings(path=EDITOR_RATINGS):
     return data.get("ratings", {})
 
 
+def load_prices(catalog_dir=CATALOGS):
+    """model id -> pricing dict (USD per token, strings) from the newest catalog."""
+    paths = sorted(catalog_dir.glob("*.json"))
+    if not paths:
+        return {}, None
+    data = json.loads(paths[-1].read_text(encoding="utf-8"))
+    rows = (data.get("payload") or {}).get("data") or []
+    return {r.get("id"): (r.get("pricing") or {}) for r in rows if isinstance(r, dict)}, paths[-1].name
+
+
+def price_window(fields, prices):
+    """USD for one harness window from its token counts, or None if unpriced."""
+    model = HARNESS_MODEL_IDS.get(fields.get("harness_model", ""))
+    pricing = prices.get(model)
+    if not pricing or "harness_window" not in fields:
+        return None
+    usd = 0.0
+    for key, price_key in (("harness_in", "prompt"), ("harness_out", "completion"),
+                           ("harness_cache_read", "input_cache_read"),
+                           ("harness_cache_write", "input_cache_write")):
+        count = _num(fields.get(key)) or 0
+        usd += count * float(pricing.get(price_key) or 0)
+    return usd
+
+
+def tier_of(model, prices, usd_model):
+    """free / cheap paid / frontier / paid (price unknown), from the list price.
+
+    Free is a zero bill or a free-tier id (":free" on OpenRouter, "-free" on
+    the class B venues, which publish no price at all). Paid tiers split on
+    the catalog's completion price; a paid model the catalog does not price
+    is named as such rather than guessed.
+    """
+    if usd_model == 0 or model.endswith(":free") or model.endswith("-free"):
+        return "free"
+    pricing = prices.get(model) or {}
+    completion = float(pricing.get("completion") or 0) * 1_000_000
+    if not completion:
+        return "paid, price unknown"
+    if completion <= CHEAP_COMPLETION_USD_PER_MTOK:
+        return "cheap paid"
+    return "frontier"
+
+
 # --- rows ------------------------------------------------------------------
 
 def measure(fields, tasks):
@@ -213,6 +276,12 @@ def measure(fields, tasks):
     if not required_ok and divisor is not None:
         divisor = 0  # a patch that does not apply bought nothing, whatever it hit
     row = {
+        "divisor": divisor,
+        "harness_window": fields.get("harness_window"),
+        "harness_model": fields.get("harness_model"),
+        "harness_usd": None,  # filled by cost_rows, which knows the prices
+        "harness_unpriced": fields.get("harness_unpriced"),
+        "_fields": fields,
         "file": fields["_file"],
         "date": fields.get("date"),
         "venue": fields.get("venue"),
@@ -397,13 +466,114 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
     return "\n".join(out)
 
 
+def cost_rows(observations, prices, tasks=None):
+    """Per model: the model half and the checking half, per run and per real.
+
+    The model half is the mean of usd_model over the model's priced rows. The
+    checking half is every distinct harness window those rows name, priced at
+    the supervisor's list price and counted once, split evenly across the
+    rows (of any model) it covers -- an upper bound, since a window holds
+    whatever else the session did. "Real" uses the same divisor as the cost
+    digit: verified-real findings on a review run, hits on a seeded fixture,
+    zero when a required gate failed. USD per real is computed over the rows
+    that have a window, so an unwindowed run's findings do not dilute it.
+    """
+    tasks = load_corpus() if tasks is None else tasks
+    rows = run_rows(observations, tasks)
+    windows = {}
+    for r in rows:
+        if r["harness_window"]:
+            key = (r["harness_model"], r["harness_window"])
+            w = windows.setdefault(key, {"usd": price_window(r["_fields"], prices), "rows": 0})
+            w["rows"] += 1
+    per_model = {}
+    for r in rows:
+        m = per_model.setdefault(r["model"], {"venue": r["venue"], "runs": 0, "usd_sum": 0.0,
+                                              "priced": 0, "real": 0, "check": 0.0,
+                                              "check_runs": 0, "check_real": 0,
+                                              "check_model_usd": 0.0, "unpriced": False})
+        m["runs"] += 1
+        if r["usd_model"] is not None:
+            m["usd_sum"] += r["usd_model"]
+            m["priced"] += 1
+        m["real"] += r["divisor"] or 0
+        if r["harness_window"]:
+            w = windows[(r["harness_model"], r["harness_window"])]
+            if w["usd"] is None:
+                m["unpriced"] = True
+            else:
+                m["check"] += w["usd"] / w["rows"]
+                m["check_runs"] += 1
+                m["check_real"] += r["divisor"] or 0
+                m["check_model_usd"] += r["usd_model"] or 0
+            if r["harness_unpriced"]:
+                m["unpriced"] = True
+    out = []
+    for model, m in per_model.items():
+        model_avg = (m["usd_sum"] / m["priced"]) if m["priced"] else None
+        per_real = None
+        if m["check_runs"] and m["check_real"]:
+            per_real = (m["check_model_usd"] + m["check"]) / m["check_real"]
+        out.append({
+            "model": model, "venue": m["venue"], "runs": m["runs"],
+            "tier": tier_of(model, prices, model_avg),
+            "model_usd_per_run": model_avg,
+            "check_usd_per_run": (m["check"] / m["check_runs"]) if m["check_runs"] else None,
+            "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
+            "real": m["real"], "check_real": m["check_real"],
+            "usd_per_real": per_real,
+        })
+    return out
+
+
+def costs_markdown(observations=None, prices=None):
+    observations = load_observations() if observations is None else observations
+    if prices is None:
+        prices, catalog = load_prices()
+    else:
+        catalog = "given"
+    rows = cost_rows(observations, prices)
+    order = {"frontier": 0, "cheap paid": 1, "paid, price unknown": 2, "free": 3}
+    rows.sort(key=lambda r: (order.get(r["tier"], 9), -(r["model_usd_per_run"] or 0), r["model"]))
+
+    def usd(v):
+        return "-" if v is None else "$%.4f" % v
+
+    out = ["## What it costs", "",
+           "| Tier | Model | Runs | Model half, per run | Checking half, per run (upper bound) | Real | USD per real, both halves, over checked runs |",
+           "|---|---|---|---|---|---|---|"]
+    for r in rows:
+        check = usd(r["check_usd_per_run"])
+        if r["check_unpriced"]:
+            check += " + an unpriced share"
+        if r["check_runs"] and r["check_runs"] < r["runs"]:
+            check += " (%d of %d runs)" % (r["check_runs"], r["runs"])
+        out.append("| %s | `%s` | %d | %s | %s | %d | %s |" % (
+            r["tier"], r["model"], r["runs"], usd(r["model_usd_per_run"]), check,
+            r["real"], usd(r["usd_per_real"])))
+    out += ["",
+            "The model half is what the venue billed or the catalog computes for the run. "
+            "The checking half is the supervisor's tokens in the window that verified the run, "
+            "priced at the supervisor's list price on the %s OpenRouter catalog with cache reads "
+            "and writes, counted once per window and split across the runs it covers. A window "
+            "holds whatever else the session did, so it is an upper bound. Real is verified-real "
+            "findings on a review run or hits on a seeded fixture. Cheap paid means a list "
+            "completion price at or under $%.2f per million." % (catalog, CHEAP_COMPLETION_USD_PER_MTOK)]
+    return "\n".join(out)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--rubric", action="store_true", help="print the threshold table")
     parser.add_argument("--json", action="store_true", help="rows as JSON")
+    parser.add_argument("--costs", action="store_true",
+                        help="the cost comparison: model half, checking half, per tier")
     args = parser.parse_args(argv)
     if args.rubric:
         print(rubric_markdown())
+        return 0
+    if args.costs:
+        print(costs_markdown())
         return 0
     if args.json:
         observations = load_observations()

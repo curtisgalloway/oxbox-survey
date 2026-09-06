@@ -17,6 +17,12 @@ wall_s: 160
 findings: 2
 real: 0
 usd_model: 0.1611
+harness_model: claude-fable-5-1
+harness_window: 2026-09-03T02:24Z..2026-09-03T02:36Z
+harness_in: 3638
+harness_out: 37379
+harness_cache_read: 2492296
+harness_cache_write: 60532
 ---
 
 # Sonnet 5 baseline on the clean control: 2 findings emitted, 0 new and real, 1 invention; 3 UNCERTAIN items, all correctly hedged
