@@ -101,9 +101,17 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
   and from 1.1.0 `meta.json` carries the pin that was sent as `provider`. Every
   observation on this venue names the `route`; an unpinned run's catalog price
   is a floor, and only a pinned run can tell a model's failure from a route's.
-  No pinned run has been made yet; the first is the DeepSeek clean-control
-  payload to StreamLake and DigitalOcean by name, and the survey's manifests
-  carry no `provider` until a pin is backed by such a run (rule in the skill).
+  The first pinned runs were made the day the release shipped `[M]`: the
+  DeepSeek clean-control payload to `streamlake/fp8` answered in 151 s (the
+  route that returned nothing in 33 minutes the day before), and to
+  `digitalocean` was refused 429 twice with `allow_fallbacks: false` — the
+  error naming DigitalOcean's shared pool — before answering on the third try,
+  five minutes on. A pin trades availability for attribution: a refusal that
+  default routing would have hidden becomes visible, and the route that
+  answers is the one that was asked for. The survey's manifests carry no
+  `provider` until a pin is backed by rated runs (rule in the skill).
+  [[../observations/2026-09-07-deepseek-v4-flash-candidate-clean-control-pinned-to-streamlake-one-finding-zero-real-in-151-seconds]]
+  [[../observations/2026-09-07-deepseek-v4-flash-pinned-to-digitalocean-refused-429-twice-with-fallbacks-off-the-pin-held]]
   [[../observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-rerun-two-findings-in-47-seconds-from-a-fourth-provider-the-blowout-was-the-route]]
 
 ## Watch
