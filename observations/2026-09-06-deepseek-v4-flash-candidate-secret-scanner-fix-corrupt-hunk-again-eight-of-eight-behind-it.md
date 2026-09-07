@@ -22,9 +22,9 @@ usd_model: 0.0024
 usd_total: 0.0024
 ---
 
-# DeepSeek V4 Flash as a candidate on the scanner fix: corrupt hunk header again, eight of eight verdicts behind it, sixteen minutes, a fourth provider
+# DeepSeek V4 Flash as a candidate on the scanner fix: corrupt hunk header again, eight of eight verdicts behind it, sixteen minutes, back on its first provider
 
-**What happened** — `oxbox-secret-scanner-fix` (`ox` at `6072d56`, 39,467 B, `--mode diff`) put to `deepseek/deepseek-v4-flash` as a candidate. The patch does not apply without `--recount`; behind that gate all eight verdicts hold, zero self-hits, nothing outside the pattern list changed, and the model added a ninth pattern rather than rewriting one. Gate 1 is the gate: quality 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. 986 seconds, $0.0024 billed, provider DigitalOcean, the fourth provider OpenRouter has used for this model in the record.
+**What happened** — `oxbox-secret-scanner-fix` (`ox` at `6072d56`, 39,467 B, `--mode diff`) put to `deepseek/deepseek-v4-flash` as a candidate. The patch does not apply without `--recount`; behind that gate all eight verdicts hold, zero self-hits, nothing outside the pattern list changed, and the model added a ninth pattern rather than rewriting one. Gate 1 is the gate: quality 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. 986 seconds, $0.0024 billed, provider DigitalOcean, where its first run on 2026-09-02 had gone; three providers have served this model in the record. (Corrected 2026-09-06: this line first said "the fourth provider"; the count was wrong.)
 
 ## Evidence
 

@@ -19,14 +19,14 @@ real: 1
 usd_model: 0.0016
 ---
 
-# DeepSeek V4 Flash re-run on the clean control: two findings in 47 seconds from a fourth provider, so the 33-minute blowout was the route
+# DeepSeek V4 Flash re-run on the clean control: two findings in 47 seconds from a third provider, so the 33-minute blowout was the route
 
 **What happened** — At the editor's direction (round 4, question 5), the
 clean-control candidate run that had returned nothing after 33 minutes was
 repeated: same `oxbox-clean-control` payload (`jailtest.py` at `6302b12`,
 6,096 B, review mode, the same params). This time OpenRouter routed
-`deepseek/deepseek-v4-flash` to Novita, the fourth provider this model has
-been served from in five runs, and the model answered in 47 seconds:
+`deepseek/deepseek-v4-flash` to Novita, the third provider this model has
+been served from in seven runs, and the model answered in 47 seconds:
 4,774 completion tokens, 3,692 of them reasoning, finish `stop`, $0.0016
 billed, which is double the catalog computation because Novita's route is
 priced above the list row. Two findings.
@@ -69,9 +69,13 @@ stop, `venue_cost` 0.0015939, provider Novita, 1,837 prompt tokens.
 | D1 | root stat FAIL is a false leak report | REFUTED | CONFIRMED, safe direction, cause wrong | invention, by the C3 ruling |
 | D2 | UNCERTAIN: offline host passes a leaking jail | REFUTED as written | REFUTED as written | real, as G1 is; question 2 decides both |
 
-Five runs of this model on OpenRouter have now gone to four providers: the
-2026-09-02 baselines elsewhere, the ask candidate to StreamLake, the
-33-minute clean-control candidate to StreamLake, this one to Novita.
+Seven runs of this model on OpenRouter have gone to three providers:
+DigitalOcean three times (the scanner-fix baseline and candidate, the
+clean-control baseline), StreamLake three times (the ask baseline and
+candidate, the 33-minute clean-control candidate), Novita once, this run.
+(Corrected 2026-09-06: this observation first said "a fourth provider" and
+"four providers"; the count was wrong, and the filename kept the error so the
+links to it still resolve.)
 
 ## So what
 

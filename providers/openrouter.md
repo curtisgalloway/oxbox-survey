@@ -79,6 +79,22 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
 - OpenRouter's own suggested remedy is BYOK — *"add your own key to accumulate
   your rate limits"* — which means holding accounts with each upstream provider.
   That is model-level commitment and out of scope.
+- **A model id is a pool of endpoints, and the price is the price of a route.**
+  The public listing `GET /api/v1/models/<model>/endpoints` showed fifteen
+  endpoints for `deepseek/deepseek-v4-flash` and twenty-three for
+  `z-ai/glm-5.3-flash` on 2026-09-06, priced from list to 5x list, with output
+  caps from 2,048 to 943,718 tokens and fp4 to bf16 weights, and the default
+  routing picks one per request. Seven DeepSeek runs went to three providers and
+  six GLM runs to four; one GLM run was billed at double the catalog row, and the
+  same DeepSeek payload returned nothing in 33 minutes from one provider and a
+  full review in 47 seconds from another `[M]`. The request-body `provider`
+  object (`order`, `only`, `allow_fallbacks`, `max_price`, `quantizations`) pins
+  a route, but `oxbox send` does not pass it and manifest v0 has no field for it:
+  [oxbox#50](https://github.com/curtisgalloway/oxbox/issues/50), filed
+  2026-09-06, deferred behind the Rust port. Until it lands, every observation on
+  this venue names the `provider` from `response.json`, the catalog price is a
+  floor, and a model's failure cannot be told from a route's.
+  [[../observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-rerun-two-findings-in-47-seconds-from-a-fourth-provider-the-blowout-was-the-route]]
 
 ## Watch
 
