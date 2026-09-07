@@ -111,11 +111,17 @@ def price_from_catalog(catalog_path, model):
 def price_run(run, catalog_path=None):
     """Attach a computed USD figure to a run, and say where the price came from.
 
-    Computed, not billed: OpenRouter only returns the billed figure when the
-    request asks for it, and ox does not. Reasoning tokens are inside the
-    completion count and are billed as output, so completion * output price
-    already covers them. Cached prompt tokens are priced lower and are not
-    corrected for -- none of the corpus runs so far had any.
+    Computed from the catalog row, which is the list price of the model. The
+    venue also returns the billed figure (`usage.cost` in response.json, which
+    oxbox 0.7.0+ copies to `venue_cost` in status.json), and that is the price
+    of the route that answered; `dollars` prefers it when present, and the
+    table says which one it is showing. On OpenRouter the two differ whenever
+    the request lands on an endpoint priced off the list row -- the survey has
+    seen 2x -- so the computed figure is a floor, not a bill. Reasoning tokens
+    are inside the completion count and are billed as output, so
+    completion * output price already covers them. Cached prompt tokens are
+    priced lower and are not corrected for -- none of the corpus runs so far
+    had any.
     """
     run["usd"], run["priced_from"] = None, None
     if run.get("prompt") is None or run.get("completion") is None:
@@ -267,9 +273,17 @@ def commas(value):
     return "-" if value is None else "{:,}".format(value)
 
 
+def billed(run):
+    """The venue's own figure for the run, or None when it sent none."""
+    cost = run.get("cost")
+    return cost if isinstance(cost, (int, float)) and not isinstance(cost, bool) else None
+
+
 def dollars(run):
     if run.get("cost") == 0 or run.get("usd") == 0:
         return "free"
+    if billed(run) is not None:
+        return "$%.4f billed" % billed(run)
     if run.get("usd") is None:
         return "-"
     return "$%.4f" % run["usd"]
@@ -283,11 +297,14 @@ def render(runs, totals, span, window, state):
         lines.append("")
         lines.append("| run | model | mode | context | prompt | completion | reasoning | usd |")
         lines.append("|---|---|---|---|---|---|---|---|")
-        usd_total, priced_from = 0.0, set()
+        usd_total, priced_from, billed_runs = 0.0, set(), 0
         for run in runs:
             for field in under:
                 under[field] += run.get(field) or 0
-            if run.get("usd") is not None:
+            if billed(run) is not None:
+                usd_total += billed(run)
+                billed_runs += 1
+            elif run.get("usd") is not None:
                 usd_total += run["usd"]
                 priced_from.add(run["priced_from"])
             lines.append("| `%s` | `%s` | %s | %s B | %s | %s | %s | %s |" % (
@@ -299,13 +316,22 @@ def render(runs, totals, span, window, state):
             lines.append("| **total** | | | | %s | %s | %s | %s |" % (
                 commas(under["prompt"]), commas(under["completion"]),
                 commas(under["reasoning"]),
-                "$%.4f" % usd_total if priced_from else "-"))
-        if priced_from:
+                "$%.4f" % usd_total if (priced_from or billed_runs) else "-"))
+        if billed_runs or priced_from:
             lines.append("")
-            lines.append("usd is computed from the archived catalog price (%s), "
-                         "not billed: OpenRouter returns the billed figure only when "
-                         "asked, and ox does not ask. Reasoning tokens are inside "
-                         "completion and priced as output." % ", ".join(sorted(priced_from)))
+            notes = []
+            if billed_runs:
+                notes.append("a usd marked billed is the venue's own figure for the "
+                             "run (`usage.cost`, `venue_cost` in status.json): the price "
+                             "of the route that answered, which on OpenRouter can sit "
+                             "above the model's list row")
+            if priced_from:
+                notes.append("an unmarked usd is computed from the archived catalog "
+                             "price (%s) because the venue sent no figure of its own, "
+                             "and is a floor" % ", ".join(sorted(priced_from)))
+            note = "; ".join(notes)
+            lines.append(note[0].upper() + note[1:]
+                         + ". Reasoning tokens are inside completion and priced as output.")
         for run in runs:
             if run.get("error"):
                 lines.append("")

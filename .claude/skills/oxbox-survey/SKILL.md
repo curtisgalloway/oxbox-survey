@@ -174,7 +174,8 @@ it is the only place it may come from. Three states; only the first may be pinne
   below its own default.
 - **Accepts `reasoning` but not `reasoning_effort`, `supported_efforts: null`.**
   Effort is not a knob on that model; omit the field. `minimax/minimax-m3:free`,
-  the current rank 1, is exactly this case — it reasons, but not on a dial.
+  rank 1 until it was delisted on 2026-09-07, is exactly this case — it reasons, but
+  not on a dial.
 - **No `reasoning` block at all.** Omit the field.
 
 A venue that publishes no effort data for any model is not a fourth state to guess

@@ -1,0 +1,34 @@
+{
+  "manifest_version": 1,
+  "note": "Format v1 (oxbox 1.1.0, 2026-09-07): an entry may carry `provider`, OpenRouter's routing object, sent verbatim and honored on the openrouter venue only. Requires oxbox >= 1.1.0; an older oxbox refuses this file with a pointer to update rather than dropping the pin. Design: https://github.com/curtisgalloway/oxbox/issues/10 (v0) and /issues/50 (provider). Derived from the Editor's Rating (editor-ratings.json): Good then Acceptable, minus standing disqualifiers. minimax/minimax-m3:free, rank 1 of the 2026-09-01 manifest and rated Good, is absent from OpenRouter's catalog as of the 2026-09-07 snapshot (its endpoints list is empty; only the paid minimax/minimax-m3 remains at $0.30/$1.20 per M) and is held out as delisted. nemotron-3-ultra-free, rank 3 last issue, is rated Poor. The pin follows the fill rule in the survey skill: `only` is the endpoints the rated runs actually went to, `allow_fallbacks` false so a refusal is visible instead of routed around, `max_price` at the catalog row so a route priced above list is skipped. No entry carries params.max_tokens: glm-5.3-flash's completion cap is 131,072, above the 100,000 default.",
+  "survey": "The Oxbox Survey",
+  "issue_date": "2026-09-07",
+  "defaults": {
+    "max_tokens": 100000
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "venue": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "z-ai/glm-5.3-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.075,
+        "output": 0.25
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": ["z-ai/fp8", "gmicloud/fp8", "streamlake/fp8", "siliconflow/fp8"],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.075,
+          "completion": 0.25
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-06): fast and mostly good; Z.AI's regulatory status is a concern. Six runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice, the clean control 1 real of 8 findings over two runs, the scanner fix passed all three gates as a baseline and produced a corrupt hunk as a candidate. Effort pinned at high, below the model's own default of max, because every survey run went out at high. Pinned to the four routes those runs were served from; SiliconFlow billed 2x the catalog row on 2026-09-06, so max_price at list excludes it until it prices at list again, and with fallbacks off a refusal from the remaining routes fails the run instead of sending the payload somewhere unmeasured."
+    }
+  ]
+}

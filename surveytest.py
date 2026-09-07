@@ -788,6 +788,23 @@ def test_pricing():
         incomplete = cc["price_run"]({"venue": "openrouter", "model": "m",
                                       "prompt": None, "completion": None}, path)
         report(incomplete["usd"] is None, "a run with no reply is not priced", None)
+        # The venue's own figure is the price of the route that answered, and
+        # oxbox has recorded it since 0.7.0; when it is there it wins over the
+        # computed list price and the table says so, because the two differed
+        # by 2x on a real run (SiliconFlow, 2026-09-06).
+        path.write_text(json.dumps(catalog), encoding="utf-8")
+        metered = cc["price_run"](dict(run, cost=0.0016), path)
+        report(cc["dollars"](metered) == "$0.0016 billed" and abs(metered["usd"] - 0.022) < 1e-9,
+               "a billed figure is shown as billed and the computed price kept beside it",
+               cc["dollars"](metered))
+        text = cc["render"]([dict(metered, timestamp="t", mode="review", context_bytes=1,
+                                  reasoning=0)], {}, None, (None, None), {})
+        report("billed" in text and "computed from" not in text,
+               "the table's note names the billed figure, not a computed one, when the venue sent one")
+        text = cc["render"]([dict(priced, timestamp="t", mode="review", context_bytes=1,
+                                  reasoning=0)], {}, None, (None, None), {})
+        report("computed from the archived catalog price" in text and "billed" not in text.split("### Harness")[0],
+               "a run the venue did not price is still computed from the catalog, and says so")
 
 
 def test_usagereport():
@@ -1358,10 +1375,13 @@ def test_ratings():
         report(marks.get("vendor/gone") == ("2026-09-01", "delisted") and "vendor/listed" not in marks,
                "a model missing from its venue's newest catalog is delisted, dated by that catalog")
     live = open_marks(obs)
+    # minimax/minimax-m3:free joined the delisted on the 2026-09-07 catalog: its
+    # endpoints list went empty and only the paid minimax/minimax-m3 remains.
     report(live.get("x-preview-f-free", ("", ""))[1] == "delisted"
            and live.get("z-ai/glm-5.3-free", ("", ""))[1] == "delisted"
-           and "minimax/minimax-m3:free" not in live,
-           "the two delisted rows in the record are marked and the listed ones are not")
+           and live.get("minimax/minimax-m3:free", ("", ""))[1] == "delisted"
+           and "z-ai/glm-5.3-flash" not in live,
+           "the three delisted rows in the record are marked and the listed one is not")
 
 
 def main():
