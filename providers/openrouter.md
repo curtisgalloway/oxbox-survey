@@ -43,7 +43,9 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
 
 ## API
 
-- `chat/completions`. This is the endpoint `ox` hardcodes as `API_URL`.
+- `chat/completions`. This is the endpoint `oxbox send` binds to the
+  `openrouter` venue in its own table; a manifest's `base_url` is documentation
+  it cross-checks and never honors.
 - The catalog paginates via `links.next`; `oxsurvey` follows it with a 20-page
   guard.
 
@@ -91,9 +93,13 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
   object (`order`, `only`, `allow_fallbacks`, `max_price`, `quantizations`) pins
   a route, but `oxbox send` does not pass it and manifest v0 has no field for it:
   [oxbox#50](https://github.com/curtisgalloway/oxbox/issues/50), filed
-  2026-09-06, deferred behind the Rust port. Until it lands, every observation on
-  this venue names the `provider` from `response.json`, the catalog price is a
-  floor, and a model's failure cannot be told from a route's.
+  2026-09-06 and still open at 1.0.1 (2026-09-07); it was deferred behind the
+  Rust port, which has since shipped, so nothing stands in front of it now.
+  What did land is the record: from oxbox 0.7.0 `status.json` and every
+  `attempts` entry carry the venue's `provider` verbatim as **`route`**, null
+  when the venue names none. Until #50 lands, every observation on this venue
+  names the `route`, the catalog price is a floor, and a model's failure cannot
+  be told from a route's.
   [[../observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-rerun-two-findings-in-47-seconds-from-a-fourth-provider-the-blowout-was-the-route]]
 
 ## Watch

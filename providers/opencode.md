@@ -47,7 +47,8 @@ because it is the opposite of how these tiers are marketed.
   request shape.
 - **`/zen/v1/chat/completions` works** `[M]`. Three free models answered a
   standard chat-completions payload, so no second request shape was needed.
-  Reachable as `ox --venue opencode` since 2026-08-23.
+  Reachable as `oxbox send --venue opencode` (`ox --venue opencode` before
+  0.7.0) since 2026-08-23.
   [[../observations/2026-08-23-opencode-zen-accepts-chat-completions]]
 - **Cloudflare rejects the default `Python-urllib` User-Agent** with `403 error
   code: 1010`, before the request reaches any route `[M]`. A client must send an

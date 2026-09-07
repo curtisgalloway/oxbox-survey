@@ -182,8 +182,8 @@ manifest is clean.
   present it beside a class A measured zero without saying which is which.
 - **Snapshots are named by UTC capture date; issues are named by the local week.**
   They can differ by a day. That is expected — do not "fix" one to match the other.
-- **Count both halves of what a run cost.** The model's tokens are in the ox run
-  log; the tokens spent assembling the batch and verifying its findings are in the
+- **Count both halves of what a run cost.** The model's tokens are in the oxbox
+  run log; the tokens spent assembling the batch and verifying its findings are in the
   agent's own session transcript, and `costcheck.py` sums both into a table for the
   observation. The verification half is the one that decides whether a free model
   is actually cheap, and it was invisible until 2026-08-30. Always print the
@@ -222,7 +222,9 @@ surveytest.py                     offline tests — see Tests above
 snapshots/<venue>/YYYY-MM-DD.json committed catalog captures — the measured tier
 observations/YYYY-MM-DD-*.md      the observed tier — see observations/README.md
 manifests/latest.json             symlink to the newest manifest, for --manifest
-manifests/oxbox-manifest-*.json   which model ox should call — regenerated per issue
+manifests/oxbox-manifest-*.json   which model oxbox should call — regenerated per issue;
+                                  the format is oxbox's, defined in its README under
+                                  "Survey manifests"
 corpora/corpus-manifest.json      what to send it — pinned targets, see corpora/README.md
 corpora/scorers/<task>.py         mechanical scoring where the fixture allows it; ask_grounding runs the pinned ox
 costcheck.py                      what a run cost: the model's tokens, and the harness's

@@ -182,13 +182,15 @@ at — every `opencode` capture to date carries none — so omit `params.effort`
 entries. A level learned from an actual run belongs in an observation and may be
 cited in `why`; it does not become a pinned param on the strength of one run.
 
-Getting it wrong degrades rather than breaks: ox names and drops an effort it does
-not recognize, then falls back through explicit flag > entry `params` > manifest
+Getting it wrong degrades rather than breaks: `oxbox send` names and drops an effort
+it does not recognize, then falls back through explicit flag > entry `params` > manifest
 `defaults` > its own default of `high`. That is the reason to pin only what the
 snapshot says, not a license to guess — a wrong level runs, and runs wrong, quietly.
 
-ox's ladder is `low`, `medium`, `high`, `xhigh`, `max` (oxbox `41c7c3f`, on main
-since 2026-09-03). Anything else in `params.effort` is dropped with a warning.
+`oxbox send`'s ladder is `low`, `medium`, `high`, `xhigh`, `max` (oxbox `41c7c3f`, on
+main since 2026-09-03; unchanged in the 1.0.1 Rust binary). Anything else in
+`params.effort` is dropped with a warning. The manifest format itself is oxbox's —
+its README section "Survey manifests" is the definition, and this skill only fills it.
 
 ## Report format
 
@@ -263,7 +265,7 @@ run, not a multiplication. Never adjust a figure by
 hand; if a window is shared or missing, the table says so and the caveat stands.
 
 **The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
-it prints. Every model ever put through ox is a row, failures included: a run the
+it prints. Every model ever put through oxbox is a row, failures included: a run the
 venue refused shows its disqualifier and dashed digits; a run that answered with
 nothing shows quality 0. Three 0-5 digits per fixture, bucketed by the script from
 observation frontmatter, never typed: quality (seeded defects found), cost (USD per real

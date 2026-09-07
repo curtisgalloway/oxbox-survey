@@ -111,8 +111,14 @@ def write_watermark(log_dir, through, scraped_from, runs):
 
 
 def stamp_to_iso(name):
-    """2026-08-30T16-05-13Z -> 2026-08-30T16:05:13, for a human reading it."""
-    bare = name.replace("Z", "")
+    """2026-08-30T16-05-13Z -> 2026-08-30T16:05:13, for a human reading it.
+
+    A second run claimed in the same second is named 2026-08-30T16-05-13Z-2 by
+    both oxbox implementations (see docs/log-contract.md). The suffix orders
+    the directory names and is not part of the time, so everything after the
+    Z is dropped here rather than turned into a fourth colon field.
+    """
+    bare = name.split("Z", 1)[0]
     return bare[:11] + bare[11:].replace("-", ":")
 
 
@@ -132,10 +138,10 @@ def collect(run_dirs, start, end):
         if status is None:
             unreadable.append(str(run_dir))
             continue
-        # The directory name is the run stamp; ox writes it as 2026-08-30T01-11-26Z,
-        # so the time separators have to come back before it compares.
-        stamp = run_dir.name.replace("Z", "")
-        stamp = stamp[:11] + stamp[11:].replace("-", ":")
+        # The directory name is the run stamp; ox writes it as 2026-08-30T01-11-26Z
+        # (or ...Z-2 on a same-second collision), so the time separators have to
+        # come back, and the suffix go, before it compares.
+        stamp = stamp_to_iso(run_dir.name)
         if (start and stamp < start) or (end and stamp > end):
             outside += 1
             continue

@@ -39,7 +39,8 @@ axis is Measured rather than read off a terms page.
 ## API
 
 - **`chat/completions` confirmed working** `[M]`, `Authorization: Bearer`. Three
-  free models answered. Reachable as `ox --venue requesty`.
+  free models answered. Reachable as `oxbox send --venue requesty` (`ox
+  --venue requesty` before 0.7.0).
   [[../observations/2026-08-23-requesty-chat-completions-no-deposit]]
 
 ## Catalog quirks

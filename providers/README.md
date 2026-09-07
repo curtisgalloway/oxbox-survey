@@ -49,8 +49,8 @@ Class A means the catalog carries pricing, so `free` is Measured. Class B means
 it does not, so `free` is `null` — unknown, never false. Counts are from the
 2026-09-01 snapshots.
 
-**All four are reachable from oxbox** as of 2026-08-23: `ox --venue <name>`,
-each reading its own key variable. Every one of them speaks
+**All four are reachable from oxbox** as of 2026-08-23: `oxbox send --venue
+<name>` (`ox --venue <name>` before 0.7.0), each reading its own key variable. Every one of them speaks
 `chat/completions`, which was verified per venue rather than assumed. So the
 `USE`-requires-a-run rule is no longer blocked by plumbing on any venue here —
 what is missing now is review runs, not access.

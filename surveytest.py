@@ -825,6 +825,12 @@ def test_usagereport():
         # "-" sorts below ":", so an unconverted stamp compares as earlier and
         # silently drifts into the window.
         write_run(root, "repoB", "2026-08-30T01-11-26Z", dict(real))
+        # A second run claimed in the same second. Both oxbox implementations
+        # suffix the directory (-2, -3, ...) rather than sharing it; the suffix
+        # orders names and is not part of the time, so the stamp must come out
+        # identical to the unsuffixed run's and land on the same side of the
+        # window. A fixed-width conversion turns it into a fourth colon field.
+        suffixed = write_run(root, "repoB", "2026-08-30T01-11-26Z-2", dict(real))
         # A checkout one level deeper than <root>/<repo>, which is why the
         # sweep carries a second pattern.
         write_run(root, "group/nested", "2026-08-30T01-05-00Z", dict(real))
@@ -833,17 +839,22 @@ def test_usagereport():
         (broken / "status.json").write_text("{not json", encoding="utf-8")
 
         found, swept, _ = ur["find_runs"]([root])
-        report(len(found) == 6, "the sweep reaches nested checkouts too", len(found))
+        report(len(found) == 7, "the sweep reaches nested checkouts too", len(found))
 
         kept, dryruns, outside, unreadable = ur["collect"](
             found, "2026-08-30T00:00:00", None)
-        report(len(kept) == 3 and len(dryruns) == 1,
+        report(len(kept) == 4 and len(dryruns) == 1,
                "a dry run is never counted as a run",
                "kept=%d dry=%d" % (len(kept), len(dryruns)))
+        stamps = {r["dir"].name: r["stamp"] for r in kept}
+        report(stamps.get(suffixed.name) == "2026-08-30T01:11:26"
+               and ur["stamp_to_iso"](suffixed.name) == "2026-08-30T01:11:26",
+               "a collision-suffixed run directory reads as its second, not as a fourth field",
+               stamps.get(suffixed.name))
 
         tight, _, past, _ = ur["collect"](found, "2026-08-30T00:00:00",
                                           "2026-08-30T01:11:00")
-        report(past == 4 and len(tight) == 1,
+        report(past == 5 and len(tight) == 1,
                "the ox stamp format compares correctly against the window",
                "outside=%d kept=%d" % (past, len(tight)))
         report(len(unreadable) == 1,
@@ -851,7 +862,7 @@ def test_usagereport():
                unreadable)
 
         used, skips, failures, truncated, tokens = ur["tally"](kept)
-        report(list(skips.values()) == [3]
+        report(list(skips.values()) == [4]
                and "cost=paid" in list(skips)[0][1],
                "a skipped entry is tallied with the reason ox gave", skips)
 
