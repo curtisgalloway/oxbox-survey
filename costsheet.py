@@ -40,18 +40,18 @@ for name in rt.checkers_in(obs):
     rows.sort(key=lambda r: (order.get(r["tier"], 9), -(r["model_usd_per_run"] or 0), r["model"]))
     sheet("Checked by " + name.replace("claude-", ""),
           ["Tier", "Model", "Venue", "Runs", "Checked runs", "Model half USD/run", "Model time s/run",
-           "Checking half USD/run (upper bound)", "Checking time s/run", "Checker output unmeasured (floor)?", "Unpriced share outside any window?",
+           "Checking half USD/run (upper bound)", "Checking time s/run", "Checker output unmeasured (floor)?", "Unpriced share outside any window?", "Checks billed (metered)",
            "Total USD/checked run", "Total time s/checked run", "Real findings", "USD per real finding"],
           [[r["tier"], r["model"], r["venue"], r["runs"], r["check_runs"], money(r["model_usd_per_run"]),
             secs(r["wall_per_run"]), money(r["check_usd_per_run"]), secs(r["check_seconds_per_run"]),
-            "yes" if r.get("output_unmeasured") else "", "yes" if r["check_unpriced"] else "",
+            "yes" if r.get("output_unmeasured") else "", "yes" if r["check_unpriced"] else "", "%d of %d" % (r["billed_runs"], r["check_runs"]) if r["billed_runs"] else "",
             money(r["total_usd_per_run"]), secs(r["total_seconds_per_run"]),
             r["real"], money(r["usd_per_real"])] for r in rows],
           "Checker %s at %s. Prices from the %s OpenRouter catalog. Windows are upper bounds, counted once and split across the runs they cover. Real finding: verified-real on a review run or a correct hit on a seeded fixture." % (name, rt.supervisor_price_line(rt.HARNESS_MODEL_IDS.get(name, ""), prices), catalog))
 pairs = rt.same_batch(obs, prices)
-sheet("Same batch, two checkers", ["Run", "Checker", "Input", "Output", "Output derived?", "Cache read", "Cache write", "USD at own list price", "Wall clock s"],
-      [[e["run"], c["checker"], c["input"], c["output"], "yes" if c["note"] else "", c["cache_read"], c["cache_write"], money(c["usd"]), secs(c["seconds"])] for e in pairs for c in e["checkers"]],
-      "Derived output = the Agent tool's reported total minus input minus cache writes; subagent transcripts do not record final output.")
+sheet("Same batch, two checkers", ["Run", "Checker", "Input", "Output", "Output derived?", "Cache read", "Cache write", "USD", "Billed or at list price?", "Wall clock s"],
+      [[e["run"], c["checker"], c["input"], c["output"], "yes" if c["note"] and not c["billed"] else "", c["cache_read"], c["cache_write"], money(c["usd"]), "billed" if c["billed"] else "at list", secs(c["seconds"])] for e in pairs for c in e["checkers"]],
+      "Derived output = the Agent tool's reported total minus input minus cache writes; subagent transcripts do not record final output. Billed = the verification task sent through OpenRouter as one request; the figure is the venue's bill.")
 rows = rt.run_rows(obs, tasks); cells = rt.per_fixture(rows); disq = rt.open_disqualifiers(obs); ratings = rt.load_editor_ratings(); baselines = rt.baseline_only(obs)
 sheet("Per fixture", ["Model", "Venue", "Fixture", "n", "Quality", "Cost", "Speed", "Real", "Findings", "Model USD"],
       [[m, v, f or "(real work)", c["n"], c["quality"], c["cost"], c["speed"], c["real"] if c["any_raw"] else None, c["findings"] if c["any_raw"] else None, money(c["usd_model"])]

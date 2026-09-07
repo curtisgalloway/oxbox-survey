@@ -132,6 +132,18 @@ group observations without interpreting prose:
   checker's own tokens. A check record carries no run-output fields; the run's
   own observation has those. `harness_seconds` may give the check's exact
   duration where the window's minute granularity is too coarse.
+- **A metered check record carries the bill.** When the verification task is
+  sent through a venue as one `oxbox send --mode ask` request (the same
+  instructions and pinned files a subagent checker would get), record
+  `harness_usd` as the `venue_cost` from the run's `status.json` and
+  `harness_venue` as the venue that billed it, with `harness_in`/`harness_out`
+  from the same file and the request's own window and seconds. That figure is
+  the checking half, not an estimate of it: `ratings.py --costs` uses the bill
+  over any token-priced window for the same run and checker (marked ‡), and the
+  same-batch table shows the metered request beside the in-harness session so
+  the two ways of asking can be compared. A metered checker reads and cannot
+  run, so under the reproduce-first rule it is the fallback, and its cost is the
+  cost of the fallback. Decided 2026-09-06, round 4 question 3.
 - **A disqualifier is open until a later run clears it.** `disqualifier:` on a
   run-backed access or availability observation names why the venue refused
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands

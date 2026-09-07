@@ -246,9 +246,12 @@ models side by side on two halves: what the venue billed for the run, and what t
 supervisor's verification window cost at the supervisor's list price with cache reads
 and writes, counted once per window. The second half is why a free model is not free,
 and the table exists to say so with the record's own numbers. **Always name the
-checking model**: the checking half is that model's bill, and the table carries a
-"Checked by" column and a repriced column for exactly that reason; a checking cost
-quoted without its supervisor is a number without a unit. Never reprice one supervisor's
+checking model**: the checking half is that model's bill, and there is one table per
+checking model for exactly that reason; a checking cost quoted without its supervisor
+is a number without a unit. Where a check was metered (the verification task sent
+through OpenRouter as one request, `harness_usd` on the check record) the figure is
+the venue's bill and the table marks it ‡; say "metered" when quoting one, because a
+metered checker reads the source and cannot reproduce anything. Never reprice one supervisor's
 tokens at another's rates: the 2026-09-06 matched pair showed Opus 5 spending more
 tokens than Fable 5.1 on the same job, so a comparison between supervisors is a second
 run, not a multiplication. Never adjust a figure by

@@ -9,9 +9,9 @@ The Editor's Rating column, for the editor to fill in. Every model the survey ha
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
 
-**Where the digits stand.** The cost digit exists on ask-grounding (Fable's ceiling $0.0276 per hit) and now on the clean control ($0.9152 per real finding, from Fable's run plus Fable's own check of it). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Six ratings are in; DeepSeek V4 Flash is the seventh row and awaits yours. The rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, the current order.
+**Where the digits stand.** The cost digit exists on ask-grounding (Fable's ceiling $0.0276 per hit) and on the clean control ($0.9152 per real finding, from Fable's run plus Fable's own in-harness check of it; the metered check of the same run came in cheaper, and question 3 asks which kind of check a ceiling means). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Six ratings are in; DeepSeek V4 Flash is the seventh row and awaits yours, now with its clean-control re-run in the record. The rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, the current order.
 
-**The cost tables have moved to a Sheet**, one tab per checking model plus the same-batch, per-fixture, ratings and rubric tabs, regenerated from the record each round: [Oxbox Survey costs](https://docs.google.com/spreadsheets/d/1gl6yELjYxiNski90Sqr3gLpZwWeCmZFJzVO8A9dmJ34/edit). This document keeps the same-batch table and the reading.
+**The cost tables have moved to a Sheet**, one tab per checking model plus the same-batch, per-fixture, ratings and rubric tabs, regenerated from the record each round: [Oxbox Survey costs](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit) (r3; r4 of this document linked r1 by mistake). This document keeps the same-batch table and the reading.
 
 Backticks around model names do not survive the conversion to a Doc; ignore that.
 
@@ -43,7 +43,7 @@ Reference rows, never rated, never in the manifest. They show what a 5 and a 0 l
 | gemini-3.7-flash | clean-control | | | 3 | 1 / 1 | $0.0620 |
 | deepseek-v4-flash | ask-grounding | 5 | 5 | 5 | | $0.0009 |
 | deepseek-v4-flash | secret-scanner-fix | 0 | | 0 | | $0.0014 |
-| deepseek-v4-flash | clean-control | | | 2 | 0 / 0 | $0.0005 |
+| deepseek-v4-flash | clean-control |  | 3 | 0 | 1 / 2 | $0.0181 |
 
 Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not apply, plus a self-hit. DeepSeek's 0 is the same apply failure and a 21-minute wall clock. Ask-grounding is saturated, seven models at 10 of 10, so a 5 there says little and the cost digit is what separates them. Fable on the clean control is the first model to find both known defects at that pin, both hedged UNCERTAIN, with one invention.
 
@@ -79,17 +79,17 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 **Why:** Fast and mostly good. Z.ai's regulatory status is a concern though.
 
-## deepseek/deepseek-v4-flash (OpenRouter, paid; new candidate rows this round)
+## deepseek/deepseek-v4-flash (OpenRouter, paid; candidate rows this round, clean control re-run at your direction)
 
-**Quality.** Run as a candidate on all three fixtures under your rule that a cheap enough model is a candidate; at $0.07 in and $0.14 out per million it is the cheapest paid row in the survey. Ask-grounding: 10 of 10 in 37 seconds, a 5, terse and right. Scanner fix: corrupt hunk header, the patch does not apply without a recount, 8 of 8 verdicts and zero self-hits behind it, a 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. Clean control: no answer at all. It spent 99,999 of 100,000 completion tokens reasoning and returned empty content after 33 minutes, the failure mode GLM-5.3 free showed in August; as a baseline four days earlier it had returned the fixture's ideal empty finding list in five and a half minutes.
+**Quality.** Run as a candidate on all three fixtures under your rule that a cheap enough model is a candidate; at $0.07 in and $0.14 out per million it is the cheapest paid row in the survey. Ask-grounding: 10 of 10 in 37 seconds, a 5, terse and right, and the new executable scorer passes it. Scanner fix: corrupt hunk header, the patch does not apply without a recount, 8 of 8 verdicts and zero self-hits behind it, a 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. Clean control, twice: the first candidate run went to StreamLake and returned nothing after 33 minutes with 99,999 of 100,000 tokens spent reasoning; the re-run you asked for (question 5) went to Novita and returned two findings in 47 seconds. Both findings are claims the record has already met on other models. D1 is C3 in the same words, the root stat FAIL called a false leak report, and falls under your C3 ruling as an invention. D2 is G1's mechanism, stated as UNCERTAIN and a design limitation with the trigger right (no route, connect times out, PASS); it is recorded real to match G1, and question 2 decides both. A fixture cell takes the worst digit on each dimension, so the baseline table reads speed 0 from the blowout beside cost 3 and 1 real of 2 from the re-run.
 
-**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0024, no digit. Clean control $0.016 for nothing. Four runs on OpenRouter went to three different providers at the same list price.
+**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0024, no digit. Clean control $0.016 for nothing on the blowout and $0.0016 for the two findings, billed at double the catalog computation because Novita's route is priced above the list row. The re-run is the first row on this fixture with a metered checking half: Fable 5.1 $0.37 and Opus 5 $0.23 for one request each, so both halves came to $0.37 against the $0.92 ceiling, a cost 3. Five runs on OpenRouter have gone to four providers at two prices.
 
-**Speed.** 37 s on ask, a 4. 16 minutes on the scanner fix, a 1. 33 minutes to produce nothing on the clean control, a 0.
+**Speed.** 37 s on ask, a 4. 16 minutes on the scanner fix, a 1. 33 minutes for nothing, a 0, and then 47 seconds, a 4, on the same payload from a different provider.
 
 **Disqualifier.** None. Vendor note: DeepSeek is not on either list in the regulatory section; you reported a non-public backlog, uncited.
 
-**My read.** On ask mode it is as good as anything in the table and cheaper than all of it. On the two harder fixtures it has now failed the apply gate twice and blown a budget once. That is Marginal on the record as it stands, and the ask result is the reason not to call it Poor; a second clean-control run would tell you whether the blowout is the route or the model.
+**My read.** The blowout was the route, not the weights: same payload, same params, a complete review in under a minute from Novita and nothing in 33 minutes from StreamLake. That settles question 5 and leaves a harder fact: the manifest cannot pin a provider, so a user who calls this model through OpenRouter gets one of four routes, and the 33-minute one is among them. On what it found, the model is fast, cheap and finds nothing the record has not already adjudicated, one invention and one open question. On ask mode it is as good as anything in the table and cheaper than all of it; on the two harder fixtures it has failed the apply gate twice. Marginal on the record as it stands, with the route lottery as the reason it is not Acceptable and the ask result as the reason it is not Poor.
 
 **Editor's Rating:** ____
 
@@ -161,7 +161,9 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## What it costs, by checking model
 
-The full tables are in the [costs Sheet](https://docs.google.com/spreadsheets/d/1gl6yELjYxiNski90Sqr3gLpZwWeCmZFJzVO8A9dmJ34/edit), one tab per checking model. Your direction to run both Opus 5 and Fable 5.1 as checkers is in force: today every candidate and baseline batch that needed a reader has been checked by both, and the September 2 runs whose checking had been an unmeasured Opus subagent were re-checked by both, so the "unpriced share" caveat you asked about is gone. What replaced it is narrower and permanent: a subagent's output tokens are not in its transcript and cannot be derived from the harness total (the residue came out within two percent of 20,000 on four different checks), so every in-harness checking figure is a floor over input and cache, footnoted as such. The only route to a fully metered checking half is sending the verification through OpenRouter, as the verifier comparison did, which is toolless checking with the evidence inlined, a different job.
+The full tables are in the [costs Sheet](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit), one tab per checking model. Your direction to run both Opus 5 and Fable 5.1 as checkers is in force, and your answer to question 3 is now in the record: the checking half can be metered. A metered check sends the same verification instructions and the same five pinned files through OpenRouter as one request, and the figure is what the venue billed, every token counted. Four such checks exist today, two per checker, on Fable's clean-control run and on DeepSeek's re-run; the tables mark them ‡, and where a run has both an in-harness check and a metered one, the bill wins. The in-harness figures remain floors for the reason r4 gave: a subagent's output tokens are not in its transcript and cannot be derived from the harness total.
+
+What metering showed on Fable's five-finding batch: the same five verdicts from Fable 5.1 for $0.57 in 98 seconds, against $1.46 at list and 152 seconds for the in-harness subagent with its eight tool calls and cache writes; Opus 5 for $0.37 in 142 seconds against a $0.79 floor and 343 seconds. Fable used 29 percent fewer output tokens than Opus and finished 44 seconds sooner, and still cost 56 percent more, because its list price is double; your theory that Fable uses fewer tokens holds, and the bill does not follow it. The price of metering is that the checker reads and cannot run: the metered Opus flipped F4 from uncertain to refuted on a reading the reproduction on dev contradicts. Under reproduce-first the metered check is the fallback, and its cost is the cost of the fallback.
 
 The reading: under either checker the model half never decides a run's cost; the checking half does. The free models' checking is the most expensive in the table because their runs were hand-verified real-work batches of ten to twelve findings. Fixture runs scored by a key or a scorer have a zero checking half by rule.
 
@@ -169,53 +171,64 @@ The reading: under either checker the model half never decides a run's cost; the
 
 Run `2026-09-03T03-05-25Z`:
 
-| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
 |---|---|---|---|---|---|---|
-| claude-fable-5-1 | 66 | - | 130,427 | 41,989 | $0.5581 | 40 s |
-| claude-opus-5 | 16 | - | 440,152 | 47,193 | $0.5151 | 60 s |
+| claude-fable-5-1 | 66 | - | 130,427 | 41,989 | $0.5581 at list | 40 s |
+| claude-opus-5 | 16 | - | 440,152 | 47,193 | $0.5151 at list | 60 s |
 
 Run `2026-09-03T03-20-23Z`:
 
-| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
 |---|---|---|---|---|---|---|
-| claude-fable-5-1 | 98 | - | 193,423 | 46,404 | $0.6294 | 47 s |
-| claude-opus-5 | 16 | - | 434,642 | 47,340 | $0.5133 | 61 s |
+| claude-fable-5-1 | 98 | - | 193,423 | 46,404 | $0.6294 at list | 47 s |
+| claude-opus-5 | 16 | - | 434,642 | 47,340 | $0.5133 at list | 61 s |
 
 Run `2026-09-03T03-21-05Z`:
 
-| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
 |---|---|---|---|---|---|---|
-| claude-fable-5-1 | 66 | - | 114,659 | 75,485 | $0.9729 | 90 s |
-| claude-opus-5 | 10 | - | 252,658 | 80,094 | $0.6270 | 2 min |
+| claude-fable-5-1 | 66 | - | 114,659 | 75,485 | $0.9729 at list | 90 s |
+| claude-opus-5 | 10 | - | 252,658 | 80,094 | $0.6270 at list | 2 min |
 
 Run `2026-09-06T21-22-57Z`:
 
-| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
 |---|---|---|---|---|---|---|
-| claude-fable-5-1 | 66 | 9,744 (derived) | 114,776 | 75,805 | $1.4641 | 3 min |
-| claude-opus-5 | 12 | - | 345,900 | 99,363 | $0.7940 | 6 min |
+| claude-fable-5-1 | 66 | 9,744 (derived) | 114,776 | 75,805 | $1.4641 at list | 3 min |
+| claude-fable-5-1 via openrouter (billed) | 17,402 | 7,934 | - | - | $0.5707 billed | 98 s |
+| claude-opus-5 | 12 | - | 345,900 | 99,363 | $0.7940 at list | 6 min |
+| claude-opus-5 via openrouter (billed) | 17,400 | 11,173 | - | - | $0.3663 billed | 2 min |
 
 Derived. claude-fable-5-1: output is the Agent tool's reported total (85,615) minus input and cache writes; plausible against the visible reply, but see the Opus record of the same batch for a case where that derivation fails.
 
 Run `2026-09-06T21-30-07Z`:
 
-| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
 |---|---|---|---|---|---|---|
-| claude-fable-5-1 | 66 | 7,123 (derived) | 114,892 | 75,858 | $1.3338 | 117 s |
-| claude-opus-5 | 8 | 10,758 (derived) | 184,557 | 87,230 | $0.9065 | 5 min |
+| claude-fable-5-1 | 66 | 7,123 (derived) | 114,892 | 75,858 | $1.3338 at list | 117 s |
+| claude-opus-5 | 8 | 10,758 (derived) | 184,557 | 87,230 | $0.9065 at list | 5 min |
 
 Derived. claude-fable-5-1: output is the Agent tool's reported total (83,047) minus input and cache writes; subagent transcripts do not record final output. claude-opus-5: output is the Agent tool's reported total (97,996) minus input and cache writes; subagent transcripts do not record final output.
 
-## Two checkers, three batches
+Run `2026-09-07T00-06-45Z`:
+
+| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |
+|---|---|---|---|---|---|---|
+| claude-fable-5-1 via openrouter (billed) | 17,610 | 3,806 | - | - | $0.3664 billed | 49 s |
+| claude-opus-5 via openrouter (billed) | 17,608 | 5,753 | - | - | $0.2319 billed | 79 s |
+
+## Two checkers, five batches
 
 | Batch | Fable 5.1 | Opus 5 | Record |
 |---|---|---|---|
 | GLM-5.3 Flash candidate, clean control (C1..C4) | C3 confirmed | C3 refuted | you ruled refuted after the runs |
-| Fable 5.1 baseline, clean control (F1..F5) | F1 refuted, F2..F5 confirmed | same, F4 uncertain on host state | F2, F3 counted as true-and-negligible, not real |
-| GLM-5.3 Flash baseline, clean control (G1..G4) | all four refuted | G1 confirmed, rest refuted | G1 is real (L1, fixed upstream) |
-| Both models' baseline ask-grounding (10 each) | 10 of 10 | 10 of 10 | 10 of 10 |
+| Fable 5.1 baseline, clean control (F1..F5), in-harness | F1 refuted, F2..F5 confirmed | same, F4 uncertain on host state | F2, F3 counted as true-and-negligible, not real |
+| the same five, metered through OpenRouter | identical to the in-harness Fable check | F4 refuted, rest as before | unchanged; F4 stays real on the dev reproduction |
+| GLM-5.3 Flash baseline, clean control (G1..G4) | all four refuted | G1 confirmed, rest refuted | G1 is real (L1, fixed upstream); question 2 |
+| DeepSeek V4 Flash re-run, clean control (D1, D2), metered | D1 confirmed as safe-direction, D2 refuted | both refuted | D1 invention by the C3 ruling; D2 real as G1 is |
+| Both models' baseline ask-grounding (10 each) | 10 of 10 | 10 of 10 | 10 of 10, and the scorer agrees |
 
-Nine agreements in ten on the first two batches and one split each way overall. Both splits are the same shape: a finding with the right mechanism and a stated consequence the tree cannot produce. On C3 Fable was generous; on G1 Fable was strict and Opus credited the mechanism, which is what the record and the upstream fix did. The rule says as written, and as written G1's scenario, an offline host certifying a jail that permits egress, needs a jail that permits egress. I have left G1 as the record has it and flag the tension: the same reading that refuted C3 would refute G1.
+The C3 shape has now been checked four times and split the same way every time: Fable credits the mechanism and calls the failure safe-direction, Opus refutes, and the reproduction sides with Opus for a reason neither reader can see from the source (at uid 0 the jail really exposes the shadow file, so the FAIL is true). The G1 shape has been checked three times: in-harness Fable refuted, in-harness Opus confirmed, and both metered checkers refuted DeepSeek's restatement of it as written. Every refutation of it says the same thing, that no leaking jail exists at this pin for the vacuous pass to conceal. That is the question you asked me to explain, below.
 
 ## The C3 ruling
 
@@ -237,11 +250,11 @@ You asked whether every test now has a real-world result to check against. Not y
 | Fixture | How a result is checked today | Executable? |
 |---|---|---|
 | secret-scanner-fix | `git apply --check` at the pin, eight measured pattern verdicts, a self-scan of `ox` | yes, fully; the scorer is the check |
-| ask-grounding | an answer key with line citations, read by a checker | no; seven of ten questions could be executed against the pinned `ox` (defaults, the manifest-version exit, the base_url warning, the payload limit) with a small harness, and the three unsettled ones are the calibration measure by design |
+| ask-grounding | an answer key with line citations, and since today a scorer that extracts the pinned `ox` and runs five of the seven settled questions with `--dry-run` (the credential variable, the default mode, the manifest-version exit, the base_url warning, the 400,000-byte limit at the boundary), reports each observed fact against the key, then pattern-scores the answers; questions 2 and 7 need an HTTP exchange `ox` will not fake and go to a reader; 8 to 10 are scored on saying "not settled" | yes, for eight of ten; all twelve archived runs pass, and the five executed facts agree with the key |
 | clean-control | the two known defects can be reproduced (the stat oracle was, today, on both platforms; the offline-host one needs a host with no route), everything else is read | per finding, on demand |
 | review-queue, exposure-gate | human verification, and fixes that shipped upstream | no answer key by design |
 
-Reproduce-first is now the rule for any finding whose failure can be run. Making ask-grounding executable would be one small scorer; making the review fixtures executable would mean answer keys, which the corpus rule forbids. Whether to build the ask scorer is a question below.
+Reproduce-first is now the rule for any finding whose failure can be run, and ask-grounding is executable (your question 4). If the key ever drifts from the code the scorer prints DRIFT rather than trusting the key. Making the review fixtures executable would mean answer keys, which the corpus rule forbids.
 
 ## Regulatory exposure
 
@@ -291,14 +304,26 @@ Every model below is listed and, where the venue was probed, reachable. Card fac
 
 My suggestion for the first batch: the four reachable free rows plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, on all three fixtures, both checkers. That is 24 runs at a few cents of model cost and, at today's rates, roughly a dollar of checking per hand-verified batch. Mark the ones you want, strike the ones you do not, and I will queue them.
 
+## G1, explained
+
+You asked me to explain G1 further. Here is the whole of it.
+
+**What the finding says.** On 2026-09-02 GLM-5.3 Flash, as a baseline on the clean control, wrote that `probe()` in `jailtest.py` scores any exception as containment, so a network probe that fails because the host is offline reports PASS, and "an offline host produces a false 'jail holds' verdict." The answer key lists this as L1, offline probes are vacuous, one of the two defects known to be in the file at that pin. It was fixed upstream in oxbox `0090c35`, after the pin, so the fix is outside what any checker can see.
+
+**What is true about the mechanism.** Everything. `probe()` catches `Exception`, records `blocked=True` and keeps only the class name. `tcp_connect`, `dns_lookup` and `udp_send` raise `OSError` subclasses on a timeout or an unreachable network exactly as they do on a jail's denial. On dev today, inside a working jail, the network probes raised `ENETUNREACH` as `OSError` and were scored PASS; the probe cannot tell a jail that denied the connection from a host that had nowhere to send it. GLM described this correctly and DeepSeek redescribed it correctly on Saturday.
+
+**What the checkers disagree about.** The consequence. The finding's stated failure is a false "jail holds": a jail that leaks network, certified by a probe that could not have noticed. Fable's in-harness checker, and both metered checkers on DeepSeek's restatement, read the source and say the jail at this pin cannot leak network: seatbelt has `(deny network*)`, bubblewrap runs `--unshare-all`, and there is no flag or path that shares the network back in. So the scenario "a leaking jail passes" needs a jail this tree cannot produce, and under your C3 rule (score the finding as written; a mechanism whose consequence is unreachable in this tree is not a defect) it is refuted. Opus's in-harness checker confirmed it in the unsafe direction: the probe would pass silently through a future regression, and a test whose PASS does not depend on the thing it tests is broken now, not later, with the caveat that today the unearned PASS coincides with the right answer.
+
+**Why C3 and G1 look the same and are not.** Both are a real mechanism with a stated consequence the tree cannot reach. But C3's consequence was wrong on its own terms: it said the FAIL at uid 0 was false, and the reproduction showed the FAIL was true, root reads the shadow file inside the jail. Refuting C3 followed the evidence about what the code does. G1's consequence is not wrong; it is conditional on a leak the code does not have. Refuting G1 would follow a rule about what counts, not evidence about what the code does. The reproduction on dev supports G1's mechanism and cannot speak to its consequence, because to show a leaking jail passing you need a leaking jail.
+
+**What each ruling would mean.** If G1 stands, the record's position is that a test which cannot fail is a defect in the test, whatever the jail does today, which is the position the upstream fix took and the answer key encodes. The C3 rule then reads: a finding is refuted when its stated consequence is *false*, not merely when it is *unreachable today*. D2 stands with it and DeepSeek's re-run is 1 real of 2. If G1 is reversed, the rule reads as Fable's checker read it, strictly as written, the answer key loses one of its two known defects for scoring purposes (the fix upstream stays a fact, but not a scoreable one at this pin), GLM's September 2 baseline drops to 0 real of 4, and DeepSeek's re-run drops to 0 of 2 by a correction. My recommendation is that G1 stands and the C3 rule is stated as "refuted when the consequence is shown false", because that is the rule the reproduction actually applied and it keeps the key honest about a defect that was real enough to fix.
+
 ## Open questions
 
 1. **Reproducible safe-direction failures.** Both checkers confirmed Fable's F2 and F3, which the record counts as true-and-negligible rather than real. With reproduce-first in force those are demonstrable in seconds. Should a confirmed, reproducible, safe-direction failure count as real, count separately, or stay as it is?
 
-2. **G1.** Fable's checker refuted it on the same reading you used to refute C3; Opus, the record and the upstream fix hold it real. Stands, or reversed?
+2. **G1.** Explained above. Stands, with the C3 rule stated as "refuted when the consequence is shown false", or reversed, with the rule read strictly as written? D2 and two rows follow it either way.
 
-3. **A metered checking half.** The in-harness checkers cannot report output tokens. The verifier comparison already sends verification through OpenRouter, where every token is billed, at the cost of the checker being toolless. Do you want the cost table's checking half measured that way, in-harness with the floor footnote, or both?
+3. **Which check sets a ceiling.** The clean-control ceiling, $0.9152 per real finding, was computed from Fable's run plus Fable's in-harness check of it, $1.46 at list. The metered check of the same run cost $0.57, which would make the ceiling $0.47. The cost table now uses the bill for that run, so the table and the ceiling constant no longer describe the same check. Should a fixture's ceiling be the in-harness check, the metered check, or whichever the ceiling checker actually performed most recently?
 
-4. **An executable ask-grounding.** Seven of its ten questions can be run against the pinned `ox` with a small scorer. Build it?
-
-5. **DeepSeek's clean-control blowout.** One run to StreamLake spent the whole budget reasoning; the baseline run elsewhere did not. Re-run once to separate route from model before you rate it?
+4. **The models to try next.** The shortlist in the section above is still unmarked. Mark or strike, and I will queue the first batch on all three fixtures with both checkers, metered.

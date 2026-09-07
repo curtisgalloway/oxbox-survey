@@ -45,7 +45,7 @@ MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "hits", "hits_of",
                    "timed_out", "disqualifier", "harness_model", "harness_window",
                    "harness_in", "harness_out", "harness_cache_read",
                    "harness_cache_write", "harness_unpriced", "harness_note",
-                   "harness_seconds")
+                   "harness_seconds", "harness_usd", "harness_venue")
 
 # The checking half is priced at the supervisor's own list price from the
 # archived OpenRouter catalog, cache reads and writes included; the harness
@@ -267,13 +267,32 @@ def window_seconds(window):
     return (end - start).total_seconds()
 
 
+def billed(fields):
+    """A check record's billed USD (harness_usd), or None when it was token-priced.
+
+    A metered check sends the same verification task through a venue as one
+    request and records what the venue billed (ox's venue_cost). That figure
+    is the checking half itself, not an estimate of it, so it outranks a
+    window priced from token counts. Decided 2026-09-06, round 4 question 3.
+    """
+    value = fields.get("harness_usd") if fields else None
+    if value in (None, ""):
+        return None
+    return _num(value)
+
+
 def price_window(fields, prices, as_model=None):
     """USD for one harness window from its token counts, or None if unpriced.
 
-    as_model reprices the same tokens at another supervisor's row, so the
-    table can show what the window would have cost under the standing
-    supervisor rather than the one that happened to do the checking.
+    A billed record returns its bill (see billed()); as_model does not apply
+    to it, because a bill is not a token count. Otherwise as_model reprices
+    the same tokens at another supervisor's row, so the table can show what
+    the window would have cost under the standing supervisor rather than the
+    one that happened to do the checking.
     """
+    usd_billed = billed(fields)
+    if usd_billed is not None:
+        return usd_billed
     model = as_model or HARNESS_MODEL_IDS.get(fields.get("harness_model", ""))
     pricing = prices.get(model)
     if not pricing or "harness_window" not in fields:
@@ -366,7 +385,13 @@ def attach_checks(rows, observations):
     for f in observations:
         if f.get("run") and f.get("harness_window") and f.get("kind") not in ROW_KINDS:
             for run_id in [x.strip() for x in f["run"].split(",")]:
-                checks.setdefault(run_id, {})[f.get("harness_model")] = f
+                per = checks.setdefault(run_id, {})
+                prior = per.get(f.get("harness_model"))
+                # Two records by the same checker for one run: the billed one
+                # wins over the token-priced one; otherwise the later file.
+                if prior is not None and billed(prior) is not None and billed(f) is None:
+                    continue
+                per[f.get("harness_model")] = f
     for r in rows:
         r["checks"] = {}
         if r["harness_window"]:
@@ -621,16 +646,22 @@ def same_batch(observations, prices):
     for f in ordered:
         if f.get("kind") in ROW_KINDS and "," in f["run"]:
             continue
+        # A metered check keeps its own row beside the in-harness one, so the
+        # same checker's agentic session and single billed request sit side by
+        # side; the label names the venue that billed it.
+        label = f["harness_model"] + (" via %s (billed)" % f["harness_venue"]
+                                      if billed(f) is not None else "")
         for run_id in [x.strip() for x in f["run"].split(",")]:
-            by_run.setdefault(run_id, {})[f["harness_model"]] = f
+            by_run.setdefault(run_id, {})[label] = f
     out = []
     for run_id, per in sorted(by_run.items()):
-        if len(per) < 2:
+        if len({f["harness_model"] for f in per.values()}) < 2 and len(per) < 2:
             continue
         entry = {"run": run_id, "checkers": []}
         for name, f in sorted(per.items()):
             entry["checkers"].append({
                 "checker": name,
+                "billed": billed(f) is not None,
                 "input": _num(f.get("harness_in")), "output": _num(f.get("harness_out")),
                 "cache_read": _num(f.get("harness_cache_read")),
                 "cache_write": _num(f.get("harness_cache_write")),
@@ -664,6 +695,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
             r["harness_window"] = f.get("harness_window") if f else None
             r["_fields"] = f if f else r["_fields"]
             r["harness_unpriced"] = f.get("harness_unpriced") if f else None
+            r["_billed"] = billed(f) is not None if f else False
     windows = {}
     for r in rows:
         if r["harness_window"]:
@@ -679,7 +711,8 @@ def cost_rows(observations, prices, tasks=None, checker=None):
                                               "check_model_usd": 0.0, "unpriced": False,
                                               "checked_by": set(), "wall": 0.0, "timed": 0,
                                               "check_seconds": 0.0, "check_timed": 0,
-                                              "check_wall": 0.0, "output_unmeasured": False})
+                                              "check_wall": 0.0, "output_unmeasured": False,
+                                              "billed_runs": 0})
         m["runs"] += 1
         if r["usd_model"] is not None:
             m["usd_sum"] += r["usd_model"]
@@ -717,6 +750,8 @@ def cost_rows(observations, prices, tasks=None, checker=None):
                 m["check_runs"] += 1
                 m["check_real"] += r["divisor"] or 0
                 m["check_model_usd"] += r["usd_model"] or 0
+                if r.get("_billed"):
+                    m["billed_runs"] += 1
             note = (r["harness_unpriced"] or "").strip().lower()
             if note.startswith("output unmeasured"):
                 m["output_unmeasured"] = True   # every in-harness check has this; a floor
@@ -738,6 +773,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
             "total_usd_per_run": ((m["check_model_usd"] + m["check"]) / m["check_runs"])
                                  if m["check_runs"] else None,
             "checked_by": ", ".join(sorted(m["checked_by"])),
+            "billed_runs": m["billed_runs"],
             "check_runs": m["check_runs"], "check_unpriced": m["unpriced"],
             "output_unmeasured": m["output_unmeasured"],
             "wall_per_run": (m["wall"] / m["timed"]) if m["timed"] else None,
@@ -779,6 +815,8 @@ def costs_markdown(observations=None, prices=None):
             check = usd(r["check_usd_per_run"])
             if r["output_unmeasured"]:
                 check += " †"
+            if r["billed_runs"]:
+                check += " ‡" if r["billed_runs"] == r["check_runs"] else " (‡ %d of %d)" % (r["billed_runs"], r["check_runs"])
             if r["check_unpriced"]:
                 check += " + an unpriced share"
             out.append("| %s | `%s` | %d | %s | %s | %s | %s | %s | %s | %s | %d | %s |" % (
@@ -790,6 +828,9 @@ def costs_markdown(observations=None, prices=None):
         if any(r["output_unmeasured"] for r in rows):
             out += ["", "† Checked by a fresh subagent whose output tokens the harness does not record; "
                         "input and cache are priced, output is not, so the figure is a floor."]
+        if any(r["billed_runs"] for r in rows):
+            out += ["", "‡ Metered: the verification task sent through OpenRouter as one request, and the "
+                        "figure is what the venue billed, not a priced window. Where a run has both, the bill wins."]
         if unchecked:
             out += ["", "No run checked by this supervisor: %s." % ", ".join("`%s`" % m for m in unchecked)]
         out.append("")
@@ -798,13 +839,14 @@ def costs_markdown(observations=None, prices=None):
         out += ["### The same batch, checked by more than one supervisor", ""]
         for entry in pairs:
             out += ["Run `%s`:" % entry["run"], "",
-                    "| Checker | Input | Output | Cache read | Cache write | USD at own list price | Wall clock |",
+                    "| Checker | Input | Output | Cache read | Cache write | USD | Wall clock |",
                     "|---|---|---|---|---|---|---|"]
             for c in entry["checkers"]:
                 out.append("| %s | %s | %s | %s | %s | %s | %s |" % (
-                    c["checker"], commas(c["input"]), commas(c["output"]) + (" (derived)" if c["note"] else ""),
-                    commas(c["cache_read"]), commas(c["cache_write"]), usd(c["usd"]), clock(c["seconds"])))
-            notes = ["%s: %s" % (c["checker"], c["note"]) for c in entry["checkers"] if c["note"]]
+                    c["checker"], commas(c["input"]), commas(c["output"]) + (" (derived)" if c["note"] and not c["billed"] else ""),
+                    commas(c["cache_read"]), commas(c["cache_write"]),
+                    usd(c["usd"]) + (" billed" if c["billed"] else " at list"), clock(c["seconds"])))
+            notes = ["%s: %s" % (c["checker"], c["note"]) for c in entry["checkers"] if c["note"] and not c["billed"]]
             if notes:
                 out += ["", "Derived. " + " ".join(n + "." for n in notes)]
             out.append("")

@@ -46,6 +46,7 @@ reading every finding against the source; nothing here scores a model on its own
       "params": {...},
       "status": "active",           // active | proposed | blocked | retired
       "verification": "human",      // human | git-apply | json-parse | answer-key
+      "scorer": null,               // corpora/scorers/<name>.py where a script does the scoring
       "evidence": [...]             // observations produced from this fixture
     }]
   }]
@@ -64,6 +65,16 @@ id>.md`, written before the run. It states the acceptance criteria, how they wer
 measured, and what a near-miss looks like. Writing one afterwards, having seen the
 output, turns a fixture into a post-hoc opinion; the test requires the file to
 exist for any task scored `git-apply`, `json-parse` or `answer-key`.
+
+A task may also name a **scorer**, a script in `corpora/scorers/` that applies the
+key mechanically. `oxbox-secret-scanner-fix` has one (`git apply --check` plus the
+pattern verdicts). `oxbox-ask-grounding` has one too, since 2026-09-06: it extracts
+the pinned `ox` and *runs* the five settled questions that a `--dry-run` can answer
+(the credential variable, the default mode, the manifest-version exit, the
+`base_url` warning, the 400,000-byte limit), reports each observed fact against
+the key, then pattern-scores the model's answers and hands the two that need an
+HTTP exchange to a reader. Reproduce first, read as the fallback, and if the key
+ever drifts from the code the scorer says DRIFT rather than trusting the key.
 
 A task may override its project's `commit`. `oxbox-clean-control` does: it sits one
 commit *later* than the batch that found its only defect, because the point of that

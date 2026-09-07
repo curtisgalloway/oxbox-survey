@@ -38,6 +38,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "human",
+          "scorer": null,
           "evidence": ["observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"],
           "notes": "Concurrency and lock handling: a directory lock with a 120s retry floor, and a sandbox self-test. Five of five findings held up on the one run this fixture reproduces."
         },
@@ -56,6 +57,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "human",
+          "scorer": null,
           "evidence": ["observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"],
           "notes": "Subprocess handling, URL parsing and unauthenticated network probes. Eight of ten real on the one run this fixture reproduces, including the one clear false positive in that batch."
         },
@@ -71,6 +73,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix.py",
           "evidence": ["observations/2026-09-02-sonnet-5-baseline-secret-scanner-fix-right-patterns-wrong-hunk-header-and-a-self-hit.md", "observations/2026-09-02-gemini-3.7-flash-baseline-secret-scanner-fix-passes-all-three-gates.md", "observations/2026-09-02-gpt-5.6-sol-baseline-secret-scanner-fix-passes-all-three-gates-in-2000-tokens.md", "observations/2026-09-02-deepseek-v4-flash-baseline-secret-scanner-fix-corrupt-hunk-and-the-aws-key-still-missed.md", "observations/2026-09-02-glm-5.3-flash-baseline-secret-scanner-fix-passes-and-guarded-the-self-hit-unprompted.md", "observations/2026-09-06-fable-5.1-refuses-the-secret-scanner-fix-fixture.md", "observations/2026-09-06-glm-5.3-flash-candidate-secret-scanner-fix-corrupt-hunk-after-passing-as-a-baseline.md", "observations/2026-09-06-deepseek-v4-flash-candidate-secret-scanner-fix-corrupt-hunk-again-eight-of-eight-behind-it.md"],
           "notes": "The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8. No cost ceiling: Fable 5.1 refuses this fixture (content_filter, three times on 2026-09-06 including a motivated variant), and a diagnostic pair the same day showed the task text is the trigger, not the file: the prompt against the pattern list alone was refused, a neutral review of the full ox was answered. The cost digit stays a dash here for every model."
         },
@@ -86,6 +89,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "proposed",
           "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix.py",
           "evidence": ["observations/2026-09-06-fable-5.1-refuses-the-scanner-fix-with-the-motivation-stated.md"],
           "notes": "PROPOSED, and so far only a diagnostic. The scanner-fix prompt with a motivation preamble (what ox is, that the scanner is a refusal gate, that the change is defensive, that the values are placeholders); the rest of the prompt and the payload are byte-identical to oxbox-secret-scanner-fix, so the same scorer applies. Written 2026-09-06 to test whether Fable 5.1's content_filter refusal was about framing. It was not: refused again the same afternoon. Kept so the experiment is on the record. Not run against any other model."
         },
@@ -103,6 +107,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "human",
+          "scorer": null,
           "evidence": ["observations/2026-09-02-sonnet-5-baseline-clean-control-two-findings-zero-real-three-uncertain-all-hedged-right.md", "observations/2026-09-02-gemini-3.7-flash-baseline-clean-control-one-finding-and-it-is-real.md", "observations/2026-09-02-gpt-5.6-sol-baseline-clean-control-eight-findings-one-real-six-invented.md", "observations/2026-09-02-deepseek-v4-flash-baseline-clean-control-no-defects-found-the-ideal-answer-at-the-lowest-price.md", "observations/2026-09-02-glm-5.3-flash-baseline-clean-control-four-findings-one-real-and-it-hedged-the-right-one.md", "observations/2026-09-06-fable-5.1-baseline-clean-control-five-findings-both-known-defects-hedged.md", "observations/2026-09-06-glm-5.3-flash-candidate-clean-control-four-findings-one-real-and-a-different-one-than-last-time.md", "observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-spends-the-whole-budget-reasoning-and-returns-nothing-in-33-minutes.md", "observations/2026-09-06-check-fable-5.1-on-glm-5.3-flash-baseline-clean-control-refutes-all-four-including-g1.md", "observations/2026-09-06-check-opus-5-on-glm-5.3-flash-baseline-clean-control-confirms-g1-refutes-the-rest.md"],
           "notes": "The no-defect control: expected finding count is zero. Pinned one commit LATER than the rest of the project, at 6302b12, where the single real defect this file is known to carry -- unclosed probe sockets, found by MiniMax M3 on 2026-08-29 -- is fixed. The prompt is deliberately indistinguishable from a normal review prompt. Invention rate is otherwise only ever a by-product of a mixed batch; this measures it directly, on 6 KB. Cost ceiling: Fable 5.1 on 2026-09-06, $0.3663 billed for the run plus its own fresh-subagent check priced at list ($1.4641), over 2 real findings."
         },
@@ -118,8 +123,9 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "active",
           "verification": "answer-key",
+          "scorer": "corpora/scorers/ask_grounding.py",
           "evidence": ["observations/2026-09-02-sonnet-5-baseline-ask-grounding-10-of-10-and-said-uncertain-on-all-three-traps.md", "observations/2026-09-02-gemini-3.7-flash-baseline-ask-grounding-10-of-10-terse-and-declined-all-three.md", "observations/2026-09-02-gpt-5.6-sol-baseline-ask-grounding-10-of-10-in-834-tokens.md", "observations/2026-09-02-deepseek-v4-flash-baseline-ask-grounding-10-of-10-in-1147-bytes.md", "observations/2026-09-02-glm-5.3-flash-baseline-ask-grounding-10-of-10-with-verifiable-extras.md", "observations/2026-09-06-fable-5.1-baseline-ask-grounding-10-of-10-sets-the-cost-ceiling.md", "observations/2026-09-06-glm-5.3-flash-candidate-ask-grounding-10-of-10-in-25-seconds.md", "observations/2026-09-06-deepseek-v4-flash-candidate-ask-grounding-10-of-10-in-37-seconds-from-a-third-provider.md", "observations/2026-09-06-check-fable-5.1-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md", "observations/2026-09-06-check-opus-5-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md", "observations/2026-09-06-check-fable-5.1-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md", "observations/2026-09-06-check-opus-5-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md"],
-          "notes": "Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question. Cost ceiling: Fable 5.1 on 2026-09-06, $0.2756 billed over 10 hits."
+          "notes": "Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question. Cost ceiling: Fable 5.1 on 2026-09-06, $0.2756 billed over 10 hits. Scorer added 2026-09-06 (round 4, question 4): runs the pinned ox with --dry-run for questions 1, 3, 4, 5 and 6 and reports each observed fact against the key; questions 2 and 7 need an HTTP exchange ox will not fake and stay with a reader; 8 to 10 are scored on saying not settled. All twelve archived runs pass it."
         },
         {
           "id": "oxbox-json-findings",
@@ -133,6 +139,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "proposed",
           "verification": "json-parse",
+          "scorer": null,
           "evidence": [],
           "notes": "PROPOSED. The same review, with the findings demanded as a JSON array; scored by whether json.loads succeeds and the schema holds. This tests an in-prompt contract, NOT the catalog's response_format column -- ox never sends the response_format parameter (ox:781-783 builds a plain string content), so validating that column would need an ox change first."
         }
@@ -163,6 +170,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "proposed",
           "verification": "human",
+          "scorer": null,
           "evidence": [],
           "notes": "PROPOSED. DHCP and TFTP packet handling: offsets, length fields and option parsing over input from whatever device is plugged into the lab link. Twice the size of the largest oxbox batch, so it also samples a longer context than anything the corpus runs today."
         }
@@ -197,6 +205,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "proposed",
           "verification": "human",
+          "scorer": null,
           "evidence": [],
           "notes": "PROPOSED. The whole crate minus its tests: raster command construction, status reads, and two transports (USB, and CoreBluetooth on macOS). Framing, timeouts and partial reads against a physical device that cannot be asked to repeat itself. Sized to match the oxbox batches (22-27 KB) so it is comparable to them."
         },
@@ -212,6 +221,7 @@
           "params": {"max_tokens": 100000, "temperature": 0.2, "effort": "high"},
           "status": "proposed",
           "verification": "human",
+          "scorer": null,
           "evidence": [],
           "notes": "PROPOSED. Barcode encoding: checksum arithmetic, code-set switching, table indices. The rare review target where a defect is decidable rather than arguable -- a wrong Code128 checksum can be computed by hand -- so it is the natural first candidate to promote to a mechanical answer key once one run has shown what the findings look like."
         }

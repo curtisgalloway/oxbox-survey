@@ -485,7 +485,13 @@ def test_corpus():
                                   % (tid, task.get("verification")))
             elif not (HERE / key).exists():
                 incomplete.append("%s: answer key %s is missing" % (tid, key))
+        # A scorer is a claim that a script applies the key; the script must exist.
+        if task.get("scorer") and not (HERE / task["scorer"]).exists():
+            incomplete.append("%s: scorer %s is missing" % (tid, task["scorer"]))
     report(not incomplete, "every active task can be reproduced", incomplete)
+    report(tasks.get("oxbox-ask-grounding", {}).get("scorer") == "corpora/scorers/ask_grounding.py"
+           and (HERE / "corpora/scorers/ask_grounding.py").exists(),
+           "ask-grounding names a scorer that runs the pinned ox rather than trusting the key")
 
     # Prompt files are payload: every byte is sent to the model, so the repo's
     # own SPDX convention stops at this directory.
@@ -1279,9 +1285,34 @@ def test_ratings():
     g = rt["cost_rows"]([gated], prices, tasks=task)[0]
     report(g["real"] == 0 and g["usd_per_real"] is None,
            "hits behind a failed gate count for nothing in the cost table")
+    # A metered check record carries the venue's bill, which outranks a
+    # token-priced window for the same run and checker, and is never repriced.
+    billed = {"kind": "efficiency", "source": "manual", "run": "r1", "harness_model": "claude-fable-5-1",
+              "harness_window": "2026-09-07T00:10Z..2026-09-07T00:13Z", "harness_venue": "openrouter",
+              "harness_in": "17402", "harness_out": "7934", "harness_usd": "0.57072", "_file": "m"}
+    priced = {"kind": "efficiency", "source": "manual", "run": "r1", "harness_model": "claude-fable-5-1",
+              "harness_window": "w", "harness_in": "66", "harness_out": "9744",
+              "harness_cache_read": "114776", "harness_cache_write": "75805", "_file": "p"}
+    report(abs(rt["price_window"](billed, prices) - 0.57072) < 1e-9
+           and abs(rt["price_window"](billed, prices, as_model="anthropic/claude-sonnet-5") - 0.57072) < 1e-9,
+           "a billed check record prices at its bill, under any supervisor's rates")
+    row = dict(base, model="r", run="r1", findings="3", real="1", usd_model="0.001", _file="r")
+    row.pop("harness_window"); row.pop("harness_model")
+    rows = [rt["measure"](row, {})]
+    for order in ([billed, priced], [priced, billed]):
+        rt["attach_checks"](rows, order)
+        report(rows[0]["checks"]["claude-fable-5-1"] is billed,
+               "the billed record wins over the token-priced one for the same run and checker (order %s)"
+               % ", ".join(o["_file"] for o in order))
+    pair = rt["same_batch"]([billed, priced, dict(priced, harness_model="claude-opus-5", _file="q")], prices)
+    labels = [c["checker"] for e in pair for c in e["checkers"]]
+    report(pair and len(labels) == 3 and "claude-fable-5-1 via openrouter (billed)" in labels,
+           "the same-batch table keeps the metered request beside the in-harness session", labels)
+    unbilled_venue = [o["_file"] for o in obs if ("harness_usd" in o) != ("harness_venue" in o)]
+    report(not unbilled_venue, "every billed check record names the venue that billed it", unbilled_venue)
     harness_numeric = []
     for o in obs:
-        for key in ("harness_in", "harness_out", "harness_cache_read", "harness_cache_write"):
+        for key in ("harness_in", "harness_out", "harness_cache_read", "harness_cache_write", "harness_usd"):
             if key in o:
                 try:
                     rt["_num"](o[key])

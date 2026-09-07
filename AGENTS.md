@@ -224,6 +224,7 @@ observations/YYYY-MM-DD-*.md      the observed tier — see observations/README.
 manifests/latest.json             symlink to the newest manifest, for --manifest
 manifests/oxbox-manifest-*.json   which model ox should call — regenerated per issue
 corpora/corpus-manifest.json      what to send it — pinned targets, see corpora/README.md
+corpora/scorers/<task>.py         mechanical scoring where the fixture allows it; ask_grounding runs the pinned ox
 costcheck.py                      what a run cost: the model's tokens, and the harness's
 ratings.py                        the catalog table: digits bucketed from observations, and the rating
 editor-ratings.json               the Editor's Rating per tried model -- the editor writes it, tools read it
