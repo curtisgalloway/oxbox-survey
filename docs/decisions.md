@@ -534,3 +534,23 @@ The editor's direction: reproduction is the default baseline for verifying a
 finding wherever the failure can be executed against the pin in a jail, and
 reading is the fallback. Recorded in `observations/README.md` and the skill.
 The ruling on C3 itself remains the editor's.
+
+**Amended 2026-09-06, night: G1, and what "as written" refutes.** The strict
+reading above was born refuting the G1 shape: a probe that scores any
+exception as containment, so an offline host certifies the jail, refuted
+because no jail at the pin permits egress for the vacuous pass to conceal.
+Two checkers split on G1 the same way the same evening, and both metered
+checkers refuted DeepSeek's restatement of it on the same ground. Put to the
+editor with the C3 ruling beside it, the answer was: a host that is down does
+not count as the jail succeeding. G1 stands as real, D2 with it, and the rule
+is now stated precisely. A finding is refuted when its stated consequence is
+shown false (C3: the FAIL at uid 0 was true, root reads the shadow file) or
+needs a state the tree cannot produce. It is not refuted merely because the
+property a check certifies happens to hold today, when the finding is that the
+check cannot fail: a test whose PASS does not depend on what it tests is a
+defect in the test now, which is the position the upstream fix took. The
+verifier contract, `corpora/prompts/verify-findings.txt`, carries the
+exception in as many words, so metered and in-harness checks from here on are
+under a contract that differs from the one the 2026-09-03 and 2026-09-06
+checks answered; the same-batch tables keep both, and a re-check of the G1
+shape under the new contract is the obvious control.

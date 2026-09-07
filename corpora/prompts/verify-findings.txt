@@ -19,10 +19,16 @@ version of it would hold. Do not repair a finding on its author's behalf.
 Read the cited lines, then read whatever else in the included source settles the
 question — the callers, the launcher, the sandbox profile, the configuration. A
 finding whose mechanism is accurately described but whose consequence cannot be
-reached in this tree is NOT a defect; say so and say what blocks it. A finding
-that is true but whose only effect is a failure in the safe direction is not the
-same as one that lets a real failure through silently; make that distinction
-explicit.
+reached in this tree is NOT a defect; say so and say what blocks it. One
+exception, and it is narrow: a finding that a check cannot fail — that its PASS
+does not depend on the property it certifies, so an unrelated failure (a host
+with no route, a permission denied by ordinary DAC) is scored as the property
+holding — is CONFIRMED when that is so at this pin, whether or not the property
+happens to hold today. A test that would pass against a broken guard is broken
+now, not later; a host that is down does not count as the jail succeeding. A
+finding that is true but whose only effect is a failure in the safe direction is
+not the same as one that lets a real failure through silently; make that
+distinction explicit.
 
 Verdicts, exactly one per finding:
 

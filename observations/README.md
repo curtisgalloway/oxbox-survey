@@ -157,7 +157,14 @@ group observations without interpreting prose:
   verdicts on C3; four commands on a Linux host settled every factual point.
   The editor's direction that day: this is the default baseline for verifying a
   finding, not an extra step. Record the run as an observation with a
-  `reproduces:` field naming the finding and its run.
+  `reproduces:` field naming the finding and its run. What a reproduction can
+  refute is bounded by two rulings of 2026-09-06: a finding is refuted when its
+  stated consequence is shown false or needs a state the pin cannot produce (C3,
+  where the FAIL it called false turned out true), and it is not refuted merely
+  because the property a check certifies happens to hold today when the finding
+  is that the check cannot fail (G1: a host that is down does not count as the
+  jail succeeding). The verifier contract in `corpora/prompts/verify-findings.txt`
+  carries both.
 - **Never edit a published observation.** If it turns out wrong, write a new file
   that links the old one and says what changed. The archive's value is that it
   records what was believed at the time. When the change is to a measured field

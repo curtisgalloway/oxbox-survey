@@ -118,7 +118,12 @@ settled it. The editor's standing direction from that day: reproduction is the d
 baseline for a verdict. Record the reproduction as an observation with a `reproduces:`
 field. Name both platforms (macOS seatbelt, Linux bubblewrap) when a finding could hold
 on one and not the other; the prompts do not, and the models only learn it from the
-payload.
+payload. Two rulings bound what a reproduction refutes (both 2026-09-06): a finding is
+refuted when its stated consequence is shown false or needs a state the pin cannot
+produce (C3: the FAIL it called false was true), and it is *not* refuted merely because
+the property a check certifies happens to hold today when the finding is that the check
+cannot fail (G1: a host that is down does not count as the jail succeeding). A test whose
+PASS does not depend on what it tests is a defect now.
 
 **A probe is not a run.** An `observations/` file with `source: probe` proves an endpoint
 answers; it says nothing about review quality and never gets a row in the catalog
