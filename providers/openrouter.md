@@ -91,15 +91,19 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
   same DeepSeek payload returned nothing in 33 minutes from one provider and a
   full review in 47 seconds from another `[M]`. The request-body `provider`
   object (`order`, `only`, `allow_fallbacks`, `max_price`, `quantizations`) pins
-  a route, but `oxbox send` does not pass it and manifest v0 has no field for it:
-  [oxbox#50](https://github.com/curtisgalloway/oxbox/issues/50), filed
-  2026-09-06 and still open at 1.0.1 (2026-09-07); it was deferred behind the
-  Rust port, which has since shipped, so nothing stands in front of it now.
-  What did land is the record: from oxbox 0.7.0 `status.json` and every
-  `attempts` entry carry the venue's `provider` verbatim as **`route`**, null
-  when the venue names none. Until #50 lands, every observation on this venue
-  names the `route`, the catalog price is a floor, and a model's failure cannot
-  be told from a route's.
+  a route. **oxbox 1.1.0 (released 2026-09-07) passes it through**: `oxbox send
+  --provider '<json>'` and an optional `provider` key on a manifest entry, sent
+  verbatim, honored on this venue only and refused elsewhere rather than dropped
+  ([oxbox#50](https://github.com/curtisgalloway/oxbox/issues/50), filed
+  2026-09-06, shipped in 1.1.0; **requires oxbox >= 1.1.0**). The record has
+  been there since 0.7.0: `status.json` and every `attempts` entry carry the
+  venue's `provider` verbatim as **`route`**, null when the venue names none,
+  and from 1.1.0 `meta.json` carries the pin that was sent as `provider`. Every
+  observation on this venue names the `route`; an unpinned run's catalog price
+  is a floor, and only a pinned run can tell a model's failure from a route's.
+  No pinned run has been made yet; the first is the DeepSeek clean-control
+  payload to StreamLake and DigitalOcean by name, and the survey's manifests
+  carry no `provider` until a pin is backed by such a run (rule in the skill).
   [[../observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-rerun-two-findings-in-47-seconds-from-a-fourth-provider-the-blowout-was-the-route]]
 
 ## Watch

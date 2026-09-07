@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.1.0
+version: 2.2.0
 last_generator_review: 2026-09-03
 ---
 
@@ -191,6 +191,35 @@ snapshot says, not a license to guess — a wrong level runs, and runs wrong, qu
 main since 2026-09-03; unchanged in the 1.0.1 Rust binary). Anything else in
 `params.effort` is dropped with a warning. The manifest format itself is oxbox's —
 its README section "Survey manifests" is the definition, and this skill only fills it.
+
+### Provider pins, when writing the manifest
+
+On OpenRouter a model id is a pool of endpoints at different prices, caps and
+failure modes (`providers/openrouter.md`). Since oxbox 1.1.0 (2026-09-07) a
+manifest entry may carry a top-level `provider` key — OpenRouter's routing object,
+sent verbatim; only the `openrouter` venue honors it, and oxbox skips a pinned
+entry on any other venue rather than sending it unpinned. Never put one under
+`params` or `defaults`; it is a property of the entry alone.
+
+**A pin is a claim backed by a measurement.** Fill it only from runs this survey
+made, and fill it this way:
+
+- `only` — the endpoint slugs the rated runs actually went to, from `route` in
+  their `status.json`. Never a slug chosen from the endpoints listing alone.
+- `allow_fallbacks: false` — otherwise the pin is a preference and the price is
+  not.
+- `max_price` — the list price from the snapshot, so a reader who edits the pin
+  away still keeps the price guard.
+
+An entry whose runs went to several routes and were rated together carries all
+of them in `only`. An entry with no run on this venue carries no `provider`.
+
+**`manifest_version`.** oxbox 1.1.0 reads `1` and still reads `0`; a `0` manifest
+carrying `provider` is honored too, and the point of `1` is that an oxbox older
+than 1.1.0 refuses it with "update ox" instead of silently dropping the pin.
+Publish `0` until the issue's readers can be expected to have 1.1.0, then `1` for
+any issue that carries a pin. State the floor ("requires oxbox >= 1.1.0") in the
+issue when the first pinned manifest goes out.
 
 ## Report format
 
@@ -390,9 +419,10 @@ working generator.
   Reported (anything a vendor said). A card's structured fields are Measured; a card's
   prose description is marketing and is Reported.
 - **A manifest param is a claim too.** `params.effort` and `params.max_tokens` are
-  Measured only when they come from the snapshot's own fields. A level inferred from
-  a model's family, its name, or another venue's catalog is Reported in a Measured
-  coat: omit the field instead. The manifest is executable, so a guess there is not
+  Measured only when they come from the snapshot's own fields, and an entry's
+  `provider` pin only when its `only` list is the routes the rated runs went to. A
+  level inferred from a model's family, its name, or another venue's catalog is
+  Reported in a Measured coat: omit the field instead. The manifest is executable, so a guess there is not
   a sentence a reader can discount — it is a parameter on a request that gets sent.
 - Vendor benchmarks are vendor benchmarks, they appear as a labeled aside, and they
   never move a recommendation.

@@ -81,7 +81,10 @@ Written before the request goes out, so it describes the destination and the
 payload, never the answer. `costcheck.py` reads **`model`**, **`venue`**,
 **`mode`**, **`files`** (list), **`context_bytes`**, **`ox_version`**,
 **`timestamp`** and **`manifest.path`**, and carries them into the cost table
-of an observation. `ox_version` is how a run self-identifies the build that
+of an observation. **`provider`** (object or null; since oxbox 1.1.0) is the
+OpenRouter routing pin the request went out with, verbatim, and null when the
+request was unpinned; read by hand beside `route` in status.json, since the
+two together say what was asked for and what answered. `ox_version` is how a run self-identifies the build that
 made it, and `verifiercheck.py` reads **`effort`** from here as a tripwire: a
 build that silently dropped an effort level would run at its default without
 failing, and only this file would show it.
