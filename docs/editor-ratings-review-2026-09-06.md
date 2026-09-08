@@ -112,7 +112,7 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## The 2026-09-08 batch: seven models, three fixtures, twenty-one runs
 
-At your direction (round 8, question 4), unpinned, at the corpus params, launched 2026-09-08T00:48Z and finished 01:34Z. Every run is an observation; the zero-defect control runs with findings were checked by both checkers, metered. Three shapes recur across the batch and are worth naming once: on the scanner fix, six cheap models now write a working pattern list under a hunk header `git apply` rejects (fixable by `--recount`), two wrote a header that is not a header at all (a bare `@@`, `XXXX` for line numbers), and one wrote eight diffs where one was asked; on the zero-defect control, three models gave the ideal answer, two invented, two timed out. Card facts from the 2026-09-07 catalog.
+At your direction (round 8, question 4), unpinned, at the corpus params, launched 2026-09-08T00:48Z and finished 01:34Z. Every run is an observation; the zero-defect control runs with findings were checked by both checkers, metered. Three shapes recur across the batch and are worth naming once: on the scanner fix, six cheap models now write a working pattern list under a hunk header `git apply` rejects (fixable by `--recount`), two wrote a header that is not a header at all (a bare `@@`, `XXXX` for line numbers), and one wrote eight diffs where one was asked; on the zero-defect control, three models gave the ideal answer, one invented, one reasoned to its own completion cap and returned nothing, two timed out. Card facts from the 2026-09-07 catalog.
 
 ## cohere/north-mini-code:free (OpenRouter, free, listed; new this round)
 
