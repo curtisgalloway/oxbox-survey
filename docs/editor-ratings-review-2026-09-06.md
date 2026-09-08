@@ -11,11 +11,15 @@ The Editor's Rating column, for the editor to fill in. Every model the survey ha
 
 Everything this document asks of you, in one place. Direct edits in the Doc are decisions; margin comments are instructions. Anything not listed here is settled or is mine to do.
 
-Nothing is open at the moment. Your r8 answers are recorded: **Q1** safe-direction failures count separately (a `benign` count beside real, never as real; F2, F3, P3 and L4 moved into it by correction observations). **Q3** the metered check sets a fixture's ceiling (the zero-defect control's is now $0.4685 per real finding, from $0.9152). **Q4** the suggested batch is queued with gpt-oss-120b included: seven models on three fixtures, both checkers metered. When those runs are in, their seven rating slots will appear here as the next ask. Q2 (G1) was ruled after r5 and is recorded under "G1, explained"; Q5 (DeepSeek's re-run) was done.
+- **Seven ratings.** The batch you approved as Q4 ran on 2026-09-08 (twenty-one runs, all recorded), and each of its seven models now has a section below with a blank after **Editor's Rating** and **Why**: `cohere/north-mini-code:free`, `dots-studio/dots-3-note-preview:free`, `inclusionai/ling-3.0-flash-fin:free`, `openai/gpt-oss-120b`, `mistralai/mistral-small-2603`, `nvidia/nemotron-3.5-lightning`, `xiaomi/mimo-v2.5`. Good or Acceptable puts a model in the manifest (pinned to the routes its runs went to); Marginal or Poor keeps it out; a blank leaves it unrated and out. *Default if you say nothing:* unrated, out.
+- **Q5. The cost score on a zero-finding answer.** Three of the seven gave the zero-defect control its ideal answer, "no defects found", and the rubric scores their cost 0, the same as a blowout, because cost is USD per real finding and there is nothing real to divide by. Should a zero-finding answer on this fixture score cost as a dash (not applicable), as it does now (0), or some other way? *Default:* as it does now.
+- **Two re-sends, if you want them.** gpt-oss-120b and North Mini Code both timed out at 900 seconds on the zero-defect control with no answer and no route recorded. A pinned re-send to the route each took on its other runs is how the DeepSeek case was settled. *Default:* the rows stand as timed out; nothing is re-sent.
+
+Settled from r8: **Q1** safe-direction failures count separately (a `benign` count beside real, never as real; F2, F3, P3 and L4 moved into it by correction observations). **Q3** the metered check sets a fixture's ceiling (the zero-defect control's is now $0.4685 per real finding, from $0.9152). **Q4** the batch ran; see the seven sections. Q2 (G1) was ruled after r5; the earlier Q5 (DeepSeek's re-run) was done.
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
 
-**Where the scores stand.** The cost score exists on ask-grounding (Fable's ceiling $0.0276 per hit) and on the zero-defect control (`oxbox-clean-control`; $0.4685 per real finding, from Fable's run plus Fable's own metered check of it, by your Q3 ruling; it had been $0.9152 from the in-harness check at list). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality score exists only on fixtures with a seeded answer set, and it is a dash for every free row because none of the free models has been run on one: the two seeded fixtures were built on 2026-09-02, after the free rows were made, and every free run in the record is a hand-verified real-work batch. Nothing stops a free model from running the scanner fix or ask-grounding, and the three reachable free rows still listed in the shortlist below would get them first. All seven ratings are in. The rule derives the manifest as GLM-5.3 Flash at rank 1 and DeepSeek V4 Flash at rank 2: MiniMax M3 free, rated Good, was delisted from OpenRouter on 2026-09-07 and is held out until a catalog lists it again.
+**Where the scores stand.** The cost score exists on ask-grounding (Fable's ceiling $0.0276 per hit) and on the zero-defect control (`oxbox-clean-control`; $0.4685 per real finding, from Fable's run plus Fable's own metered check of it, by your Q3 ruling; it had been $0.9152 from the in-harness check at list). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality score exists only on fixtures with a seeded answer set; as of 2026-09-08 three free models carry one, from the batch you approved (all three at 10 of 10 on ask-grounding; none cleared the scanner fix's gates with a working patch). The earlier free rows (MiniMax, Nemotron 3 Ultra) predate the seeded fixtures and still show a dash. Seven ratings are in and seven are blank, below. The rule derives the manifest as GLM-5.3 Flash at rank 1 and DeepSeek V4 Flash at rank 2: MiniMax M3 free, rated Good, was delisted from OpenRouter on 2026-09-07 and is held out until a catalog lists it again.
 
 **The cost tables have moved to a Sheet**, one tab per checking model plus the same-batch, per-fixture, ratings and rubric tabs, regenerated from the record each round: [Oxbox Survey costs](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit) (r3; r4 of this document linked r1 by mistake). This document keeps the same-batch table and the reading.
 
@@ -105,6 +109,122 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 **Editor's Rating:** Acceptable
 
 **Why:** we fixed the routing problem; otherwise it's decent.
+
+## The 2026-09-08 batch: seven models, three fixtures, twenty-one runs
+
+At your direction (round 8, question 4), unpinned, at the corpus params, launched 2026-09-08T00:48Z and finished 01:34Z. Every run is an observation; the zero-defect control runs with findings were checked by both checkers, metered. Three shapes recur across the batch and are worth naming once: on the scanner fix, six cheap models now write a working pattern list under a hunk header `git apply` rejects (fixable by `--recount`), two wrote a header that is not a header at all (a bare `@@`, `XXXX` for line numbers), and one wrote eight diffs where one was asked; on the zero-defect control, three models gave the ideal answer, two invented, two timed out. Card facts from the 2026-09-07 catalog.
+
+## cohere/north-mini-code:free (OpenRouter, free, listed; new this round)
+
+**Quality.** Ask-grounding 10 of 10 in 25 seconds, all three traps declined, a 5: the first quality score for a free model in the record. Scanner fix: corrupt hunk header, 8 of 8 verdicts behind it, zero self-hits, a 0 because gate 1 is the gate. Zero-defect control: nothing in 900 seconds; oxbox's read timeout closed the connection with no answer, no route and no bill.
+
+**Cost.** Free, and the two fixtures that answered were scored by the scorer, so both halves are $0. Cap 64,000 completion tokens.
+
+**Speed.** 25 s, a 5; 243 s, a 3; 900 s timed out, a 0.
+
+**Disqualifier.** None. The timeout is a run, not a refusal; the same model answered the other two fixtures minutes before on the same route (Cohere).
+
+**My read.** Grounds a file correctly and writes a correct regex, for nothing, and then either reasons without end on a 6 KB review or sat on a stalled route; the record cannot tell which without a pinned re-send. Two good rows and one empty one. If the re-send answers, this is the free model the manifest has been missing since MiniMax was delisted.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## dots-studio/dots-3-note-preview:free (OpenRouter, free, listed; new this round)
+
+**Quality.** Ask-grounding 10 of 10 in 18 seconds, the timeout trap declined with the key's correct reason, a 5. Scanner fix: a fenced diff whose hunk header reads `@@ -XXXX,10 +XXXX,10 @@`, corrupt with or without `--recount`, so gate 2 never ran: 0 of 8, a 0. Zero-defect control: "no concrete defects" in 139 seconds, the ideal answer, with the two pre-registered decoys (the dead `REPO_ROOT`, the unused `write_probe`) named as non-defects.
+
+**Cost.** Free; both halves $0 on every row. Cap 460,800.
+
+**Speed.** 18 s, a 5; 231 s, a 3; 139 s, a 3.
+
+**Disqualifier.** None. Route AtlasCloud on all three.
+
+**My read.** The only free model to complete all three fixtures with an answer, and the only one in the batch to name the answer key's decoys and decline them. The scanner fix is a contract failure (placeholders where the arithmetic goes), not a reading failure. On the evidence the record has, this is the strongest free row since MiniMax, and it costs nothing.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## inclusionai/ling-3.0-flash-fin:free (OpenRouter, free, listed; new this round)
+
+**Quality.** Ask-grounding 10 of 10 in 8 seconds, every trap declined, a 5. Scanner fix: eight fenced diffs where one was asked; the first applies cleanly (the first cheap patch on this fixture to clear gate 1 as written) and changes nothing that matters, 3 of 8, a 2. Zero-defect control: 31,671 of its 32,768-token completion cap spent reasoning, empty content, `finish_reason` length; a quality 0 under the empty-answer rule, and the cap is the model's own, below the fixture's default, as its card said.
+
+**Cost.** Free; both halves $0. Cap 32,768.
+
+**Speed.** 8 s, a 5; 47 s, a 4; 73 s to return nothing, a 4.
+
+**Disqualifier.** None. Vendor: inclusionAI, Ant Group's open-source arm; Ant is an Alibaba affiliate and is not itself on either list in the regulatory section, on the record as the survey has it.
+
+**My read.** Fast and grounded on ask, indecisive on diff (eight candidates, none right), and unable to finish a review inside its own cap. A manifest entry would need `params.max_tokens` at or below 32,768, which makes the cut explicit and does not create budget. Cheap to keep trying; not a reviewer yet.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## openai/gpt-oss-120b (OpenRouter, paid, $0.037 in / $0.17 out per million; new this round)
+
+**Quality.** Ask-grounding 10 of 10 in 179 seconds, every trap declined, a 5, for $0.0009. Scanner fix: prose plus a fenced diff with a bare `@@` header, "No valid patches in input" with or without `--recount`, 0 of 8, a 0; the regex inside would have been worth scoring. Zero-defect control: nothing in 900 seconds, timed out, no route recorded.
+
+**Cost.** $0.0009 and $0.0026 on the two answered rows; ask-grounding cost 5 against the ceiling. Nothing billed that the record can see for the timeout.
+
+**Speed.** 179 s, a 3; 136 s, a 3; 900 s timed out, a 0.
+
+**Disqualifier.** None. Routes DeepInfra and CoreWeave on the two that answered. Effort was the fixture's high; the model's own default is medium.
+
+**My read.** Grounds as well as anything in the table at DeepSeek's price and a third of its speed, then fails the diff contract by not writing a header and fails the review by not answering. Two of three fixtures give nothing usable. A pinned re-send of the zero-defect control would say whether the timeout was the model or the route; until then this is a grounding model, not a reviewer, in the record.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## mistralai/mistral-small-2603 (OpenRouter, paid, $0.15 in / $0.60 out per million; new this round)
+
+**Quality.** Ask-grounding 9 of 10 in 7 seconds, a 4: the first model in thirteen runs of the fixture to quote `TIMEOUT_SECONDS` as the provider's latency, the trap the key names. Scanner fix: corrupt hunk header and, behind it, 3 of 8 verdicts, having regressed the one pattern that worked, a 0. Zero-defect control: three findings, zero real, zero benign: the root stat oracle twice (M1, M2) and an IndexError that cannot happen (M3). Both metered checkers CONFIRMED the stated FAIL for M1 and M2 and both said the finding's cause is wrong; both REFUTED M3; the record holds M1 and M2 as inventions under your C3 ruling, because at uid 0 the FAIL the finding calls false is true.
+
+**Cost.** $0.0021, $0.0035 and $0.0056 on the three runs; the zero-defect control's checking half was $0.4007 (Fable) and $0.2350 (Opus), so its `usd_total` is $0.4063 for nothing real, cost 0. The most expensive paid row in the batch per token and the only one whose two checkers agreed on every verdict.
+
+**Speed.** 7 s, a 5; 19 s, a 5; 45 s, a 4. The fastest model in the batch on every fixture.
+
+**Disqualifier.** None. Route Mistral on all three. EU vendor.
+
+**My read.** Fast enough to be a habit and wrong in a way that costs: the fabricated latency, the regressed regex, three inventions on a clean file. Speed is the only dimension it wins. Marginal on the record; the ask fabrication is the reason it is not Acceptable.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## nvidia/nemotron-3.5-lightning (OpenRouter, paid, $0.08 in / $0.20 out per million; new this round)
+
+**Quality.** Ask-grounding: an empty answer in 3 seconds, 519 completion tokens all reasoning, `finish_reason` stop, a 0 under the empty-answer rule. Scanner fix: corrupt hunk header with 8 of 8 verdicts behind it after 46,531 completion tokens (37,816 reasoning), the most any model has spent on the fixture, a 0. Zero-defect control: "the code is fine" in 99 seconds after 40,020 completion tokens, the ideal answer, the second model ever to give it.
+
+**Cost.** $0.0009, $0.0101 and $0.0082. The scanner fix is the most expensive cheap-tier run on that fixture; the zero-defect control's cost 0 is the rubric's treatment of nothing real (Q5).
+
+**Speed.** 3 s for nothing, a 5; 112 s, a 4; 99 s, a 4.
+
+**Disqualifier.** None. Route DeepInfra throughout.
+
+**My read.** One empty answer, one right regex under a wrong header, one clean review that invented nothing. The empty ask is the worrying row (a model that thinks and does not speak), and n=1 cannot say whether it recurs. The zero-defect control result is the one that matters for a reviewer and it is the best possible.
+
+**Editor's Rating:** ____
+
+**Why:** ____
+
+## xiaomi/mimo-v2.5 (OpenRouter, paid, $0.14 in / $0.28 out per million; new this round)
+
+**Quality.** Ask-grounding 10 of 10 in 46 seconds, a 5, with the timeout named as not the answer and the logging warning quoted as context on the last trap. Scanner fix: corrupt hunk header, 8 of 8 behind it, a ninth pattern added rather than one rewritten, a 0. Zero-defect control: "no concrete defects" in 237 seconds, the ideal answer, and it explained unprompted why the root stat oracle, the fixture's most-invented finding, is not a defect.
+
+**Cost.** $0.0025, $0.0032 and $0.0045; ask-grounding cost 5 against the ceiling; the zero-defect control's cost 0 is the rubric (Q5).
+
+**Speed.** 46 s, a 4; 95 s, a 4; 237 s, a 3.
+
+**Disqualifier.** None. Routes DeepInfra, StreamLake, Xiaomi across the three runs, which is the route lottery again and an argument for a pin if it is rated in. Listed on OpenCode Zen too.
+
+**My read.** The most complete answer set in the batch: grounded, careful, and the only model to decline the C3 shape by reasoning about it in writing. The scanner fix is the tier's shared header fault with the regex right behind it. On this evidence it is the best-behaved cheap paid model the survey has run, at a price between DeepSeek's and GLM's.
+
+**Editor's Rating:** ____
+
+**Why:** ____
 
 ## nemotron-3-ultra-free (OpenCode Zen, listed)
 
@@ -238,6 +358,7 @@ Run `2026-09-07T00-06-45Z`:
 | GLM-5.3 Flash baseline, zero-defect control (G1..G4) | all four refuted | G1 confirmed, rest refuted | G1 is real, ruled 2026-09-06 (fixed upstream) |
 | DeepSeek V4 Flash re-run, zero-defect control (D1, D2), metered | D1 confirmed as safe-direction, D2 refuted | both refuted | D1 invention by the C3 ruling; D2 real by the G1 ruling |
 | GLM-5.3 Flash baseline, zero-defect control (G1..G4), re-checked metered under the G1 ruling | G1 confirmed, G4 confirmed as benign, rest refuted | G1 confirmed, rest refuted | the split on G1 closes; G4 stays refuted per the key |
+| Mistral Small 2603 candidate, zero-defect control (M1..M3), metered | M1, M2 confirmed with the cause wrong; M3 refuted | M1, M2 confirmed, safe direction, cause wrong; M3 refuted | M1, M2 inventions by the C3 ruling; M3 invention; the first batch with no split |
 | Both models' baseline ask-grounding (10 each) | 10 of 10 | 10 of 10 | 10 of 10, and the scorer agrees |
 
 The C3 shape has now been checked four times and split the same way every time: Fable credits the mechanism and calls the failure safe-direction, Opus refutes, and the reproduction sides with Opus for a reason neither reader can see from the source (at uid 0 the jail really exposes the shadow file, so the FAIL is true). The G1 shape has been checked three times: in-harness Fable refuted, in-harness Opus confirmed, and both metered checkers refuted DeepSeek's restatement of it as written. Every refutation of it says the same thing, that no leaking jail exists at this pin for the vacuous pass to conceal. You ruled on it after r5; the ruling is recorded below.
@@ -275,21 +396,22 @@ Added at your direction. This is a standing caveat the generator will now carry 
 - **BIS Entity List** (Commerce Department export controls). Zhipu AI, the vendor behind the z-ai models including glm-5.3-flash and the Ox Alpha weights, was added effective 2025-01-16 ([Federal Register 2025-00704](https://www.federalregister.gov/documents/2025/01/16/2025-00704/addition-of-entities-to-and-revision-of-entry-on-the-entity-list)). The list restricts supplying listed companies with US-origin items; it does not by itself forbid calling the vendor's hosted API, but procurement and compliance policies commonly key on it.
 - **1260H list** (Defense Department, Chinese military companies). The June 2026 update added Alibaba, the vendor behind Qwen, and Baidu ([WilmerHale, 2026-06-11](https://www.wilmerhale.com/en/insights/client-alerts/20260611-pentagon-adds-65-new-entities-to-the-1260h-list-of-chinese-military-companies); [CNBC, 2026-06-09](https://www.cnbc.com/2026/06/09/alibaba-baidu-byd-named-on-pentagons-china-military-list-.html)). It bars the department from contracting with listed companies and, from June 2027, from buying their products through third parties.
 - **Pending additions.** You reported that further Chinese AI vendors are on a non-public backlog for Entity List addition. I found no citable source, so the skill carries it as unverified and names no vendor. If you have a link, add it here and I will cite it.
+- **Affiliates.** Ling is inclusionAI's, Ant Group's open-source arm; Ant is an Alibaba affiliate and neither Ant nor inclusionAI appears in the two citations above, so its row says "Ant Group, Alibaba affiliate; not itself listed" and does not inherit Alibaba's flag. The same record names none of Cohere, Mistral, NVIDIA or Xiaomi. That record is the two citations, not a fresh check of the lists.
 
 A listing is a card fact: it can never earn a rating and it is not a disqualifier in the table's sense, since the venue serves the model. It is a fact you weigh when rating, and the catalog table will state it in each affected model's limitation column in the same words every week.
 
 ## Models to try next
 
-Every model below is listed and, where the venue was probed, reachable. Card facts from the 2026-09-01 catalog, checked against the 2026-09-07 snapshot; nothing here is a rating. Two rows left the venue this week: `minimax/minimax-m2.7:free` and `z-ai/glm-5.2:free` are delisted, struck below. `inclusionai/ling-3.0-flash-sante:free` appeared. The completion cap matters because ox sends 100,000 by default and a lower cap has to go in the manifest's params.
+Every model below is listed and, where the venue was probed, reachable. Card facts from the 2026-09-01 catalog, checked against the 2026-09-07 snapshot; nothing here is a rating. Two rows left the venue this week: `minimax/minimax-m2.7:free` and `z-ai/glm-5.2:free` are delisted, struck below. `inclusionai/ling-3.0-flash-sante:free` appeared. **Seven of these rows ran on 2026-09-08** at your direction and have sections above; they are marked "ran" here and stay in the list for the record. The completion cap matters because ox sends 100,000 by default and a lower cap has to go in the manifest's params.
 
 **Free, reachable, never run** (OpenRouter unless noted):
 
 | Model | Context | Completion cap | Reasoning | response_format | Note |
 |---|---|---|---|---|---|
 | ~~minimax/minimax-m2.7:free~~ | 197K | 177K | yes | yes | delisted 2026-09-07, with its sibling |
-| cohere/north-mini-code:free | 256K | 64K | yes | no | a code model; no structured output |
-| dots-studio/dots-3-note-preview:free | 512K | 461K | yes | yes | also free on ZenMux |
-| inclusionai/ling-3.0-flash-fin:free | 262K | 32K | yes | no | Ant Group; low cap |
+| cohere/north-mini-code:free | 256K | 64K | yes | no | a code model; no structured output; **ran 2026-09-08** |
+| dots-studio/dots-3-note-preview:free | 512K | 461K | yes | yes | also free on ZenMux; **ran 2026-09-08** |
+| inclusionai/ling-3.0-flash-fin:free | 262K | 32K | yes | no | Ant Group; low cap; **ran 2026-09-08** |
 | google/gemma-4-31b-it:free, gemma-4-26b-a4b-it:free | 262K | 32K | yes | yes | rate-limited at probe time, not closed |
 | ~~z-ai/glm-5.2:free~~ | 256K | 230K | yes | yes | delisted 2026-09-07 |
 | ZenMux: z-ai/glm-4.7-flash-free, glm-4.6v-flash-free, ling-3.0-tiny | | | | | your balance covers them; Zhipu rows carry the list note |
@@ -299,22 +421,22 @@ Every model below is listed and, where the venue was probed, reachable. Card fac
 
 | Model | In/out $/M | Context | Completion cap | Note |
 |---|---|---|---|---|
-| openai/gpt-oss-120b | 0.037/0.17 | 131K | 118K | the obvious next cheap paid candidate; US vendor |
+| openai/gpt-oss-120b | 0.037/0.17 | 131K | 118K | the obvious next cheap paid candidate; US vendor; **ran 2026-09-08** |
 | openai/gpt-oss-20b | 0.03/0.13 | 131K | 118K | same family, smaller |
 | qwen/qwen3-coder-next | 0.12/0.80 | 262K | 236K | no reasoning field; Alibaba, 1260H |
 | qwen/qwen3.6-35b-a3b | 0.10/0.90 | 262K | 236K | Alibaba, 1260H |
 | nvidia/nemotron-3-super-120b-a12b | 0.085/0.40 | 1M | 16K | cap needs a manifest param |
-| nvidia/nemotron-3.5-lightning | 0.08/0.20 | 262K | 131K | |
+| nvidia/nemotron-3.5-lightning | 0.08/0.20 | 262K | 131K | **ran 2026-09-08** |
 | google/gemma-4-31b-it | 0.09/0.34 | 262K | 16K | cap needs a manifest param |
-| mistralai/mistral-small-2603 | 0.15/0.60 | 262K | 210K | EU vendor |
+| mistralai/mistral-small-2603 | 0.15/0.60 | 262K | 210K | EU vendor; **ran 2026-09-08** |
 | mistralai/codestral-2508 | 0.30/0.90 | 256K | 205K | no reasoning field; code model |
-| xiaomi/mimo-v2.5 | 0.14/0.28 | 1M | 131K | listed on OpenCode Zen too |
+| xiaomi/mimo-v2.5 | 0.14/0.28 | 1M | 131K | listed on OpenCode Zen too; **ran 2026-09-08** |
 | stepfun/step-3.5-flash | 0.10/0.30 | 262K | 65K | no response_format |
 | tencent/hy3 | 0.08/0.33 | 262K | 128K | |
 | inception/mercury-2 | 0.25/0.75 | 128K | 50K | a diffusion model, unusual |
 | arcee-ai/trinity-large-thinking | 0.25/0.80 | 262K | 80K | no response_format; US vendor |
 
-My suggestion for the first batch: the three reachable free rows still listed plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, on all three fixtures, both checkers. That is 24 runs at a few cents of model cost and, at today's rates, roughly a dollar of checking per hand-verified batch. Mark the ones you want, strike the ones you do not, and I will queue them.
+The first batch, the three reachable free rows plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, ran on 2026-09-08: twenty-one runs, $0.05 of model cost in total, $0.64 of metered checking on the one batch that had findings to check. Mark or strike anything else here and I will queue the next batch.
 
 ## G1, explained
 

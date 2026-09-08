@@ -336,6 +336,12 @@ regulated setting should check the lists themselves and their own procurement ru
 - **Pending additions.** The user reports that further Chinese AI vendors are on a
   non-public backlog for Entity List addition `[?]`. No citable source as of
   2026-09-06; name no vendor under this bullet until one exists.
+- **Affiliates are not listings.** inclusionAI, the vendor behind the `inclusionai/`
+  Ling models, is Ant Group's open-source arm, and Ant Group is an Alibaba affiliate;
+  neither Ant nor inclusionAI appears in the two citations above, so their rows say
+  "Ant Group, Alibaba affiliate; not itself listed" and never inherit Alibaba's flag.
+  Say what the record shows, and say that the record is the two citations, not a
+  fresh check of the lists.
 
 When a vendor in the week's catalog is on either list, say so in the catalog table's
 limitation column for each of its models, in the same words each week. A listing is a
