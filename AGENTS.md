@@ -200,11 +200,11 @@ manifest is clean.
 - **Never apply a generator revision unattended.** The skill proposes edits to its
   own SKILL.md as a diff and stops. The user decides whether the landscape moved
   or whether it was noise.
-- **The Editor's Rating is the editor's; the digits are the record's.** Every
-  tried model gets a catalog row: three 0-5 digits `ratings.py` buckets from
+- **The Editor's Rating is the editor's; the scores are the record's.** Every
+  tried model gets a catalog row: three 0-5 scores `ratings.py` buckets from
   observation frontmatter (quality, cost, speed), a dated disqualifier column,
   and an Editor's Rating of Good / Acceptable / Marginal / Poor from
-  `editor-ratings.json`. Never type a digit, and never write that file; an
+  `editor-ratings.json`. Never type a score, and never write that file; an
   unattended run carries last week's rating forward with its date showing. The
   manifest is derived: Good and Acceptable in, Goods above Acceptables, a
   standing disqualifier holds a model out. The old `USE` / `TRY` / `HOLD` /
@@ -228,7 +228,7 @@ manifests/oxbox-manifest-*.json   which model oxbox should call — regenerated 
 corpora/corpus-manifest.json      what to send it — pinned targets, see corpora/README.md
 corpora/scorers/<task>.py         mechanical scoring where the fixture allows it; ask_grounding runs the pinned ox
 costcheck.py                      what a run cost: the model's tokens, and the harness's
-ratings.py                        the catalog table: digits bucketed from observations, and the rating
+ratings.py                        the catalog table: scores bucketed from observations, and the rating
 editor-ratings.json               the Editor's Rating per tried model -- the editor writes it, tools read it
 providers/<venue>.md              standing notes per venue — see providers/README.md
 .claude/skills/oxbox-survey/      the generator, and how it reviews its own rules

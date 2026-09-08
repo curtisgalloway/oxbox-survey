@@ -45,9 +45,9 @@
     },
     "deepseek/deepseek-v4-flash": {
       "venue": "openrouter",
-      "rating": null,
-      "date": null,
-      "why": null
+      "rating": "Acceptable",
+      "date": "2026-09-07",
+      "why": "we fixed the routing problem; otherwise it's decent."
     }
   }
 }

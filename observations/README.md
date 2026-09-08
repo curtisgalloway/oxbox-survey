@@ -90,11 +90,11 @@ group observations without interpreting prose:
   the catalog table, and only rows can carry the measured fields above. A probe
   may record a `disqualifier`, which annotates the catalog listing. This is the
   v2 rule — a recommendation requires a run — enforced at the evidence layer.
-- **The measured fields are the record the digits are bucketed from.** Every
+- **The measured fields are the record the scores are bucketed from.** Every
   run-backed `findings` or `hygiene` observation from 2026-09-06 on carries
   `run` and `wall_s`, plus `findings`/`real` for a review run or `hits`/`hits_of`
   for a fixture with a seeded set (`applies` and `self_hits` in diff mode).
-  `ratings.py` turns them into the 0-5 digits; **never write a `quality`, `cost`
+  `ratings.py` turns them into the 0-5 scores; **never write a `quality`, `cost`
   or `speed` key yourself.** `wall_s` comes from the log directory's timestamps
   (its name is the start, its newest file the end) and reproduces the durations
   the bodies state to within a second. Observations before 2026-09-06 had these
@@ -104,9 +104,9 @@ group observations without interpreting prose:
   half is the scorer.** A run on `oxbox-secret-scanner-fix` or
   `oxbox-ask-grounding` is verified by `corpora/scorers/` or the answer key, not
   by a reviewing agent, so its `usd_total` equals its `usd_model` and the cost
-  digit can be computed. A human-verified run (`oxbox-clean-control`, any real
+  score can be computed. A human-verified run (`oxbox-clean-control`, any real
   batch) carries `usd_total` only when the verification half was measured for
-  that run alone; a shared window is an upper bound, not a figure, and the digit
+  that run alone; a shared window is an upper bound, not a figure, and the score
   stays a dash.
 - **The checking half is recorded as a window, priced later, counted once.** The
   `harness_*` fields transcribe the `### Harness` table costcheck.py printed for
@@ -168,7 +168,7 @@ group observations without interpreting prose:
 - **Never edit a published observation.** If it turns out wrong, write a new file
   that links the old one and says what changed. The archive's value is that it
   records what was believed at the time. When the change is to a measured field
-  the digits are bucketed from (`real`, `hits`, `applies`, ...), the new file
+  the scores are bucketed from (`real`, `hits`, `applies`, ...), the new file
   carries `corrects: <the old file's name>` and the corrected fields; `ratings.py`
   overlays them onto the old observation's row, so the table follows the ruling
   while the original stays as written. First used 2026-09-06 for C3.
@@ -208,7 +208,7 @@ group observations without interpreting prose:
   entry and a baseline (`z-ai/glm-5.3-flash` is), and then its baseline
   observations are not what move its entry -- a candidate run is. Omitting
   `role` means `candidate`. A baseline run is a row in the catalog table with
-  digits like any other, marked baseline; a model whose only runs are baselines
+  scores like any other, marked baseline; a model whose only runs are baselines
   carries no Editor's Rating and cannot enter the manifest. `surveytest.py`
   enforces the rating and free-model rules.
   Decided 2026-09-02, amended 2026-09-06; see `docs/decisions.md`.

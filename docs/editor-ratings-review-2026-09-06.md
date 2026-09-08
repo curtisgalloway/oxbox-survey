@@ -5,11 +5,11 @@ SPDX-License-Identifier: Apache-2.0
 
 # Editor's Rating review
 
-The Editor's Rating column, for the editor to fill in. Every model the survey has put through ox is below with what the record measured on each dimension, my read of it, and a slot for the rating. The digits are bucketed by `ratings.py` from observation frontmatter and are not opinions. The rating is yours and the tools only read it.
+The Editor's Rating column, for the editor to fill in. Every model the survey has put through ox is below with what the record measured on each dimension, my read of it, and a slot for the rating. The scores are bucketed by `ratings.py` from observation frontmatter and are not opinions. The rating is yours and the tools only read it.
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
 
-**Where the digits stand.** The cost digit exists on ask-grounding (Fable's ceiling $0.0276 per hit) and on the clean control ($0.9152 per real finding, from Fable's run plus Fable's own in-harness check of it; the metered check of the same run came in cheaper, and question 3 asks which kind of check a ceiling means). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality digit exists only on fixtures with a seeded answer set, so it is a dash for every free candidate. Six ratings are in; DeepSeek V4 Flash is the seventh row and awaits yours, now with its clean-control re-run in the record. The rule derives the next manifest as MiniMax M3 free at rank 1 and GLM-5.3 Flash at rank 2, the current order.
+**Where the scores stand.** The cost score exists on ask-grounding (Fable's ceiling $0.0276 per hit) and on the clean control ($0.9152 per real finding, from Fable's run plus Fable's own in-harness check of it; the metered check of the same run came in cheaper, and question 3 asks which kind of check a ceiling means). It cannot exist on the scanner fix: Fable refuses that prompt whatever the framing, and a diagnostic pair showed the task text, not the file, is the trigger. The quality score exists only on fixtures with a seeded answer set, and it is a dash for every free row because none of the free models has been run on one: the two seeded fixtures were built on 2026-09-02, after the free rows were made, and every free run in the record is a hand-verified real-work batch. Nothing stops a free model from running the scanner fix or ask-grounding, and the three reachable free rows still listed in the shortlist below would get them first. All seven ratings are in. The rule derives the manifest as GLM-5.3 Flash at rank 1 and DeepSeek V4 Flash at rank 2: MiniMax M3 free, rated Good, was delisted from OpenRouter on 2026-09-07 and is held out until a catalog lists it again.
 
 **The cost tables have moved to a Sheet**, one tab per checking model plus the same-batch, per-fixture, ratings and rubric tabs, regenerated from the record each round: [Oxbox Survey costs](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit) (r3; r4 of this document linked r1 by mistake). This document keeps the same-batch table and the reading.
 
@@ -25,7 +25,7 @@ Backticks around model names do not survive the conversion to a Doc; ignore that
 
 ## What the scale looks like: the paid baselines
 
-Reference rows, never rated, never in the manifest. They show what a 5 and a 0 look like on the same fixtures. Fable 5.1 is the price ceiling, so its own cost digit is a 2 by construction.
+Reference rows, never rated, never in the manifest. They show what a 5 and a 0 look like on the same fixtures. Fable 5.1 is the price ceiling, so its own cost score is a 2 by construction.
 
 | Model | Fixture | Quality | Cost | Speed | Real / findings | Model USD |
 |---|---|---|---|---|---|---|
@@ -43,31 +43,31 @@ Reference rows, never rated, never in the manifest. They show what a 5 and a 0 l
 | gemini-3.7-flash | clean-control | | | 3 | 1 / 1 | $0.0620 |
 | deepseek-v4-flash | ask-grounding | 5 | 5 | 5 | | $0.0009 |
 | deepseek-v4-flash | secret-scanner-fix | 0 | | 0 | | $0.0014 |
-| deepseek-v4-flash | clean-control |  | 3 | 0 | 1 / 2 | $0.0181 |
+| deepseek-v4-flash | clean-control |  | 3 | 0 | 1 / 4 | $0.0203 |
 
-Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not apply, plus a self-hit. DeepSeek's 0 is the same apply failure and a 21-minute wall clock. Ask-grounding is saturated, seven models at 10 of 10, so a 5 there says little and the cost digit is what separates them. Fable on the clean control is the first model to find both known defects at that pin, both hedged UNCERTAIN, with one invention.
+Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not apply, plus a self-hit. DeepSeek's 0 is the same apply failure and a 21-minute wall clock. Ask-grounding is saturated, seven models at 10 of 10, so a 5 there says little and the cost score is what separates them. Fable on the clean control is the first model to find both known defects at that pin, both hedged UNCERTAIN, with one invention.
 
-## minimax/minimax-m3:free (OpenRouter, listed, rank 1 of the current manifest)
+## minimax/minimax-m3:free (OpenRouter, delisted 2026-09-07; rank 1 of the 2026-09-01 manifest)
 
-**Quality.** No quality digit, no seeded set. Real work: 13 of 15 findings real across two review batches on oxbox on 2026-08-29, two of them fixed within the hour. 7 of 12 on the exposure gate on 2026-08-30, where a reframed prompt found the cross-host redirect the neutral prompt missed, fixed the same afternoon. Three more batches that day, not rows because they were verified by the fixes that shipped rather than by a review pass: six findings confirmed, one UNCERTAIN refuted, the rest unverified. The table shows 20 real of 27 across the two rows.
+**Quality.** No quality score, no seeded set. Real work: 13 of 15 findings real across two review batches on oxbox on 2026-08-29, two of them fixed within the hour. 7 of 12 on the exposure gate on 2026-08-30, where a reframed prompt found the cross-host redirect the neutral prompt missed, fixed the same afternoon. Three more batches that day, not rows because they were verified by the fixes that shipped rather than by a review pass: six findings confirmed, one UNCERTAIN refuted, the rest unverified. The table shows 20 real of 27 across the two rows.
 
-**Cost.** Free. Both halves are not per-run in the record, so no cost digit. The reasoning share is the story: 98 percent of completion tokens went to thinking across seven runs, the largest run used 84 percent of the 100,000 default, and one call in seven returned nothing. Two of seven responses carry token accounting that does not add up. Every false finding cost a verification pass, and there were seven of those across the two rows.
+**Cost.** Free. Both halves are not per-run in the record, so no cost score. The reasoning share is the story: 98 percent of completion tokens went to thinking across seven runs, the largest run used 84 percent of the 100,000 default, and one call in seven returned nothing. Two of seven responses carry token accounting that does not add up. Every false finding cost a verification pass, and there were seven of those across the two rows.
 
 **Speed.** 182 s and 189 s on the two rows, a 3. Across the seven runs in the logs the spread is 111 s to 734 s, so the worst case is a 1.
 
-**Disqualifier.** None standing. The shared free pool 429s under concurrency and clears at 120-second serial retries.
+**Disqualifier.** Delisted since 2026-09-07: the 2026-09-07 snapshot finds no `minimax/minimax-m3:free` on OpenRouter, its endpoints list is empty, and only the paid `minimax/minimax-m3` remains at $0.30 in and $1.20 out per million. The delisting rule holds it out of the manifest whatever its rating, until a catalog lists it again. Before that: the shared free pool 429s under concurrency and clears at 120-second serial retries.
 
-**My read.** The only free model with run evidence at volume, and the findings it leads with are the ones that get fixed. The caveats are budget and reliability, not quality: run it at the 100,000 default, expect one empty return in a handful, and read everything it emits because a quarter of it will not hold. It is already rank 1 and nothing in the record argues for moving it.
+**My read.** The only free model with run evidence at volume, and the findings it leads with are the ones that get fixed. The caveats are budget and reliability, not quality: run it at the 100,000 default, expect one empty return in a handful, and read everything it emits because a quarter of it will not hold. It was rank 1 and nothing in the record argued for moving it; the venue moved it. Your Good stays on the record for the day it comes back.
 
 **Editor's Rating:** Good
 
 **Why:** Decent performance, OK speed.
 
-## z-ai/glm-5.3-flash (OpenRouter, paid, rank 2 of the current manifest; new candidate rows this round)
+## z-ai/glm-5.3-flash (OpenRouter, paid, rank 1 of the 2026-09-07 manifest, pinned)
 
 **Quality.** Run as a candidate on all three fixtures, at your direction. Ask-grounding: 10 of 10 in 25 seconds, a 5. Scanner fix: corrupt hunk header, the patch does not apply without a recount, all 8 verdicts hold and zero self-hits behind it, but gate 1 is the gate, a 0. Clean control: 4 findings, 0 real, 4 inventions, after your C3 ruling (below); it had been recorded as 1 real. The same model ran the same three payloads as a baseline on 2026-09-02 and got a clean apply on the scanner fix and one real defect on the clean control. So n=2 on each fixture: one pass and one fail on the mechanical half of a diff, one real finding in eight on the review, and three inventions repeated.
 
-**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0090, no digit because that fixture has no ceiling. Clean control billed $0.0034, double the catalog computation, because OpenRouter routed that one run to SiliconFlow at $0.15 and $0.50 per million instead of Z.AI at $0.075 and $0.25. The catalog price is the price of one route.
+**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0090, no score because that fixture has no ceiling. Clean control billed $0.0034, double the catalog computation, because OpenRouter routed that one run to SiliconFlow at $0.15 and $0.50 per million instead of Z.AI at $0.075 and $0.25. The catalog price is the price of one route. Since oxbox 1.1.0 the manifest pins the route: the 2026-09-07 entry names the four routes the rated runs went to, with `max_price` at the catalog row, which excludes SiliconFlow until it prices at list.
 
 **Speed.** 25 s on ask, a 5. 730 s on the scanner fix, a 1, and 544 s as a baseline. 90 s on the clean control, a 4.
 
@@ -79,25 +79,30 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 **Why:** Fast and mostly good. Z.ai's regulatory status is a concern though.
 
-## deepseek/deepseek-v4-flash (OpenRouter, paid; candidate rows this round, clean control re-run at your direction)
+## deepseek/deepseek-v4-flash (OpenRouter, paid, rank 2 of the 2026-09-07 manifest, pinned; rated this round)
 
-**Quality.** Run as a candidate on all three fixtures under your rule that a cheap enough model is a candidate; at $0.07 in and $0.14 out per million it is the cheapest paid row in the survey. Ask-grounding: 10 of 10 in 37 seconds, a 5, terse and right, and the new executable scorer passes it. Scanner fix: corrupt hunk header, the patch does not apply without a recount, 8 of 8 verdicts and zero self-hits behind it, a 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run. Clean control, twice: the first candidate run went to StreamLake and returned nothing after 33 minutes with 99,999 of 100,000 tokens spent reasoning; the re-run you asked for (question 5) went to Novita, the third provider to serve this model, and returned two findings in 47 seconds. Both findings are claims the record has already met on other models. D1 is C3 in the same words, the root stat FAIL called a false leak report, and falls under your C3 ruling as an invention. D2 is G1's mechanism, stated as UNCERTAIN and a design limitation with the trigger right (no route, connect times out, PASS); it is recorded real to match G1, and question 2 decides both. A fixture cell takes the worst digit on each dimension, so the baseline table reads speed 0 from the blowout beside cost 3 and 1 real of 2 from the re-run.
+**Quality.** Run as a candidate on all three fixtures under your rule that a cheap enough model is a candidate; at $0.089 in and $0.177 out per million on the 2026-09-07 catalog it is the cheapest paid row in the survey.
 
-**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0024, no digit. Clean control $0.016 for nothing on the blowout and $0.0016 for the two findings, billed at double the catalog computation because Novita's route is priced above the list row. The re-run is the first row on this fixture with a metered checking half: Fable 5.1 $0.37 and Opus 5 $0.23 for one request each, so both halves came to $0.37 against the $0.92 ceiling, a cost 3. Seven runs on OpenRouter have gone to three providers at two prices; r5 said four, which was wrong.
+- Ask-grounding: 10 of 10 in 37 seconds, a 5, terse and right, and the new executable scorer passes it.
+- Scanner fix: corrupt hunk header, the patch does not apply without a recount, 8 of 8 verdicts and zero self-hits behind it, a 0, the same failure as its baseline run and as GLM-5.3 Flash's candidate run.
+- Clean control, four times. The first candidate run went to StreamLake and returned nothing after 33 minutes with 99,999 of 100,000 tokens spent reasoning; the re-run you asked for (question 5) went to Novita, the third provider to serve this model, and returned two findings in 47 seconds. D1 is C3 in the same words and falls under your C3 ruling as an invention; D2 is G1's mechanism and is real under your G1 ruling. Then, on 2026-09-07, the first two pinned runs the survey has made: the same payload to StreamLake by name answered in 151 seconds with one finding (no timeout on `getaddrinfo`, refuted by reproduction inside the jail, where the call raises in 6 ms), and to DigitalOcean by name answered on the third attempt, after two 429s from that provider's shared pool, in 320 seconds with one finding (C3 again, in a third wording). 1 real of 4 findings over the four runs.
+- A fixture cell takes the worst score on each dimension, so the table reads speed 0 from the blowout beside cost 3 and 1 real of 4.
 
-**Speed.** 37 s on ask, a 4. 16 minutes on the scanner fix, a 1. 33 minutes for nothing, a 0, and then 47 seconds, a 4, on the same payload from a different provider.
+**Cost.** Ask-grounding at a tenth of a cent, a 5 against the ceiling. Scanner fix $0.0024, no score, because that fixture has no cost ceiling: the score is a ratio against Fable 5.1's cost per real finding on the same fixture, and Fable refuses the scanner-fix prompt, so there is nothing to divide by. Clean control $0.016 for nothing on the blowout, $0.0016 for the two Novita findings (billed at 1.6x the catalog row, because that route is priced above list), $0.0015 pinned to StreamLake and $0.0007 pinned to DigitalOcean for the identical payload. The Novita re-run is the first row on this fixture with a metered checking half: Fable 5.1 $0.37 and Opus 5 $0.23 for one request each, so both halves came to $0.37 against the $0.92 ceiling, a cost 3. Nine runs on OpenRouter have gone to three providers at three prices.
+
+**Speed.** 37 s on ask, a 4. 16 minutes on the scanner fix, a 1. 33 minutes for nothing, a 0, then 47 seconds, 151 seconds and 320 seconds on the same payload from three named providers.
 
 **Disqualifier.** None. Vendor note: DeepSeek is not on either list in the regulatory section; you reported a non-public backlog, uncited.
 
-**My read.** The blowout was the route, not the weights: same payload, same params, a complete review in under a minute from Novita and nothing in 33 minutes from StreamLake. That settles question 5 and leaves a harder fact: the manifest cannot pin a provider, so a user who calls this model through OpenRouter gets one of four routes, and the 33-minute one is among them. On what it found, the model is fast, cheap and finds nothing the record has not already adjudicated, one invention and one open question. On ask mode it is as good as anything in the table and cheaper than all of it; on the two harder fixtures it has failed the apply gate twice. Marginal on the record as it stands, with the route lottery as the reason it is not Acceptable and the ask result as the reason it is not Poor.
+**My read.** The blowout was the route, not the weights, and the route can now be named: oxbox 1.1.0 (2026-09-07) passes OpenRouter's `provider` object through, and the pinned pair showed what a pin buys. Attribution and a price guard, yes: the route that answered is the route that was asked for, and DigitalOcean's refusal was visible as DigitalOcean's instead of being routed around. Stability and quality, no: StreamLake, which hung for 33 minutes on Saturday, answered in 151 seconds on Monday, and the route that served the model's one ideal answer served an invention on the same bytes. On what it finds, the model is fast, cheap and has produced nothing the record had not already adjudicated: five answers to the clean control, all different, one right. On ask it is as good as anything in the table and cheaper than all of it; on the two harder fixtures it has failed the apply gate twice. Your Acceptable puts it at rank 2, pinned to the three routes its runs went to, with `max_price` at the catalog row.
 
-**Editor's Rating:** ____
+**Editor's Rating:** Acceptable
 
-**Why:** ____
+**Why:** we fixed the routing problem; otherwise it's decent.
 
 ## nemotron-3-ultra-free (OpenCode Zen, listed)
 
-**Quality.** No quality digit, no seeded set. 2 of 10 findings real on the exposure gate on 2026-08-30, a matched payload against MiniMax's 7 of 12. The one defect in the file that mattered was filed as UNCERTAIN with "low but non-zero" confidence.
+**Quality.** No quality score, no seeded set. 2 of 10 findings real on the exposure gate on 2026-08-30, a matched payload against MiniMax's 7 of 12. The one defect in the file that mattered was filed as UNCERTAIN with "low but non-zero" confidence.
 
 **Cost.** OpenCode publishes no price, so no model USD. 4,872 completion tokens against MiniMax's 30,712 on the same payload, so a sixth of the tokens. Eight refutations for two real findings is the expensive half.
 
@@ -113,7 +118,7 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## x-preview-f-free, the Ox Alpha listing (OpenCode Zen, delisted)
 
-**Quality.** No quality digit, no seeded set. 5 of 5 real on one file on 2026-08-24, zero false positives, including a real credential leak in oxbox's redirect path that falsified a claim the maintainer had made in writing. Issue 0.2 had 63 findings at 72 percent on the same weights through OpenRouter's stealth slot.
+**Quality.** No quality score, no seeded set. 5 of 5 real on one file on 2026-08-24, zero false positives, including a real credential leak in oxbox's redirect path that falsified a claim the maintainer had made in writing. Issue 0.2 had 63 findings at 72 percent on the same weights through OpenRouter's stealth slot.
 
 **Cost.** Free while it lasted. 3,611 prompt and 16,704 completion tokens, 4,935 of them reasoning. Reasoning is billed against the completion budget, which is what broke ox's old 32,000 default and led to the 100,000 default.
 
@@ -129,7 +134,7 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## mistral/leanstral-1-5 (Requesty, listed)
 
-**Quality.** No quality digit, no seeded set. 6 findings, 0 real, on the same file where Ox Alpha found 5 of 5. Four were titled BUG and then concluded to be non-defects in their own body. One was factually wrong about Python semantics. Three were the same observation with three contradictory verdicts.
+**Quality.** No quality score, no seeded set. 6 findings, 0 real, on the same file where Ox Alpha found 5 of 5. Four were titled BUG and then concluded to be non-defects in their own body. One was factually wrong about Python semantics. Three were the same observation with three contradictory verdicts.
 
 **Cost.** Paid on Requesty; no USD in the record. Roughly a tenth of Ox Alpha's tokens on the same input. Six refutations for zero real findings.
 
@@ -161,7 +166,7 @@ Sonnet's 0 on the scanner fix is a wrong hunk header, so the patch does not appl
 
 ## What it costs, by checking model
 
-The full tables are in the [costs Sheet](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit), one tab per checking model. Your direction to run both Opus 5 and Fable 5.1 as checkers is in force, and your answer to question 3 is now in the record: the checking half can be metered. A metered check sends the same verification instructions and the same five pinned files through OpenRouter as one request, and the figure is what the venue billed, every token counted. Four such checks exist today, two per checker, on Fable's clean-control run and on DeepSeek's re-run; the tables mark them ‡, and where a run has both an in-harness check and a metered one, the bill wins. The in-harness figures remain floors for the reason r4 gave: a subagent's output tokens are not in its transcript and cannot be derived from the harness total.
+The full tables are in the [costs Sheet](https://docs.google.com/spreadsheets/d/1Xbp8ymZBMU7IIbd2OmqQI31ye9L4daRklShv6rzvGMU/edit), one tab per checking model. Your direction to run both Opus 5 and Fable 5.1 as checkers is in force, and your answer to question 3 is now in the record: the checking half can be metered. A metered check sends the same verification instructions and the same five pinned files through OpenRouter as one request, and the figure is what the venue billed, every token counted. Six such checks exist today, three per checker: Fable's clean-control run, DeepSeek's re-run, and the G1 re-check under the amended contract; the tables mark them ‡, and where a run has both an in-harness check and a metered one, the bill wins. The in-harness figures remain floors for the reason r4 gave: a subagent's output tokens are not in its transcript and cannot be derived from the harness total.
 
 What metering showed on Fable's five-finding batch: the same five verdicts from Fable 5.1 for $0.57 in 98 seconds, against $1.46 at list and 152 seconds for the in-harness subagent with its eight tool calls and cache writes; Opus 5 for $0.37 in 142 seconds against a $0.79 floor and 343 seconds. Fable used 29 percent fewer output tokens than Opus and finished 44 seconds sooner, and still cost 56 percent more, because its list price is double; your theory that Fable uses fewer tokens holds, and the bill does not follow it. The price of metering is that the checker reads and cannot run: the metered Opus flipped F4 from uncertain to refuted on a reading the reproduction on dev contradicts. Under reproduce-first the metered check is the fallback, and its cost is the cost of the fallback.
 
@@ -269,18 +274,18 @@ A listing is a card fact: it can never earn a rating and it is not a disqualifie
 
 ## Models to try next
 
-Every model below is listed and, where the venue was probed, reachable. Card facts from the 2026-09-01 catalog; nothing here is a rating. The completion cap matters because ox sends 100,000 by default and a lower cap has to go in the manifest's params.
+Every model below is listed and, where the venue was probed, reachable. Card facts from the 2026-09-01 catalog, checked against the 2026-09-07 snapshot; nothing here is a rating. Two rows left the venue this week: `minimax/minimax-m2.7:free` and `z-ai/glm-5.2:free` are delisted, struck below. `inclusionai/ling-3.0-flash-sante:free` appeared. The completion cap matters because ox sends 100,000 by default and a lower cap has to go in the manifest's params.
 
 **Free, reachable, never run** (OpenRouter unless noted):
 
 | Model | Context | Completion cap | Reasoning | response_format | Note |
 |---|---|---|---|---|---|
-| minimax/minimax-m2.7:free | 197K | 177K | yes | yes | the sibling of the rank-1 model |
+| ~~minimax/minimax-m2.7:free~~ | 197K | 177K | yes | yes | delisted 2026-09-07, with its sibling |
 | cohere/north-mini-code:free | 256K | 64K | yes | no | a code model; no structured output |
 | dots-studio/dots-3-note-preview:free | 512K | 461K | yes | yes | also free on ZenMux |
 | inclusionai/ling-3.0-flash-fin:free | 262K | 32K | yes | no | Ant Group; low cap |
 | google/gemma-4-31b-it:free, gemma-4-26b-a4b-it:free | 262K | 32K | yes | yes | rate-limited at probe time, not closed |
-| z-ai/glm-5.2:free | 256K | 230K | yes | yes | rate-limited at probe; Zhipu, Entity List |
+| ~~z-ai/glm-5.2:free~~ | 256K | 230K | yes | yes | delisted 2026-09-07 |
 | ZenMux: z-ai/glm-4.7-flash-free, glm-4.6v-flash-free, ling-3.0-tiny | | | | | your balance covers them; Zhipu rows carry the list note |
 | Requesty: google/gemma-4-31b-it, nvidia/muse-glimmer-30b, nemotron-3-super-120b-a12b, nemotron-3.5-lightning-30b-a3b | | | | | answered the probe; class B, no published price |
 
@@ -303,7 +308,7 @@ Every model below is listed and, where the venue was probed, reachable. Card fac
 | inception/mercury-2 | 0.25/0.75 | 128K | 50K | a diffusion model, unusual |
 | arcee-ai/trinity-large-thinking | 0.25/0.80 | 262K | 80K | no response_format; US vendor |
 
-My suggestion for the first batch: the four reachable free rows plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, on all three fixtures, both checkers. That is 24 runs at a few cents of model cost and, at today's rates, roughly a dollar of checking per hand-verified batch. Mark the ones you want, strike the ones you do not, and I will queue them.
+My suggestion for the first batch: the three reachable free rows still listed plus gpt-oss-120b, mistral-small-2603, nemotron-3.5-lightning and mimo-v2.5, on all three fixtures, both checkers. That is 24 runs at a few cents of model cost and, at today's rates, roughly a dollar of checking per hand-verified batch. Mark the ones you want, strike the ones you do not, and I will queue them.
 
 ## G1, explained
 
@@ -329,4 +334,4 @@ You asked me to explain G1 further. Here is the whole of it.
 
 3. **Which check sets a ceiling.** The clean-control ceiling, $0.9152 per real finding, was computed from Fable's run plus Fable's in-harness check of it, $1.46 at list. The metered check of the same run cost $0.57, which would make the ceiling $0.47. The cost table now uses the bill for that run, so the table and the ceiling constant no longer describe the same check. Should a fixture's ceiling be the in-harness check, the metered check, or whichever the ceiling checker actually performed most recently?
 
-4. **The models to try next.** The shortlist in the section above is still unmarked. Mark or strike, and I will queue the first batch on all three fixtures with both checkers, metered.
+4. **The models to try next.** The shortlist in the section above is still unmarked, and two of its free rows have since been delisted. Mark or strike, and I will queue the first batch on all three fixtures with both checkers, metered. A seeded run on any free model would also give the free tier its first quality score.

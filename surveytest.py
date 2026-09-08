@@ -1123,7 +1123,7 @@ def load_ratings():
 
 
 def test_ratings():
-    print("\n=== the digits and the Editor's Rating ===")
+    print("\n=== the scores and the Editor's Rating ===")
     rt = load_ratings()
 
     # The buckets. The speed row was checked against the recorded runs before
@@ -1131,21 +1131,21 @@ def test_ratings():
     # one bucket is not a rubric.
     speed, quality, cost = rt["speed_digit"], rt["quality_digit"], rt["cost_digit"]
     report([speed(12), speed(189), speed(544), speed(1289)] == [5, 3, 2, 0],
-           "speed digits land the recorded runs in different buckets")
+           "speed scores land the recorded runs in different buckets")
     report(speed(None) is None and speed(30, timed_out=True) == 0,
            "speed: unmeasured is a dash, a timeout is 0")
     report([quality(10, 10), quality(8, 10), quality(5, 10), quality(3, 10),
             quality(1, 10), quality(0, 10)] == [5, 4, 3, 2, 1, 0],
-           "quality digits follow the rubric's fractions")
+           "quality scores follow the rubric's fractions")
     report(quality(8, 8, required_ok=False) == 0 and quality(None, 8) is None,
            "quality: a failed required gate is 0, no count is a dash")
     report([cost(0.001, 1, 1.0), cost(0.05, 1, 1.0), cost(0.5, 1, 1.0),
             cost(2, 1, 1.0), cost(8, 1, 1.0), cost(20, 1, 1.0)] == [5, 4, 3, 2, 1, 0],
-           "cost digits are logarithmic against the ceiling")
+           "cost scores are logarithmic against the ceiling")
     report(cost(1, 0, 1.0) == 0 and cost(1, 1, None) is None and cost(None, 1, 1.0) is None,
            "cost: no real defect is 0, no ceiling or no total is a dash")
 
-    # The record the digits come from. Nobody types a digit: the derived keys
+    # The record the scores come from. Nobody types a score: the derived keys
     # are forbidden in frontmatter, and only a run carries measured fields.
     obs = rt["load_observations"]()
     tasks = rt["load_corpus"]()
@@ -1167,7 +1167,7 @@ def test_ratings():
     rows = rt["run_rows"](obs, tasks)
     report(bool(rows), "run-backed observations produce catalog rows", len(rows))
     typed = [o["_file"] for o in obs if any(k in o for k in rt["DERIVED_KEYS"])]
-    report(not typed, "no observation types a quality, cost or speed digit", typed)
+    report(not typed, "no observation types a quality, cost or speed score", typed)
     # Run-output fields belong to runs. A check record (a manual observation
     # that names a run and carries harness_* fields) is the one exception, and
     # it may carry only the harness fields plus the run it checked.

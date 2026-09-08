@@ -243,7 +243,7 @@ base rate of such guesses being wrong.>
 
 ## Tried
 <`python3 ratings.py` output: every model ever run, its disqualifier, its Editor's
-Rating with date, then the per-fixture digits. Then the rubric.>
+Rating with date, then the per-fixture scores. Then the rubric.>
 
 ## What it costs
 <`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
@@ -296,13 +296,13 @@ hand; if a window is shared or missing, the table says so and the caveat stands.
 
 **The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
 it prints. Every model ever put through oxbox is a row, failures included: a run the
-venue refused shows its disqualifier and dashed digits; a run that answered with
-nothing shows quality 0. Three 0-5 digits per fixture, bucketed by the script from
+venue refused shows its disqualifier and dashed scores; a run that answered with
+nothing shows quality 0. Three 0-5 scores per fixture, bucketed by the script from
 observation frontmatter, never typed: quality (seeded defects found), cost (USD per real
 defect, both halves, against the fixture's Fable 5.1 ceiling), speed (wall clock). A
-dash is unmeasured, never zero. Every digit sits beside its fixture id and n, because
+dash is unmeasured, never zero. Every score sits beside its fixture id and n, because
 the fixtures discriminate unequally. Print the rubric (`ratings.py --rubric`) in every
-issue, and say once, up top, that the digits are measured and the rating is the editor's.
+issue, and say once, up top, that the scores are measured and the rating is the editor's.
 
 The Editor's Rating is Good / Acceptable / Marginal / Poor, from `editor-ratings.json`.
 **You never write that file.** If a tried model has no rating, the row says `unrated`

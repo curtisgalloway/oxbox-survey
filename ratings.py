@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 Curtis Galloway
 # SPDX-License-Identifier: Apache-2.0
-"""The catalog table: measured digits per tried model, and the Editor's Rating.
+"""The catalog table: measured scores per tried model, and the Editor's Rating.
 
 Every model the survey has put through ox gets a row, failures included. Three
-0-5 digits are bucketed from values the observation frontmatter records --
+0-5 scores are bucketed from values the observation frontmatter records --
 quality (recall against the fixture's seeded set), cost (USD per real defect,
 both halves, against the fixture's ceiling) and speed (wall clock) -- and the
-thresholds are the table printed by `--rubric`. Nobody types a digit. Zero is
+thresholds are the table printed by `--rubric`. Nobody types a score. Zero is
 measured and worst; a dash is unmeasured.
 
 The Editor's Rating (Good / Acceptable / Marginal / Poor) is the one column a
@@ -95,7 +95,7 @@ def cost_digit(usd_total, real, ceiling):
 
     "Real" is a verified-real finding on a review run, or a hit on a fixture
     with a seeded set. The ceiling is Fable 5.1's USD per real result on the
-    same fixture and lives in the corpus manifest; while it is null the digit
+    same fixture and lives in the corpus manifest; while it is null the score
     is unmeasured. A run with nothing real has nothing to divide by and is a
     0 -- it spent money and returned nothing usable.
     """
@@ -190,7 +190,7 @@ def load_observations(root=OBSERVATIONS):
 
     A published observation is never edited. A later observation that names
     it in `corrects:` and carries measured fields overlays those fields here,
-    so the digits follow the corrected record while the original stays as
+    so the scores follow the corrected record while the original stays as
     written; the overlay is recorded on the target as `_corrected_by`.
     """
     out = []
@@ -328,7 +328,7 @@ def tier_of(model, prices, usd_model):
 # --- rows ------------------------------------------------------------------
 
 def measure(fields, tasks):
-    """One run-backed observation to its digits and raw figures."""
+    """One run-backed observation to its scores and raw figures."""
     task = tasks.get(fields.get("corpus", ""), {})
     rubric = task.get("quality") or {}
     hits = _num(fields.get("hits"))
@@ -407,7 +407,7 @@ def run_rows(observations, tasks, prices=None):
     recorded one (a mechanically scored fixture, where the checker is the
     scorer). Otherwise, when the ceiling checker has a check record for the
     run, the total is the model half plus that check's priced window, and the
-    cost digit follows from it. A row with neither has no cost digit.
+    cost score follows from it. A row with neither has no cost score.
     """
     if prices is None:
         prices, _ = load_prices()
@@ -498,7 +498,7 @@ def open_disqualifiers(observations, catalog_root=CATALOG_ROOT):
 
 
 def per_fixture(rows):
-    """(model, fixture) -> n and the worst digit seen on that fixture."""
+    """(model, fixture) -> n and the worst score seen on that fixture."""
     out = {}
     for row in rows:
         key = (row["venue"], row["model"], row["fixture"])
@@ -620,7 +620,7 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
         out.append("| `%s` | %s | %d | %s | %s | %s | %s | %s |" % (
             model, fixture or "(real work)", cell["n"], _d(cell["quality"]),
             _d(cell["cost"]), _d(cell["speed"]), raw, usd))
-    out += ["", "Digits are bucketed from recorded values; the worst run on a fixture "
+    out += ["", "Scores are bucketed from recorded values; the worst run on a fixture "
             "is shown when n > 1. A dash is unmeasured, never zero. Rubric:", "",
             rubric_markdown()]
     return "\n".join(out)
@@ -682,7 +682,7 @@ def cost_rows(observations, prices, tasks=None, checker=None):
     the supervisor's list price and counted once, split evenly across the
     rows (of any model) it covers -- an upper bound, since a window holds
     whatever else the session did. "Real" uses the same divisor as the cost
-    digit: verified-real findings on a review run, hits on a seeded fixture,
+    score: verified-real findings on a review run, hits on a seeded fixture,
     zero when a required gate failed. USD per real is computed over the rows
     that have a window, so an unwindowed run's findings do not dilute it.
     """
