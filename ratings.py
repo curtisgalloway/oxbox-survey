@@ -40,7 +40,8 @@ RULE_FROM = "2026-09-06"  # manifests dated here or later are derived from ratin
 # Observation kinds that describe a run's output. Access and availability
 # observations contribute disqualifiers, never rows.
 ROW_KINDS = ("findings", "hygiene")
-MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "benign", "hits", "hits_of",
+MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "benign", "unresolved",
+                   "answered", "hits", "hits_of",
                    "applies", "self_hits", "usd_model", "usd_total",
                    "timed_out", "disqualifier", "harness_model", "harness_window",
                    "harness_in", "harness_out", "harness_cache_read",
@@ -72,7 +73,7 @@ DERIVED_KEYS = ("quality", "cost", "speed")  # never typed into frontmatter
 # is what a reader sees; these fractions are how a script decides it. "Minor"
 # is not machine-decidable, so the cut is on the fraction alone.
 
-def quality_digit(hits, of, required_ok=True):
+def quality_score(hits, of, required_ok=True):
     """0-5 from hits over the fixture's total. A failed required gate is 0."""
     if hits is None or not of:
         return None
@@ -90,18 +91,44 @@ def quality_digit(hits, of, required_ok=True):
     return 1
 
 
-def cost_digit(usd_total, real, ceiling):
+def cost_is_na(usd_total, real, ceiling, findings=None, expected_findings=None,
+               answered=True, timed_out=False):
+    """True when USD per real finding has no denominator rather than a bad one.
+
+    The fixture expected nothing, the model answered, and it reported nothing:
+    the ideal answer. Priced and with a ceiling, so this is not the unmeasured
+    case -- the table renders it `n/a`, which keeps "a dash is unmeasured,
+    never zero" true. Editor's ruling, 2026-09-08, round 11 question 5.
+    """
+    return (usd_total is not None and ceiling is not None and real is not None
+            and real <= 0 and expected_findings == 0 and findings == 0
+            and bool(answered) and not timed_out)
+
+
+def cost_score(usd_total, real, ceiling, findings=None, expected_findings=None,
+               answered=True, timed_out=False):
     """0-5 from USD per real result, both halves, on a log scale to the ceiling.
 
     "Real" is a verified-real finding on a review run, or a hit on a fixture
     with a seeded set. The ceiling is Fable 5.1's USD per real result on the
     same fixture and lives in the corpus manifest; while it is null the score
-    is unmeasured. A run with nothing real has nothing to divide by and is a
-    0 -- it spent money and returned nothing usable.
+    is unmeasured. A run with nothing real is a 0 -- it spent money and
+    returned nothing usable.
+
+    One exception, the editor's ruling of 2026-09-08 (round 11, question 5):
+    on a fixture whose expected finding count is zero, a run that answered and
+    reported nothing gave the fixture's ideal answer. USD per real finding
+    then has no denominator rather than a bad one, so it scores a dash. An
+    empty answer and a timeout are not that answer and stay 0, which is why
+    `answered` exists: without it the record cannot tell a model that
+    correctly found nothing from one that returned nothing at all.
     """
     if usd_total is None or ceiling is None or real is None:
         return None
     if real <= 0:
+        if cost_is_na(usd_total, real, ceiling, findings, expected_findings,
+                      answered, timed_out):
+            return None
         return 0
     ratio = (usd_total / float(real)) / float(ceiling)
     if ratio < 0.01:
@@ -117,7 +144,7 @@ def cost_digit(usd_total, real, ceiling):
     return 0
 
 
-def speed_digit(wall_s, timed_out=False):
+def speed_score(wall_s, timed_out=False):
     """0-5 from wall clock. Checked against the recorded runs before adoption."""
     if timed_out:
         return 0
@@ -181,7 +208,8 @@ def _bool(value):
     return value.strip().lower() in ("true", "yes")
 
 
-CORRECTABLE = ("findings", "real", "benign", "hits", "hits_of", "applies", "self_hits",
+CORRECTABLE = ("findings", "real", "benign", "unresolved", "answered", "hits",
+               "hits_of", "applies", "self_hits",
                "wall_s", "usd_model", "usd_total", "timed_out", "disqualifier")
 
 
@@ -343,6 +371,20 @@ def measure(fields, tasks):
     # cost divisor -- the editor's ruling of 2026-09-07: "a failure that isn't
     # really a failure is a waste of time to fix."
     benign = _num(fields.get("benign"))
+    # `unresolved`: findings emitted and never adjudicated. Added 2026-09-08
+    # (round 11) because the schema had nowhere to put one: `findings` minus
+    # `real` minus `benign` reads as the false-positive count, so an
+    # unverified finding was silently counted false. Never real, never in the
+    # cost divisor, and never a refutation.
+    unresolved = _num(fields.get("unresolved"))
+    # `answered`: did the model return any content at all. Absent means yes,
+    # which is every run that produced something to score. An empty answer
+    # records `answered: false` so it is not read as "correctly found
+    # nothing" -- see cost_score.
+    answered = _bool(fields.get("answered"))
+    answered = True if answered is None else answered
+    findings = _num(fields.get("findings"))
+    timed_out = _bool(fields.get("timed_out"))
     # The cost divisor: verified-real findings on a review run, hits on a
     # fixture with a seeded set.
     divisor = real if real is not None else hits
@@ -362,12 +404,28 @@ def measure(fields, tasks):
         "role": fields.get("role", "candidate"),
         "fixture": fields.get("corpus") or None,
         "run": fields.get("run"),
-        "quality": quality_digit(hits, hits_of, required_ok) if rubric else None,
-        "cost": cost_digit(_num(fields.get("usd_total")), divisor,
-                           task.get("cost_ceiling_usd_per_real")),
-        "speed": speed_digit(_num(fields.get("wall_s")), _bool(fields.get("timed_out"))),
+        "quality": quality_score(hits, hits_of, required_ok) if rubric else None,
+        "cost": cost_score(_num(fields.get("usd_total")), divisor,
+                           task.get("cost_ceiling_usd_per_real"),
+                           findings=findings,
+                           expected_findings=task.get("expected_findings"),
+                           answered=answered, timed_out=bool(timed_out)),
+        "speed": speed_score(_num(fields.get("wall_s")), _bool(fields.get("timed_out"))),
         "hits": hits, "hits_of": hits_of,
-        "findings": _num(fields.get("findings")), "real": real, "benign": benign,
+        # The patch legs, recorded per run and shown separately: gate 1 is
+        # `applies`, gate 2 is hits over hits_of, gate 3 is `self_hits`.
+        "applies": _bool(fields.get("applies")),
+        "self_hits": _num(fields.get("self_hits")),
+        "mode": task.get("mode"),
+        "smoke": task.get("scoring") == "smoke",
+        "expected_findings": task.get("expected_findings"),
+        "cost_na": cost_is_na(_num(fields.get("usd_total")), divisor,
+                              task.get("cost_ceiling_usd_per_real"), findings,
+                              task.get("expected_findings"), answered,
+                              bool(timed_out)),
+        "answered": answered,
+        "findings": findings, "real": real, "benign": benign,
+        "unresolved": unresolved,
         "usd_model": _num(fields.get("usd_model")),
         "usd_total": _num(fields.get("usd_total")),
         "wall_s": _num(fields.get("wall_s")),
@@ -432,7 +490,17 @@ def run_rows(observations, tasks, prices=None):
                 r["usd_total"] = r["usd_model"] + check_usd
                 r["usd_total_from"] = "check record"
                 task = tasks.get(r["fixture"] or "", {})
-                r["cost"] = cost_digit(r["usd_total"], r["divisor"], task.get("cost_ceiling_usd_per_real"))
+                r["cost"] = cost_score(r["usd_total"], r["divisor"],
+                                       task.get("cost_ceiling_usd_per_real"),
+                                       findings=r["findings"],
+                                       expected_findings=task.get("expected_findings"),
+                                       answered=r["answered"],
+                                       timed_out=bool(_bool(r["_fields"].get("timed_out"))))
+                r["cost_na"] = cost_is_na(r["usd_total"], r["divisor"],
+                                          task.get("cost_ceiling_usd_per_real"),
+                                          r["findings"], task.get("expected_findings"),
+                                          r["answered"],
+                                          bool(_bool(r["_fields"].get("timed_out"))))
     return rows
 
 
@@ -510,8 +578,11 @@ def per_fixture(rows):
         cell = out.setdefault(key, {"n": 0, "quality": None, "cost": None,
                                     "speed": None, "role": row["role"],
                                     "findings": 0, "real": 0, "benign": 0,
+                                    "unresolved": 0, "smoke": row["smoke"],
+                                    "cost_na": False,
                                     "usd_model": None, "any_raw": False})
         cell["n"] += 1
+        cell["cost_na"] = cell["cost_na"] or row["cost_na"]
         for dim in DERIVED_KEYS:
             if row[dim] is not None:
                 cell[dim] = row[dim] if cell[dim] is None else min(cell[dim], row[dim])
@@ -519,6 +590,7 @@ def per_fixture(rows):
             cell["findings"] += row["findings"]
             cell["real"] += row["real"] or 0
             cell["benign"] += row["benign"] or 0
+            cell["unresolved"] += row["unresolved"] or 0
             cell["any_raw"] = True
         if row["usd_model"] is not None:
             cell["usd_model"] = (cell["usd_model"] or 0) + row["usd_model"]
@@ -599,8 +671,15 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
            "|---|---|---|---|---|---|"]
     models = {}
     for (venue, model, _), cell in cells.items():
-        entry = models.setdefault((venue, model), {"n": 0, "role": cell["role"]})
+        entry = models.setdefault((venue, model), {"n": 0, "role": cell["role"],
+                                                   "repeated": False})
         entry["n"] += cell["n"]
+        # Provisional: no fixture has been run twice, so nothing about this
+        # model has been seen to recur. Recorded 2026-09-08 (round 11) --
+        # a single run is evidence, and saying so is not the same as saying
+        # it is reliable.
+        if cell["n"] > 1:
+            entry["repeated"] = True
     for (venue, model), entry in sorted(models.items(), key=lambda kv: kv[0][1]):
         rating = ratings.get(model) or {}
         if model in baselines:
@@ -611,28 +690,99 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
         else:
             shown, why = "unrated", ""
         mark = disq.get(model)
-        out.append("| `%s` | %s | %d | %s | %s | %s |" % (
-            model, venue, entry["n"],
+        runs = "%d%s" % (entry["n"], "" if entry["repeated"] else " (provisional)")
+        out.append("| `%s` | %s | %s | %s | %s | %s |" % (
+            model, venue, runs,
             "%s since %s" % (mark[1], mark[0]) if mark else "none",
             shown, why))
 
-    out += ["", "## Per fixture", "",
+    out += ["", "A model is **provisional** while no fixture has been run twice: "
+            "every score it has is a single observation, which is evidence and is "
+            "not the same as reliability. The marker annotates the row, it does not "
+            "hold a model out.", "",
+            "## Per fixture", "",
             "| Model | Fixture | n | Quality | Cost | Speed | Real / findings | Model USD |",
             "|---|---|---|---|---|---|---|---|"]
     for (venue, model, fixture), cell in sorted(cells.items(),
                                                 key=lambda kv: (kv[0][1], kv[0][2] or "")):
         raw = "%d / %d" % (cell["real"], cell["findings"]) if cell["any_raw"] else "-"
+        extra = []
         if cell["benign"]:
-            raw += " (+%d benign)" % cell["benign"]
+            extra.append("+%d benign" % cell["benign"])
+        if cell["unresolved"]:
+            extra.append("+%d unresolved" % cell["unresolved"])
+        if extra:
+            raw += " (%s)" % ", ".join(extra)
         usd = "-" if cell["usd_model"] is None else "$%.4f" % cell["usd_model"]
+        name = (fixture or "(real work)") + (" (smoke)" if cell["smoke"] else "")
+        cost = "n/a" if cell["cost"] is None and cell["cost_na"] else _d(cell["cost"])
         out.append("| `%s` | %s | %d | %s | %s | %s | %s | %s |" % (
-            model, fixture or "(real work)", cell["n"], _d(cell["quality"]),
-            _d(cell["cost"]), _d(cell["speed"]), raw, usd))
+            model, name, cell["n"], _d(cell["quality"]),
+            cost, _d(cell["speed"]), raw, usd))
     out += ["", "Scores are bucketed from recorded values; the worst run on a fixture "
-            "is shown when n > 1. A dash is unmeasured, never zero. A benign count is "
+            "is shown when n > 1. A dash is unmeasured, never zero; `n/a` in the cost "
+            "column is a priced run on a fixture that expected nothing, which answered "
+            "and found nothing -- the ideal answer, with no denominator to divide by. "
+            "A benign count is "
             "confirmed failures in the safe direction, shown beside real and never "
-            "counted as real or in the cost divisor. Rubric:", "",
-            rubric_markdown()]
+            "counted as real or in the cost divisor; an unresolved count is findings "
+            "nobody adjudicated, which are not real and are not false either. A "
+            "fixture marked (smoke) is a diagnostic, not an axis: its scores are "
+            "recorded and a failure on it annotates the model's row rather than "
+            "excluding it. Rubric:", "",
+            rubric_markdown(), "", patch_legs_markdown(rows)]
+    return "\n".join(out)
+
+
+def patch_legs_markdown(rows):
+    """The diff fixtures' three legs, shown separately rather than collapsed.
+
+    A patch fixture's quality score is one number over three different
+    questions, and the worst of them decides it: six models in the 2026-09-08
+    batch scored 0 for a hunk header `git apply` rejects while a correct
+    pattern list sat behind it, and the table could not say so. The legs were
+    always measured -- `applies` is gate 1, hits over hits_of is gate 2,
+    `self_hits` is gate 3 -- so this exposes what the record already holds and
+    leaves the score beside it unchanged.
+
+    Gate 3 is the only regression evidence the corpus has, and it is one test
+    on one fixture: the patched scanner must not refuse ox's own source. It is
+    reported as partial for that reason, not as a third leg earned.
+    """
+    legs = [r for r in rows if r["mode"] == "diff"]
+    if not legs:
+        return ""
+    out = ["### Patch delivery, by leg", "",
+           "| Model | Run | Applies as delivered | Fixes the behavior | "
+           "Preserves (partial) | Score |",
+           "|---|---|---|---|---|---|"]
+    for r in sorted(legs, key=lambda r: (r["model"], r["date"] or "")):
+        applies = "-" if r["applies"] is None else ("yes" if r["applies"] else "no")
+        if r["hits"] is None or not r["hits_of"]:
+            fixes = "-"
+        else:
+            fixes = "%d of %d" % (r["hits"], r["hits_of"])
+        if r["self_hits"] is None:
+            preserves = "-"
+        elif r["self_hits"] == 0:
+            preserves = "self-scan clean"
+        else:
+            preserves = "%d self-hit%s" % (r["self_hits"],
+                                           "" if r["self_hits"] == 1 else "s")
+        # Two runs of one model on one fixture are two rows, so name the run.
+        out.append("| `%s` | %s | %s | %s | %s | %s |" % (
+            r["model"], r["run"] or (r["date"] or "-"),
+            applies, fixes, preserves, _d(r["quality"])))
+    out += ["", "Three questions, measured separately and reported separately since "
+            "2026-09-08 (round 11). **Applies as delivered** is `git apply --check` "
+            "at the pin, with no `--recount` repair. **Fixes the behavior** is the "
+            "measured before/after verdicts on the patched pattern list, run even "
+            "when gate 1 failed, where it is informational. **Preserves** is partial "
+            "everywhere and always will be until the corpus has regression tests: "
+            "the only evidence is gate 3, a single self-scan of `ox`. The Score "
+            "column is the fixture's quality score, unchanged -- it is the worst "
+            "leg, and a patch that does not apply is still a patch that does not "
+            "apply."]
     return "\n".join(out)
 
 

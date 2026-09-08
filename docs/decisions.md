@@ -579,3 +579,66 @@ the run plus its metered check over the same two findings, and the rule is
 that a ceiling is the ceiling checker's bill where one exists and its priced
 window only where none does. Ask-grounding's ceiling ($0.02756) is unchanged:
 its checking half is the scorer.
+
+**Amended 2026-09-08: the ideal answer's cost is `n/a`, not 0.** Round 11's
+question 5 asked what the cost score should be when a model gives the
+zero-defect control its best possible answer, "no defects found". The rubric
+scored it 0, the same as a blowout, because cost is USD per real finding and
+there is nothing real to divide by. The editor's answer was the dash. So
+`cost_is_na()` in `ratings.py` names the case -- a priced run, on a fixture
+whose manifest entry says `expected_findings: 0`, that answered and reported
+nothing -- and the table prints `n/a` rather than a dash, which keeps the
+older and still-true statement that a dash is unmeasured, never zero.
+
+Applying it needed a field the record did not have. Ling 3.0 Flash Fin's empty
+return and Dots 3 Note Preview's ideal answer on that fixture the same night
+recorded byte-identical measured fields, so "found nothing" and "returned
+nothing" were indistinguishable to any script, and the ruling as written would
+have given an exhausted completion cap the fixture's best score. `answered`
+now carries that distinction; four runs in the record are marked
+`answered: false`, all by correction observation, and an empty answer or a
+timeout still scores cost 0.
+
+## Ask-grounding is a smoke test, not an axis
+
+**Decided** 2026-09-08, round 11 question 8. Eleven of thirteen models score a
+perfect five on `oxbox-ask-grounding`, one a four, and one returned nothing:
+the fixture separates two models and costs a run and a scoring pass every
+week. It keeps running, because "does this model answer at all, and does it
+decline the traps rather than fabricate" is worth knowing cheaply and is
+exactly what caught Nemotron 3.5 Lightning's empty answer. Its score is still
+recorded and still bucketed. What changed is what the score is read as: the
+task carries `"scoring": "smoke"`, the table marks the fixture `(smoke)`, and
+a failure there annotates a model's row rather than excluding it. A model that
+cannot ground a file may still be a useful reviewer, and the record should say
+both things instead of collapsing them.
+
+## An unadjudicated finding is not a false one
+
+**Decided** 2026-09-08, round 11, from an outside review of the corpus
+proposal. The frontmatter had `findings`, `real` and `benign`, so `findings`
+minus the other two was the false-positive count by construction -- which
+means a finding nobody got round to verifying was counted as false. That has
+not bitten yet: every finding in the record has a verdict, and no row carries
+the new field. It would bite immediately under any suite that lets a model
+volunteer findings beyond a known seeded defect, which is the shape every
+paired-review proposal takes. `unresolved` is now a field of its own: not
+real, not benign, not a refutation, never in the cost divisor, and shown in
+the table beside the benign count.
+
+## The patch fixture reports three legs, and only owns two
+
+**Decided** 2026-09-08, round 11, same review. A diff fixture's quality score
+is one number over three different questions and the worst of them decides it.
+Six models in the 2026-09-08 batch scored 0 for a hunk header `git apply`
+rejects while a correct pattern list sat behind it, and the table could not
+say so. The legs were always measured -- `applies` is gate 1, `hits`/`hits_of`
+is gate 2, `self_hits` is gate 3 -- so `ratings.py` now prints a **Patch
+delivery, by leg** table beside the scores rather than instead of them: the
+quality score is unchanged, because a patch that does not apply is still a
+patch that does not apply.
+
+The third leg is reported as partial and will stay that way until the corpus
+has regression tests. Gate 3, a single self-scan of `ox`, is the only evidence
+the corpus has that a patch did not break something else, and calling that
+"preserves regression tests" would claim a measurement that does not exist.

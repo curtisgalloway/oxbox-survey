@@ -40,6 +40,8 @@ wall_s: 12                  # longest run's wall clock, from the log timestamps
 findings: 8                 # review mode: findings emitted ...
 real: 1                     # ... and how many verified real
 benign: 0                   # ... and how many are confirmed failures in the safe direction only
+unresolved: 0               # ... and how many nobody adjudicated: not real, not false
+answered: true              # did the model return any content at all (absent means yes)
 hits: 10                    # fixture with a seeded set: hits ...
 hits_of: 10                 # ... of the fixture's total (see the task's quality field)
 applies: true               # diff mode: did git apply --check pass at the pin
@@ -102,6 +104,24 @@ group observations without interpreting prose:
   divisor. Before the ruling such findings were recorded in prose as
   true-and-negligible and counted nowhere; the three that exist were moved
   into `benign` by correction observations the same day.
+- **`unresolved` is where an unverified finding goes.** Added 2026-09-08 after
+  round 11: the schema had `findings`, `real` and `benign`, so `findings` minus
+  the other two read as the false-positive count and a finding nobody
+  adjudicated was silently counted false. It is not real, it is not benign, it
+  is not a refutation, and it is never in the cost divisor. No run in the
+  record carries one today -- every finding so far has a verdict -- and the
+  field exists so that a suite which lets a model volunteer findings beyond a
+  known defect has somewhere to put them that is not the false bucket.
+- **`answered` separates "found nothing" from "returned nothing".** Absent
+  means the model answered, which is every run that produced something to
+  score. `answered: false` says the response had no content. It was added
+  2026-09-08 with the editor's ruling on round 11 question 5, and it is
+  load-bearing rather than descriptive: Ling 3.0 Flash Fin's empty return and
+  Dots 3 Note Preview's ideal "no concrete defects" on the zero-defect control
+  recorded byte-identical measured fields (`findings: 0`, `real: 0`,
+  `usd_model: 0`) and mean opposite things. Without the field the ruling would
+  score an exhausted completion cap the same as the fixture's best possible
+  answer. Four runs in the record carry it, all by correction observation.
   `ratings.py` turns them into the 0-5 scores; **never write a `quality`, `cost`
   or `speed` key yourself.** `wall_s` comes from the log directory's timestamps
   (its name is the start, its newest file the end) and reproduces the durations

@@ -1129,7 +1129,7 @@ def test_ratings():
     # The buckets. The speed row was checked against the recorded runs before
     # it was adopted (docs/decisions.md): a rubric that puts the real data in
     # one bucket is not a rubric.
-    speed, quality, cost = rt["speed_digit"], rt["quality_digit"], rt["cost_digit"]
+    speed, quality, cost = rt["speed_score"], rt["quality_score"], rt["cost_score"]
     report([speed(12), speed(189), speed(544), speed(1289)] == [5, 3, 2, 0],
            "speed scores land the recorded runs in different buckets")
     report(speed(None) is None and speed(30, timed_out=True) == 0,
@@ -1144,6 +1144,42 @@ def test_ratings():
            "cost scores are logarithmic against the ceiling")
     report(cost(1, 0, 1.0) == 0 and cost(1, 1, None) is None and cost(None, 1, 1.0) is None,
            "cost: no real defect is 0, no ceiling or no total is a dash")
+
+    # Round 11, question 5: on a fixture that expects nothing, the ideal
+    # answer has no denominator rather than a bad one. An empty answer and a
+    # timeout produce the same three numbers and are not that answer.
+    na = rt["cost_is_na"]
+    ideal = dict(findings=0, expected_findings=0, answered=True)
+    report(cost(0.0045, 0, 0.4685, **ideal) is None
+           and na(0.0045, 0, 0.4685, **ideal),
+           "cost: answering a zero-expected fixture with nothing is n/a, not 0")
+    report(cost(0.0045, 0, 0.4685, findings=0, expected_findings=0, answered=False) == 0
+           and cost(0.0045, 0, 0.4685, timed_out=True, **ideal) == 0,
+           "cost: an empty answer and a timeout stay 0 on the same numbers")
+    report(cost(0.41, 0, 0.4685, findings=3, expected_findings=0, answered=True) == 0
+           and cost(1, 0, 1.0, findings=0, expected_findings=None, answered=True) == 0,
+           "cost: inventions are 0, and n/a needs a fixture that expects nothing")
+
+    # The record has to be able to tell the two apart, which is what the
+    # `answered` field was added for. These four runs recorded identical
+    # measured fields to runs that gave the ideal answer.
+    obs_all = rt["load_observations"]()
+    unanswered = {o["model"] for o in obs_all if rt["_bool"](o.get("answered")) is False}
+    report(unanswered == {"inclusionai/ling-3.0-flash-fin:free",
+                          "deepseek/deepseek-v4-flash",
+                          "nvidia/nemotron-3.5-lightning",
+                          "z-ai/glm-5.3-free"},
+           "every empty answer in the record is marked answered: false",
+           sorted(unanswered))
+    rows_all = rt["run_rows"](obs_all, rt["load_corpus"]())
+    clean = [r for r in rows_all if r["fixture"] == "oxbox-clean-control"]
+    ideal_rows = {r["model"] for r in clean if r["cost_na"]}
+    report(ideal_rows == {"dots-studio/dots-3-note-preview:free",
+                          "nvidia/nemotron-3.5-lightning", "xiaomi/mimo-v2.5"},
+           "the three ideal answers on the zero-defect control score cost n/a",
+           sorted(ideal_rows))
+    report(all(not r["cost_na"] for r in clean if r["answered"] is False),
+           "no run that returned nothing is scored as the ideal answer")
 
     # The record the scores come from. Nobody types a score: the derived keys
     # are forbidden in frontmatter, and only a run carries measured fields.
