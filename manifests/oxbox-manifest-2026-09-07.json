@@ -33,7 +33,7 @@
           "completion": 0.25
         }
       },
-      "why": "Editor's Rating Acceptable (2026-09-06): fast and mostly good; Z.AI's regulatory status is a concern. Six runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice, the clean control 1 real of 8 findings over two runs, the scanner fix passed all three gates as a baseline and produced a corrupt hunk as a candidate. Effort pinned at high, below the model's own default of max, because every survey run went out at high. Pinned to the four routes those runs were served from; SiliconFlow billed 2x the catalog row on 2026-09-06, so max_price at list excludes it until it prices at list again, and with fallbacks off a refusal from the remaining routes fails the run instead of sending the payload somewhere unmeasured."
+      "why": "Editor's Rating Acceptable (2026-09-06): fast and mostly good; Z.AI's regulatory status is a concern. Six runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice, the zero-defect control 1 real of 8 findings over two runs, the scanner fix passed all three gates as a baseline and produced a corrupt hunk as a candidate. Effort pinned at high, below the model's own default of max, because every survey run went out at high. Pinned to the four routes those runs were served from; SiliconFlow billed 2x the catalog row on 2026-09-06, so max_price at list excludes it until it prices at list again, and with fallbacks off a refusal from the remaining routes fails the run instead of sending the payload somewhere unmeasured."
     },
     {
       "rank": 2,
@@ -60,7 +60,7 @@
           "completion": 0.1772
         }
       },
-      "why": "Editor's Rating Acceptable (2026-09-07): we fixed the routing problem; otherwise it's decent. The cheapest paid row in the survey. Nine runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice; the scanner fix failed the apply gate twice; the clean control 1 real of 4 findings over four candidate runs, the last two of them pinned to StreamLake and DigitalOcean by name, the first pinned runs the survey made. Effort high is the model's own default. Pinned to the three routes those runs were served from, with max_price at the catalog row: Novita billed 1.6x list on 2026-09-06, so the guard excludes it until it prices at list, and DigitalOcean's shared pool refused two of three pinned attempts on 2026-09-07 before answering, which with fallbacks off fails the run rather than sending the payload elsewhere."
+      "why": "Editor's Rating Acceptable (2026-09-07): we fixed the routing problem; otherwise it's decent. The cheapest paid row in the survey. Nine runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice; the scanner fix failed the apply gate twice; the zero-defect control 1 real of 4 findings over four candidate runs, the last two of them pinned to StreamLake and DigitalOcean by name, the first pinned runs the survey made. Effort high is the model's own default. Pinned to the three routes those runs were served from, with max_price at the catalog row: Novita billed 1.6x list on 2026-09-06, so the guard excludes it until it prices at list, and DigitalOcean's shared pool refused two of three pinned attempts on 2026-09-07 before answering, which with fallbacks off fails the run rather than sending the payload elsewhere."
     }
   ]
 }

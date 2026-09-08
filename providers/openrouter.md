@@ -102,7 +102,7 @@ its own cloaked listings**, via the `stealth/` id prefix — which is why
   observation on this venue names the `route`; an unpinned run's catalog price
   is a floor, and only a pinned run can tell a model's failure from a route's.
   The first pinned runs were made the day the release shipped `[M]`: the
-  DeepSeek clean-control payload to `streamlake/fp8` answered in 151 s (the
+  DeepSeek zero-defect control payload to `streamlake/fp8` answered in 151 s (the
   route that returned nothing in 33 minutes the day before), and to
   `digitalocean` was refused 429 twice with `allow_fallbacks: false` — the
   error naming DigitalOcean's shared pool — before answering on the third try,

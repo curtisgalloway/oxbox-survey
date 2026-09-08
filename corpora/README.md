@@ -76,7 +76,7 @@ the key, then pattern-scores the model's answers and hands the two that need an
 HTTP exchange to a reader. Reproduce first, read as the fallback, and if the key
 ever drifts from the code the scorer says DRIFT rather than trusting the key.
 
-A task may override its project's `commit`. `oxbox-clean-control` does: it sits one
+A task may override its project's `commit`. `oxbox-clean-control`, the zero-defect control, does: it sits one
 commit *later* than the batch that found its only defect, because the point of that
 fixture is a file with nothing left to find.
 

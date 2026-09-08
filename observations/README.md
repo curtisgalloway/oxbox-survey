@@ -104,7 +104,7 @@ group observations without interpreting prose:
   half is the scorer.** A run on `oxbox-secret-scanner-fix` or
   `oxbox-ask-grounding` is verified by `corpora/scorers/` or the answer key, not
   by a reviewing agent, so its `usd_total` equals its `usd_model` and the cost
-  score can be computed. A human-verified run (`oxbox-clean-control`, any real
+  score can be computed. A human-verified run (the zero-defect control `oxbox-clean-control`, any real
   batch) carries `usd_total` only when the verification half was measured for
   that run alone; a shared window is an upper bound, not a figure, and the score
   stays a dash.

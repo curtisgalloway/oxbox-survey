@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Curtis Galloway
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# Answer key — `oxbox-clean-control`
+# Answer key — the zero-defect control (`oxbox-clean-control`)
 
 Task: `corpora/prompts/oxbox-clean-control.txt`, mode `review`, `jailtest.py` at
 oxbox `6302b12c95473204875b63cc350a92b1c933a259`.
