@@ -15,6 +15,9 @@ Everything this document asks of you, in one place. Direct edits in the Doc are 
 - **Q5. The cost score on a zero-finding answer.** Three of the seven gave the zero-defect control its ideal answer, "no defects found", and the rubric scores their cost 0, the same as a blowout, because cost is USD per real finding and there is nothing real to divide by. Should a zero-finding answer on this fixture score cost as a dash (not applicable), as it does now (0), or some other way? *Default:* as it does now.
 - **Q6. Does the G1 ruling reach O3?** gpt-oss-120b's pinned re-send produced twelve findings; both checkers refuted eleven and split on O3, which says `probe()`'s `except Exception` masks programming errors as PASS. That is G1's mechanism (a PASS that does not depend on the jail) with a trigger the tree does not contain (a typo in a probe) instead of G1's offline host. Fable refuted it as written; Opus confirmed it as the case the amended contract names. The record holds it real to match G1 and D2, so gpt-oss shows 1 real of 12. Should the ruling reach a trigger the tree cannot produce, or is O3 an invention? *Default:* as recorded, real.
 
+- **Q7. Adopt an existing labeled test set for the quality axis?** You asked whether this is a low-rent version of standard model testing. Partly, and the fix is narrower than a swap: bring in a pinned slice of a public vulnerability-detection dataset as one new fixture, so the quality score rests on thousands of labeled cases with mechanical ground truth instead of one hand-built file. Detail, candidates and caveats in "Adopting an outside test set" below. *Default:* the corpus stays as it is.
+- **Q8. Demote ask-grounding to a smoke test?** It now separates two models out of thirteen: eleven score a perfect five, one a four, one returned nothing. A fixture that cannot tell models apart still costs a run and a scoring pass every time. The proposal is to keep running it as a cheap check that a model answers at all and does not fabricate under a trap, but stop treating its score as an axis in the table. *Default:* it stays a scored axis.
+
 Settled from r9: the two re-sends you asked for ran, pinned; gpt-oss-120b answered from DeepInfra in 577 s with twelve findings (its section below), North Mini Code timed out again on Cohere, its only route (its section below). Settled from r8: **Q1** safe-direction failures count separately (a `benign` count beside real, never as real; F2, F3, P3 and L4 moved into it by correction observations). **Q3** the metered check sets a fixture's ceiling (the zero-defect control's is now $0.4685 per real finding, from $0.9152). **Q4** the batch ran; see the seven sections. Q2 (G1) was ruled after r5; the earlier Q5 (DeepSeek's re-run) was done.
 
 **How to rate.** Under each model, replace the blank after **Editor's Rating** with one of Good, Acceptable, Marginal, Poor, and write a line after **Why**. That line becomes the manifest's `why` field, so write it for a reader of the survey. Leave a margin comment for anything else. Good and Acceptable go into the next manifest, Goods above Acceptables. Marginal and Poor stay out.
@@ -389,6 +392,30 @@ You asked whether every test now has a real-world result to check against. Not y
 | review-queue, exposure-gate | human verification, and fixes that shipped upstream | no answer key by design |
 
 Reproduce-first is now the rule for any finding whose failure can be run, and ask-grounding is executable (your question 4). If the key ever drifts from the code the scorer prints DRIFT rather than trusting the key. Making the review fixtures executable would mean answer keys, which the corpus rule forbids.
+
+## Adopting an outside test set
+
+You asked whether this is a low-rent version of the model testing others already do. Here is the case both ways, and what I would change. Questions 7 and 8 above are the decisions.
+
+**Where the criticism lands.** Ask-grounding is a small, saturated version of a public grounding benchmark: eleven of thirteen models score a perfect five, so it separates two. The scanner fix is one patch task, which is SWE-bench's shape with a sample size of one. Every fixture draws from a single repository the maintainer wrote. Public benchmarks spend most of their effort on the two things this corpus has none of, held-out breadth and statistical power, and on capability ranking it will never compete. The repo already says a ranking here is an opinion rather than a test result; the risk is that twenty-one runs producing a table of 0-to-5 scores drifts toward looking like a leaderboard anyway.
+
+**What cannot be adopted.** SWE-bench and the agentic benchmarks assume a model with tools that runs tests and iterates. oxbox is toolless by construction, so running them would mean either changing the harness, which defeats its purpose, or scoring models on a pipeline nobody here uses. HumanEval and its relatives measure generation rather than review, and are saturated and contaminated besides.
+
+**What is worth adopting, and for which axis.** The binding constraint here is sample size, and it bites hardest on the quality score, which today exists only where a fixture carries a seeded answer set. Vulnerability-detection datasets fix exactly that, and their ground truth is mechanical, so under this repo's rules the checking half costs nothing. That is the half that makes the present corpus expensive.
+
+| Candidate | What it is | Fit |
+|---|---|---|
+| Juliet / SARD (NIST) | synthetic cases, public domain, each defect paired with a clean variant | best fit; the clean pairs measure invention at scale, which is the zero-defect control's job with real n |
+| PrimeVul | real CVEs with their fixes, curated for label quality | realistic code; documented label noise, so its verdicts are Reported, not Measured |
+| DiverseVul | large real-world vulnerable/fixed pairs | breadth, at the cost of noisier labels |
+
+**Three things no outside set gives you**, and which stay homegrown whatever else changes: the cost of verifying findings, which no leaderboard prices and which decides whether a free model is worth using; behavior on a file with nothing to find; and the operational layer of routes, refusals, timeouts and completion caps below the harness default, all of which decided outcomes in the 2026-09-08 batch.
+
+**The caveat to record if you say yes.** A public labeled set is in training data, and its labels are somebody else's judgment. Its ground truth belongs in the Reported tier, not Measured, and the tier table has to say so. Synthetic sets carry a second risk: a model may pattern-match the generator's style rather than reason about the code.
+
+**Effort.** One fixture from a pinned slice is roughly a day: choose the slice, pin it, write the scorer, dry-run it against the byte count. It does not disturb the existing fixtures, and the corpus rule that a task with evidence is frozen means nothing already recorded moves.
+
+**My recommendation.** Yes to question 7, with Juliet or SARD as the first slice, because it gives the quality axis real n at no checking cost and measures invention on the clean halves. Yes to question 8, because a fixture that separates two of thirteen is not paying for itself. Keep the zero-defect control and the cost accounting untouched; they are the survey's own ground and nothing external replaces them. And say plainly in each issue that a reader who wants a capability ranking should go to the public benchmarks, because this measures a different thing: what one pipeline costs to operate.
 
 ## Regulatory exposure
 
