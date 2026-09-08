@@ -297,7 +297,7 @@ hand; if a window is shared or missing, the table says so and the caveat stands.
 **The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
 it prints. Every model ever put through oxbox is a row, failures included: a run the
 venue refused shows its disqualifier and dashed scores; a run that answered with
-nothing shows quality 0. Three 0-5 scores per fixture, bucketed by the script from
+nothing shows quality 0. A `benign` count (confirmed failures in the safe direction) appears beside real when present and is never counted as real. Three 0-5 scores per fixture, bucketed by the script from
 observation frontmatter, never typed: quality (seeded defects found), cost (USD per real
 defect, both halves, against the fixture's Fable 5.1 ceiling), speed (wall clock). A
 dash is unmeasured, never zero. Every score sits beside its fixture id and n, because

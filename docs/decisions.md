@@ -554,3 +554,28 @@ exception in as many words, so metered and in-harness checks from here on are
 under a contract that differs from the one the 2026-09-03 and 2026-09-06
 checks answered; the same-batch tables keep both, and a re-check of the G1
 shape under the new contract is the obvious control.
+
+**Amended 2026-09-07: safe-direction failures count separately.** Fable's F2
+and F3, GPT-5.6's P3 and GLM's L4 on the zero-defect control were each
+confirmed true and reproducible, and each recorded in prose as
+true-and-negligible because the only consequence was a failure in the safe
+direction. Put to the editor as round 5's question 1 (count as real, count
+separately, or leave as is), the answer was "count separately; a failure that
+isn't really a failure is a waste of time to fix." So a review run may carry
+`benign` beside `real`: the table shows it as "+N benign" in the real/findings
+cell, it never enters the cost divisor, and the verifier contract's existing
+instruction to make the safe-direction distinction explicit is what feeds it.
+The four existing cases moved into the field by correction observations
+(never by editing the originals).
+
+**Amended 2026-09-07: the metered check sets a fixture's ceiling.** The
+zero-defect control's ceiling had been $0.9152 per real finding, Fable's run
+($0.3663) plus its in-harness subagent check priced at list ($1.4641) over two
+real findings, while the cost table had moved to the metered check of the same
+run ($0.5707 billed), so the constant and the table described different
+checks. Round 5's question 3 asked which kind sets a ceiling; the editor's
+answer was "metered; that's the most accurate." The ceiling is now $0.4685,
+the run plus its metered check over the same two findings, and the rule is
+that a ceiling is the ceiling checker's bill where one exists and its priced
+window only where none does. Ask-grounding's ceiling ($0.02756) is unchanged:
+its checking half is the scorer.

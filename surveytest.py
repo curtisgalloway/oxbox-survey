@@ -1168,6 +1168,21 @@ def test_ratings():
     report(bool(rows), "run-backed observations produce catalog rows", len(rows))
     typed = [o["_file"] for o in obs if any(k in o for k in rt["DERIVED_KEYS"])]
     report(not typed, "no observation types a quality, cost or speed score", typed)
+    # Safe-direction failures count separately (ruled 2026-09-07): `benign` is a
+    # measured, correctable field, sits beside real in the cell, and never
+    # enters the cost divisor.
+    fields = {"_file": "b.md", "model": "m", "venue": "openrouter", "kind": "findings",
+              "source": "oxbox-run", "corpus": "oxbox-clean-control", "role": "candidate",
+              "findings": "5", "real": "2", "benign": "2", "usd_total": "0.10"}
+    row = rt["measure"](fields, {"oxbox-clean-control": {"cost_ceiling_usd_per_real": 0.4685}})
+    cell = rt["per_fixture"]([row])[("openrouter", "m", "oxbox-clean-control")]
+    report(row["benign"] == 2 and row["divisor"] == 2 and cell["benign"] == 2 and cell["real"] == 2,
+           "benign findings are counted beside real and not as real", (row["benign"], row["divisor"]))
+    report("benign" in rt["MEASURED_FIELDS"] and "benign" in rt["CORRECTABLE"],
+           "benign is a measured field a correction observation may overlay")
+    table = rt["catalog_markdown"]()
+    report("(+2 benign)" in table and "(+1 benign)" in table,
+           "the corrected zero-defect control rows show their benign counts")
     # Run-output fields belong to runs. A check record (a manual observation
     # that names a run and carries harness_* fields) is the one exception, and
     # it may carry only the harness fields plus the run it checked.

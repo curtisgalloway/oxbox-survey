@@ -39,6 +39,7 @@ run: 2026-09-03T02-41-40Z   # the ox log directory (comma-separated if several)
 wall_s: 12                  # longest run's wall clock, from the log timestamps
 findings: 8                 # review mode: findings emitted ...
 real: 1                     # ... and how many verified real
+benign: 0                   # ... and how many are confirmed failures in the safe direction only
 hits: 10                    # fixture with a seeded set: hits ...
 hits_of: 10                 # ... of the fixture's total (see the task's quality field)
 applies: true               # diff mode: did git apply --check pass at the pin
@@ -93,7 +94,14 @@ group observations without interpreting prose:
 - **The measured fields are the record the scores are bucketed from.** Every
   run-backed `findings` or `hygiene` observation from 2026-09-06 on carries
   `run` and `wall_s`, plus `findings`/`real` for a review run or `hits`/`hits_of`
-  for a fixture with a seeded set (`applies` and `self_hits` in diff mode).
+  for a fixture with a seeded set (`applies` and `self_hits` in diff mode). A
+  review run may also carry `benign`: findings confirmed true and reproducible
+  whose only effect is a failure in the safe direction. Ruled 2026-09-07 by the
+  editor ("a failure that isn't really a failure is a waste of time to fix"):
+  they count separately, beside real, and never as real or in the cost
+  divisor. Before the ruling such findings were recorded in prose as
+  true-and-negligible and counted nowhere; the three that exist were moved
+  into `benign` by correction observations the same day.
   `ratings.py` turns them into the 0-5 scores; **never write a `quality`, `cost`
   or `speed` key yourself.** `wall_s` comes from the log directory's timestamps
   (its name is the start, its newest file the end) and reproduces the durations

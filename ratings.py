@@ -40,7 +40,7 @@ RULE_FROM = "2026-09-06"  # manifests dated here or later are derived from ratin
 # Observation kinds that describe a run's output. Access and availability
 # observations contribute disqualifiers, never rows.
 ROW_KINDS = ("findings", "hygiene")
-MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "hits", "hits_of",
+MEASURED_FIELDS = ("run", "wall_s", "findings", "real", "benign", "hits", "hits_of",
                    "applies", "self_hits", "usd_model", "usd_total",
                    "timed_out", "disqualifier", "harness_model", "harness_window",
                    "harness_in", "harness_out", "harness_cache_read",
@@ -181,7 +181,7 @@ def _bool(value):
     return value.strip().lower() in ("true", "yes")
 
 
-CORRECTABLE = ("findings", "real", "hits", "hits_of", "applies", "self_hits",
+CORRECTABLE = ("findings", "real", "benign", "hits", "hits_of", "applies", "self_hits",
                "wall_s", "usd_model", "usd_total", "timed_out", "disqualifier")
 
 
@@ -338,6 +338,11 @@ def measure(fields, tasks):
         if _bool(fields.get(name)) is False:
             required_ok = False
     real = _num(fields.get("real"))
+    # `benign`: confirmed, reproducible failures whose only effect is in the
+    # safe direction. Counted beside real, never as real, and never in the
+    # cost divisor -- the editor's ruling of 2026-09-07: "a failure that isn't
+    # really a failure is a waste of time to fix."
+    benign = _num(fields.get("benign"))
     # The cost divisor: verified-real findings on a review run, hits on a
     # fixture with a seeded set.
     divisor = real if real is not None else hits
@@ -362,7 +367,7 @@ def measure(fields, tasks):
                            task.get("cost_ceiling_usd_per_real")),
         "speed": speed_digit(_num(fields.get("wall_s")), _bool(fields.get("timed_out"))),
         "hits": hits, "hits_of": hits_of,
-        "findings": _num(fields.get("findings")), "real": real,
+        "findings": _num(fields.get("findings")), "real": real, "benign": benign,
         "usd_model": _num(fields.get("usd_model")),
         "usd_total": _num(fields.get("usd_total")),
         "wall_s": _num(fields.get("wall_s")),
@@ -504,8 +509,8 @@ def per_fixture(rows):
         key = (row["venue"], row["model"], row["fixture"])
         cell = out.setdefault(key, {"n": 0, "quality": None, "cost": None,
                                     "speed": None, "role": row["role"],
-                                    "findings": 0, "real": 0, "usd_model": None,
-                                    "any_raw": False})
+                                    "findings": 0, "real": 0, "benign": 0,
+                                    "usd_model": None, "any_raw": False})
         cell["n"] += 1
         for dim in DERIVED_KEYS:
             if row[dim] is not None:
@@ -513,6 +518,7 @@ def per_fixture(rows):
         if row["findings"] is not None:
             cell["findings"] += row["findings"]
             cell["real"] += row["real"] or 0
+            cell["benign"] += row["benign"] or 0
             cell["any_raw"] = True
         if row["usd_model"] is not None:
             cell["usd_model"] = (cell["usd_model"] or 0) + row["usd_model"]
@@ -616,12 +622,16 @@ def catalog_markdown(observations=None, tasks=None, ratings=None):
     for (venue, model, fixture), cell in sorted(cells.items(),
                                                 key=lambda kv: (kv[0][1], kv[0][2] or "")):
         raw = "%d / %d" % (cell["real"], cell["findings"]) if cell["any_raw"] else "-"
+        if cell["benign"]:
+            raw += " (+%d benign)" % cell["benign"]
         usd = "-" if cell["usd_model"] is None else "$%.4f" % cell["usd_model"]
         out.append("| `%s` | %s | %d | %s | %s | %s | %s | %s |" % (
             model, fixture or "(real work)", cell["n"], _d(cell["quality"]),
             _d(cell["cost"]), _d(cell["speed"]), raw, usd))
     out += ["", "Scores are bucketed from recorded values; the worst run on a fixture "
-            "is shown when n > 1. A dash is unmeasured, never zero. Rubric:", "",
+            "is shown when n > 1. A dash is unmeasured, never zero. A benign count is "
+            "confirmed failures in the safe direction, shown beside real and never "
+            "counted as real or in the cost divisor. Rubric:", "",
             rubric_markdown()]
     return "\n".join(out)
 
