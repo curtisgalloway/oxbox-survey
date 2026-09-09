@@ -1,8 +1,8 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.2.0
-last_generator_review: 2026-09-03
+version: 2.3.0
+last_generator_review: 2026-09-08
 ---
 
 <!--
@@ -222,6 +222,60 @@ Publish `0` until the issue's readers can be expected to have 1.1.0, then `1` fo
 any issue that carries a pin. State the floor ("requires oxbox >= 1.1.0") in the
 issue when the first pinned manifest goes out.
 
+## How to write it
+
+**Who is reading.** An engineer who is competent in adjacent areas, is deciding which
+free model to point at a code review this week, and has not read a previous issue.
+They do not know this report's vocabulary and will not look anything up. Assume they
+are skimming for the one fact that changes what they do, and write so that fact is
+findable in one pass. Nothing here is written for the person who maintains the
+generator.
+
+These rules are mechanical on purpose. "Write clearly" and "avoid jargon" have been in
+this file's spirit since issue 0.1 and moved nothing; `scripts/prose_metrics.py`
+measures whether the rules below are actually being followed, and the baseline they are
+measured against is `docs/prose-baseline-2026-09-08.md`.
+
+- **One idea per sentence.** No sentence carries more than one subordinate clause. Two
+  independent clauses joined by a semicolon, or by "and", "but" or "so", are two
+  sentences — split them. This is the rule that matters most here: the density in the
+  measured issues is almost entirely coordination, not vocabulary.
+- **Enumerable facts are a list, never a sentence.** Three or more parallel items — three
+  models' token volumes, three findings, three venues' counts — go in a list or a table.
+  A sentence that needs semicolons to keep its items apart is a table that lost its
+  borders.
+- **State the claim, then qualify it in a new sentence.** Not "20 of 27 findings are
+  real, including a stale-lock spin at full CPU, a retry path that read the previous
+  attempt's status file, and a cross-host redirect that could turn a private
+  repository's exposure verdict into public" — instead the count, then the three
+  examples as a list.
+- **Prefer a finite verb to a nominalization.** "The model degraded on long contexts",
+  not "degradation of the model was observed on long contexts."
+- **No noun stack longer than two words.** Break it apart with a preposition. A
+  product's own name is exempt and is not a stack: `Nemotron 3 Ultra` and
+  `Claude Fable 5.1` are names, and there is no preposition to insert.
+- **Expand every acronym at first use in each issue, or do not use it.** Each issue
+  stands alone, so the expansion is repeated every week rather than assumed from the
+  last one. A model or vendor name is not an acronym and is never expanded: `GLM-5.3`,
+  `MiniMax M3`, `SWE-Bench` are names. This extends the standing rule to spell out
+  cryptic abbreviations — write "context", not "ctx".
+- **Every paragraph opens with a concrete sentence.** A number, a name, or something
+  that happened. Never a framing move ("It is worth noting that…", "There are several
+  considerations here…") and never an abstraction the next sentence then explains.
+- **Say the number in the units a reader thinks in.** K and M in prose (1.31M, 944K);
+  exact figures belong in tables and lists.
+- **Link on first mention, inline, inside the sentence.** "[Zhipu claimed the
+  model](url)", never a parenthetical "(see link)" or a bare URL in the prose.
+- **Never name a path inside this repository in reader-facing text.** Say "the survey's
+  2026-09-01 snapshot", not `snapshots/openrouter/2026-09-01.json`. The reader cannot
+  open it.
+- **Em-dashes and italics are rationed.** Both are usually a sentence asking to be two
+  sentences.
+
+None of this licenses cutting content. Every fact that would have appeared still
+appears; it gets more room, not less. If a section gets longer under these rules, that
+is the rules working — the old length was compression, not brevity.
+
 ## Report format
 
 Markdown. Keep it scannable — this is read weekly, not studied.
@@ -230,7 +284,10 @@ Markdown. Keep it scannable — this is read weekly, not studied.
 # OpenRouter free models — week of <date>
 
 ## Verdict
-<2–3 sentences: what to point oxbox at this week, what changed, and what you ran.>
+<What to point oxbox at this week, what changed, and what you ran. Three
+facts, so at least three sentences; take the room they need. A two-sentence
+verdict is where three facts get welded together, which is the compression
+this section keeps producing.>
 
 ## Catalog
 <Generated table, every free model, with the limitations column. Then a short
@@ -249,9 +306,10 @@ Rating with date, then the per-fixture scores. Then the rubric.>
 <`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
 the model half per run and its wall clock, who checked it and at what prices, the
 checking half per run and its window time as upper bounds, and USD per real finding or
-hit with both halves. Time is a cost; both clocks stay in the table. Then two sentences saying what the table shows
-this week: what a free model's findings cost to check, under which checking model,
-against what a cheap paid model costs to run and check.>
+hit with both halves. Time is a cost; both clocks stay in the table. Then say what the table shows this week: what a free
+model's findings cost to check, under which checking model, against what a cheap paid
+model costs to run and check. That is three comparisons; give each one its own
+sentence rather than fitting them into two.>
 
 ## Tried this week
 <Per model actually run this week: the observations above, with counts and filenames.
