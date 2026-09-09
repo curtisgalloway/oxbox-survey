@@ -143,8 +143,26 @@ Rules for what goes in it:
   editorialize a comparison into a leaf.
 - If a value is missing it is null and a sibling `note` says why. Never
   interpolate.
-- Include everything the issue must state, including the standing regulatory
-  caveat, the churn list, the sources, and the generator review.
+
+SELECT. Do not gather everything you can find. Read the section "What the report
+is for, and what earns a place in it" in SKILL.md and apply it here, because
+selection happens in this pass and cannot be undone later -- the prose pass sees
+only what you emit, so anything you include WILL be printed.
+
+Apply the test to every candidate fact: what does a reader do differently
+because this is here? The reader is deciding whether to point a cheap model at
+their code this week. They are not auditing how the survey reached its numbers.
+
+- Prefer the five operational axes: access, usable output, verification burden,
+  what changed, and one inspectable incident told properly.
+- Leave out the survey's own adjudication, its methodology defenses, its process
+  and tooling notes, and anything unchanged since the last issue.
+- A highlight earns its place by changing a decision, not by having happened.
+- One incident with its reproduction and its consequence beats twenty tallied.
+
+Include the standing regulatory caveat, the churn list and the sources, which
+are required every issue. The generator review is required too and goes to
+`docs/generator-reviews/`, never into the issue.
 
 Shape (extend where the week needs it; never drop a key):
 

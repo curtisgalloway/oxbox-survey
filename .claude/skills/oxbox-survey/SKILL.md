@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.3.0
+version: 2.4.0
 last_generator_review: 2026-09-08
 ---
 
@@ -19,6 +19,57 @@ Produces two things every run, in this order:
 2. **The generator review** — whether the rules in this file still fit the landscape.
 
 Never skip part 2. It is the reason this is a skill and not a saved prompt.
+
+## What the report is for, and what earns a place in it
+
+**The value is operational, not evaluative.** Other people measure models, at a scale
+this survey will never reach. Artificial Analysis prices and benchmarks them.
+SWE-PRBench scores review quality against 350 human-annotated pull requests. A survey
+with a handful of fixtures and one reviewer's repositories cannot out-measure either,
+and an issue that tries is a worse version of work that already exists.
+
+What none of them tells a reader is what you have to **do** to make a cheap model work,
+and whether it pays. That is the product. The measurement is the evidence for it, never
+the point of it.
+
+> **We try inexpensive models on real code, verify what they claim, and report whether
+> the useful findings were worth the trouble.**
+
+Five things earn space in an issue. All five are operational.
+
+- **Access.** Does it answer, through the route a reader can actually reach, today. A
+  listing is not availability, and a price of zero is not access.
+- **Usable output.** Did it finish a review, honor the format, produce a patch that
+  applies. A model whose answers need repair costs more than its price.
+- **Verification burden.** What it took to sort the real findings from the invented
+  ones, in money and in an hour of someone's attention. This is the number that decides
+  whether a free model is cheap, and almost nobody else reports it.
+- **What changed.** Appeared, vanished, got slower, got repriced, started refusing.
+  Week over week is evidence no single benchmark run can produce.
+- **One inspectable incident.** A specific finding, the reproduction, the verdict, and
+  what changed because of it. One told properly beats twenty tallied.
+
+**The selection test, applied to every section, paragraph and table: what does a reader
+do differently because this is here?** If the answer is nothing, cut it. The reader is
+deciding whether to point a cheap model at their code this week, not auditing how this
+survey reached its numbers.
+
+What does **not** earn a place, however much work it took:
+
+- The survey's own adjudication. How a verdict was settled, which checker disagreed,
+  what the rubric argued about. It is the maintainer's record and it belongs in
+  `docs/`, not in a reader's path.
+- Defenses of the methodology. State a limit once, plainly, and move on.
+- Process, tooling and version notes about the survey itself.
+- Anything unchanged since last week. "Unchanged" is not interesting.
+- Exhaustiveness for its own sake. Every fact on hand is not every fact worth printing.
+
+Two consequences worth stating outright, because both cut against an agent's instinct
+to be thorough. **An issue is a field report, not a leaderboard** — the real defects
+found are strong evidence that a run helped, and weak evidence that the same model wins
+next week or on another repository; keep that distinction visible. And **every edition
+leads with what changed and what a reader should do differently**, not with the catalog
+and not with the survey's own week.
 
 ## What this report is, and is not
 
@@ -160,6 +211,18 @@ Then read the two Observed-tier sources, which together are the entire input to 
   holds them.
 
 If neither has anything new, part 2 is one line.
+
+**Read the newest `docs/generator-reviews/<date>.md` before writing, every run.** It
+carries the editor's standing direction on voice and on what is interesting, accumulated
+over every review round, in their own words. Part 2 writes to that directory; until
+2026-09-08 nothing ever read it back, so a week of direction — "too much inside
+baseball", "'unchanged' is not interesting", "lead with punchy facts", "always be
+humble; we're just doing little toy tests" — sat in a file the generator never opened,
+and the issues drifted exactly the way it warned against. A review loop that only writes
+is a loop that teaches nothing.
+
+`docs/editorial-thesis.md` is the standing statement of what the survey is for. Read it
+too. It is the source the "What the report is for" section above was drawn from.
 
 ### Effort, when writing the manifest
 

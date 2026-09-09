@@ -39,6 +39,17 @@ and manifests. Write `<date>.md` there; everything below still applies.
 only the report. Decided 2026-09-01: the review is for the maintainer and the
 agent to iterate on the generator, not for readers.
 
+**It is read as well as written.** The skill reads the newest generator review
+before writing an issue, because that file accumulates the editor's standing
+direction on voice and on what is interesting, in their own words. Until
+2026-09-08 nothing read it back, and a week of direction sat in a file the
+generator never opened while the issues drifted exactly the way it warned
+against. **A rule that lives outside the generator is not a rule** — direction
+belongs in `SKILL.md` or in `docs/editorial-thesis.md`, and both are read every
+run. `docs/editorial-thesis.md` is the standing answer to what the survey is for
+and what earns a place in an issue; it governs selection, and selection happens
+before any prose is written.
+
 The issue is then reviewed in a Google Doc before it is committed — see **The
 review loop** below.
 
