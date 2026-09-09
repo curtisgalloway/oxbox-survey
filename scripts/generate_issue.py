@@ -274,6 +274,34 @@ def codex_model_from_rollout(thread_id):
     return None
 
 
+def _rollout_paths(thread_id):
+    if not thread_id:
+        return []
+    return sorted(CODEX_SESSIONS.rglob("rollout-*%s.jsonl" % thread_id))
+
+
+def codex_last_message_from_rollout(thread_id):
+    """The reply text, from the rollout's task_complete event."""
+    for path in _rollout_paths(thread_id):
+        found = None
+        try:
+            handle = path.open(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        with handle:
+            for line in handle:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                q = d.get("payload", d)
+                if (q.get("type") or d.get("type")) == "task_complete":
+                    found = q.get("last_agent_message") or found
+        if found:
+            return found
+    return None
+
+
 def run_codex(arm, prompt, stem, timeout, dry_run):
     """One headless Codex call, for a cross-vendor prose arm.
 
@@ -323,9 +351,18 @@ def run_codex(arm, prompt, stem, timeout, dry_run):
         elif ev.get("type") == "turn.completed":
             usage = ev.get("usage") or {}
     models = codex_model_from_rollout(thread_id)
+    answer = Path(last).read_text(encoding="utf-8") if os.path.exists(last) else ""
+    if not answer.strip():
+        # --output-last-message wrote nothing even though the turn completed and
+        # billed 22K output tokens (observed 2026-09-08, codex-cli 0.153.4). The
+        # rollout has the reply on the task_complete event, so read it back
+        # rather than lose an eleven minute run to a missing file.
+        answer = codex_last_message_from_rollout(thread_id) or ""
+        if answer:
+            sys.stderr.write("generate_issue: --output-last-message was empty; "
+                             "recovered the reply from the session rollout\n")
     return {
-        "result": Path(last).read_text(encoding="utf-8")
-        if os.path.exists(last) else "",
+        "result": answer,
         "modelUsage": {m: {} for m in (models or [])},
         "total_cost_usd": None,
         "_elapsed_s": elapsed,
