@@ -40,12 +40,15 @@ comparison with `scripts/prose_metrics.py`; publishing stays a human step.
 """
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import re
 import subprocess
 import sys
 import time
+from concurrent import futures
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
@@ -347,6 +350,47 @@ def strip_fence(text):
     return text.strip()
 
 
+def extract_json(text):
+    """The outermost JSON object in a reply, or None.
+
+    The content pass is told to emit one object and nothing else, and a capable
+    model still opens with a sentence ("I have all the inputs. Emitting the
+    intermediate.") and wraps the object in a fence. Both are cosmetic and
+    neither is worth re-running a twenty-eight minute pass over, so find the
+    object rather than insisting the whole reply parse. Brace matching, string
+    aware, so a brace inside a quoted value does not close the object early."""
+    fenced = re.search(r"```(?:json)?\s*\n(.*?)\n```", text, re.S)
+    candidates = [fenced.group(1)] if fenced else []
+    candidates.append(text)
+    for blob in candidates:
+        start = blob.find("{")
+        if start < 0:
+            continue
+        depth, in_str, esc = 0, False, False
+        for i in range(start, len(blob)):
+            ch = blob[i]
+            if in_str:
+                if esc:
+                    esc = False
+                elif ch == "\\":
+                    esc = True
+                elif ch == '"':
+                    in_str = False
+                continue
+            if ch == '"':
+                in_str = True
+            elif ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return json.loads(blob[start:i + 1])
+                    except ValueError:
+                        break
+    return None
+
+
 def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
              shared=None):
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -354,6 +398,17 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
     skill_text = SKILL.read_text(encoding="utf-8")
     record = {"arm": arm_name, "model_requested": arm["model"],
               "effort": arm["effort"], "date": date, "passes": {}}
+    # The two passes are commonly run in separate invocations -- a content pass
+    # today and a prose pass when a model's credits reset -- so carry forward
+    # whatever an earlier run recorded instead of overwriting it with a file
+    # that describes only the pass that just happened.
+    prior = Path(str(stem) + ".meta.json")
+    if prior.exists():
+        try:
+            record["passes"] = json.loads(
+                prior.read_text(encoding="utf-8")).get("passes", {})
+        except ValueError:
+            pass
 
     if arm.get("prose_only") and only != "prose":
         only = "prose"
@@ -383,14 +438,17 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
             return None
         else:
             body = strip_fence(env.get("result", ""))
-            try:
-                json.loads(body)
-            except ValueError:
-                Path(str(stem) + ".content.raw.txt").write_text(body,
-                                                               encoding="utf-8")
+            obj = extract_json(body)
+            # Always keep the raw reply, not only on failure: it is the record
+            # of what the pass actually said, and a preamble the extractor
+            # discarded may be the explanation for a thin intermediate.
+            Path(str(stem) + ".content.raw.txt").write_text(body,
+                                                            encoding="utf-8")
+            if obj is None:
                 sys.stderr.write("generate_issue: content pass produced no JSON; "
-                                 "raw kept\n")
+                                 "raw kept at %s.content.raw.txt\n" % stem)
                 return None
+            body = json.dumps(obj, indent=1) + "\n"
             inter_path.write_text(body, encoding="utf-8")
             record["passes"]["content"] = {
                 "responding_models": responding_models(env),
@@ -465,6 +523,10 @@ def main(argv=None):
                         "variable, which is what makes two arms' prose "
                         "comparable. Required by a prose-only arm.")
     p.add_argument("--timeout", type=int, default=3600, help="seconds per pass")
+    p.add_argument("--jobs", type=int,
+                   help="arms to run at once (default: all of them). Use 1 to "
+                        "serialize, or 2 when two arms share one model's rate "
+                        "limit and would throttle each other.")
     p.add_argument("--dry-run", action="store_true",
                    help="print the commands and prompt sizes, call nothing")
     p.add_argument("--list", action="store_true", help="show the arms")
@@ -485,11 +547,35 @@ def main(argv=None):
 
     out_dir = Path(args.out)
     results = []
-    for name in names:
-        r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
-                     args.dry_run, args.only, args.intermediate)
-        if r:
-            results.append(r)
+
+    # Arms are independent: each reads the same intermediate read-only and
+    # writes its own stem, so nothing serializes them but the loop. Running
+    # them together turns four arms from four wall clocks into one. A dry run
+    # stays serial so its printed commands do not interleave.
+    jobs = 1 if (args.dry_run or len(names) == 1) else (args.jobs or len(names))
+    if jobs > 1:
+        print("running %d arms in parallel" % len(names))
+        buffers = {}
+
+        def work(name):
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
+                             args.dry_run, args.only, args.intermediate)
+            buffers[name] = buf.getvalue()
+            return r
+
+        with futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+            for name, r in zip(names, pool.map(work, names)):
+                sys.stdout.write(buffers.get(name, ""))
+                if r:
+                    results.append(r)
+    else:
+        for name in names:
+            r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
+                         args.dry_run, args.only, args.intermediate)
+            if r:
+                results.append(r)
 
     if results:
         print("\n| arm | responding model | uniform | cost USD | seconds |")
