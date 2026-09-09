@@ -61,7 +61,11 @@ four parts, in this order, as one bullet:
 1. **A bold headline with the date or the number in it.** "Six of 21 free rows on
    OpenRouter answered", not "OpenRouter availability".
 2. **One or two sentences of substance.** What happened, in the evidence tier's own
-   words, with the identifier verbatim.
+   words, with the identifier verbatim. The item is the claim; the record is the
+   evidence. Anything enumerable behind the claim — the rows that failed and how, the
+   token counts, the per-run breakdown, the figures a cost was computed from — goes
+   into the record under the part it belongs to, and the item links there. An item
+   with a nested list under it is an item that swallowed its evidence.
 3. ***Why it matters:*** one sentence, in italics, on what the reader does
    differently. The reader is deciding whether to point a cheap model at a code review
    this week; tie it to that, not to the survey.
@@ -163,13 +167,18 @@ third-level headings in this order:
   and the base rate of such guesses being wrong. One line when the slot is empty.
 - **What models changed since the last issue.** Added, delisted, repriced, revealed.
   One line each.
+- **The runs.** Every run the top half draws on, in date order, one short entry each:
+  the model and venue, what was sent, what came back, the counts, the verification
+  and who checked it, and the figures behind any cost quoted above. This is where an
+  item's facts live in full, and where a reader who doubts a number goes.
 - **Sources.** Every URL fetched and every search run, as named links with a one-line
   description each, never bare URLs. Say which were used and which were checked and
   rejected.
 
 The site gives every heading an anchor made from its text, lowercased with hyphens
 for spaces and punctuation dropped, so an item above links to `#the-models`,
-`#the-stealth-models`, `#what-models-changed-since-the-last-issue` or `#sources`.
+`#the-stealth-models`, `#what-models-changed-since-the-last-issue`, `#the-runs` or
+`#sources`.
 
 ## What never appears in an issue
 

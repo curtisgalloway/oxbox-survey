@@ -425,7 +425,11 @@ often broken:
 
 - At most **10 second-level sections**; the shape uses eight, the last of them "The
   record", after a horizontal rule, where the catalog, the stealth listing, the churn
-  list and the sources live. The top half links down to it and never repeats it.
+  list, the runs and the sources live. The top half links down to it and never
+  repeats it. **An item is the claim; the record is the evidence.** The rows that
+  failed, the token counts, the per-run breakdown and the figures behind a cost go
+  under "The runs", and the item links there. The 2026-09-09 draft under the first
+  version of this shape put all of that inside the items and came out 26% longer.
 - **Every item is in the item form**: a bold headline with the date or number in it,
   one or two sentences of substance, an italic *Why it matters:* sentence about what
   the reader does differently, then the sources as named links separated by a middle

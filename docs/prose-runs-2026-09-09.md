@@ -91,3 +91,29 @@ a metric.
   predates that and has no `lead`, so each writer chose its own opening fact. All four
   chose the same one.
 - Only 2026-09-01 has been regenerated. 2026-08-24 and 2026-08-27 are still owed.
+
+## Later the same day: the AI Weekly Survey framing (2.8.0)
+
+The editor read the 2026-09-09 issue of their other weekly and asked for its framing
+here: compact highlights up top, items in a fixed form, the long detail behind a link.
+`docs/issue-shape.md` was redrawn (commit d715a83 and the one after it) and Opus was
+run twice against the same 2.6.0 intermediate.
+
+| draft | prose words | top half | record | tables above the rule | anchor links | cost |
+|---|---|---|---|---|---|---|
+| 2.7.0 opus-5 | 2770 | — | — | 4 | 0 | $1.01 |
+| 2.8.0 first pass | 3499 | — | — | 0 | 5 | $1.61 |
+| 2.8.0 second pass | 3231 | 2148 | 3016 | 0 | 14 | $1.02 |
+
+The first pass under 2.8.0 came out 26% longer than 2.7.0 because the prose prompt
+still required every fact in the intermediate to appear in the issue and the record
+had no place for per-run detail, so the writer nested the row lists, token counts and
+per-run breakdowns inside the items. The second pass followed one added rule, *the
+item is the claim; the record is the evidence*, and a fifth part of the record, "The
+runs", to hold it. Every item above the rule is now headline, one or two sentences,
+an italic *Why it matters:* line and sources, and links down by anchor. The five
+highlights are 134 words. The top half is 2148 words, of which the trust section's
+standing regulatory bullets are a large fixed share.
+
+Both drafts are in `work/v28-prose/` and `work/v28b-prose/`. Awaiting the editor's
+read, and a Doc review round of the revised shape.

@@ -82,6 +82,7 @@ RECORD = [
     "The models",
     "The stealth models",
     "What models changed since the last issue",
+    "The runs",
     "Sources",
 ]
 
@@ -263,6 +264,12 @@ there. If something reads as though it needs one more detail, it does not get
 one -- write around it, or say plainly that the record does not say.
 
 Do not drop anything either. Every fact in the JSON appears in the issue.
+But not every fact appears above the rule. An item there carries its claim,
+one or two sentences of substance, its *Why it matters:* line and its
+sources; the facts behind it -- the rows that failed, the token counts, the
+per-run breakdown, the figures a cost was computed from -- go into "The
+record" under the part they belong to, and the item links down to that
+anchor. An item with a nested list under it has swallowed its evidence.
 
 === THE WRITING RULES (follow these exactly) ===
 
