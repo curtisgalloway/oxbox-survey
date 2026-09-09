@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Curtis Galloway
+# SPDX-License-Identifier: Apache-2.0
+"""Generate an issue in two passes, from archived inputs, under a named model.
+
+The generator is a skill, so until now "which model wrote the issue" meant
+"which model the editor happened to be running". That cannot be compared, and a
+prose change cannot be attributed. This runs the same generation twice or three
+times over the same archived snapshot and observations, one arm per model and
+effort level, and records what each one produced.
+
+Two passes, because one pass writing prose while holding every source in
+context is what produces the density this is trying to fix:
+
+  content   Runs in the repository. Reads the snapshot for a date, the
+            observations newer than the previous issue, and `ratings.py
+            --json`. Emits a structured intermediate: facts, never sentences.
+  prose     Runs in an EMPTY working directory with the file tools withheld,
+            and is handed nothing but the intermediate and the writing rules.
+            It cannot add a detail back in because it cannot see one. Without
+            that boundary a second pass re-densifies instead of clarifying.
+
+The empty working directory is the same enforcement verifiercheck.py uses to
+keep a toolless arm toolless. It is the mechanism, not a convention.
+
+Every call records `modelUsage` from the CLI's JSON output. That names the
+model that actually answered, which matters because Fable routes queries its
+safeguard classifiers flag to Opus, and --fallback-model does the same on a
+flagged request. Either can mix two models inside one run and surface as
+inconsistent voice. More than one key in `modelUsage` means the run was not
+uniform, and the arm is reported as MIXED rather than quietly averaged.
+
+    python3 scripts/generate_issue.py --list
+    python3 scripts/generate_issue.py --arm fable-high --date 2026-09-01 --dry-run
+    python3 scripts/generate_issue.py --arm fable-high --date 2026-09-01
+    python3 scripts/generate_issue.py --arm all --date 2026-09-01 --out work/ab
+
+Nothing here writes into the editions repository. Output lands under --out for
+comparison with `scripts/prose_metrics.py`; publishing stays a human step.
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent.parent
+SKILL = HERE / ".claude" / "skills" / "oxbox-survey" / "SKILL.md"
+
+# One entry per model-and-effort combination to compare. `effort` is the CLI's
+# --effort flag. Fable's thinking is always on and cannot be switched off, so
+# effort is the only lever on that model; Opus is here as the other model
+# rather than as another effort level.
+ARMS = {
+    "fable-high": {
+        "model": "claude-fable-5-1",
+        "effort": "high",
+        "note": "the current baseline: what has written every issue so far",
+    },
+    "fable-low": {
+        "model": "claude-fable-5-1",
+        "effort": "low",
+        "note": "same model, reduced effort. Adaptive thinking stays on either "
+                "way -- it cannot be turned off, so this is the only lever Fable "
+                "has",
+    },
+    "opus-5": {
+        "model": "claude-opus-5",
+        "effort": "high",
+        "note": "the other model, at the same effort as the baseline",
+    },
+    # Not a comparison arm. It exists so the harness itself -- the flags, the
+    # JSON envelope, the empty-cwd boundary -- can be exercised for cents
+    # before an arm that costs dollars is launched.
+    "smoke": {
+        "model": "claude-haiku-4-5",
+        "effort": "low",
+        "note": "harness self-test only; never compare prose from this arm",
+    },
+}
+
+# Withheld from the prose pass. The empty working directory already leaves it
+# nothing to read; naming the tools as well means a slip shows up as a refusal
+# rather than as a quietly better-informed paragraph.
+PROSE_DENIED = ["Read", "Glob", "Grep", "Bash", "WebFetch", "WebSearch",
+                "Edit", "Write", "Task", "NotebookEdit"]
+
+CONTENT_PROMPT = """\
+You are the content pass of the Oxbox Survey generator. You are NOT writing the
+issue. Another pass writes it, and that pass will see nothing but the file you
+produce, so anything you leave out is gone.
+
+Read, in this order:
+
+1. `.claude/skills/oxbox-survey/SKILL.md` -- the generator's rules. Follow the
+   evidence-tier rules and the honesty rules exactly. Ignore the "How to write
+   it" section; that governs the prose pass, not you.
+2. The newest snapshot at or before {date} under `snapshots/`, and the one
+   before it, so churn is a diff and not a memory.
+3. Every file in `observations/` dated after the previous issue.
+4. `providers/*.md` for standing venue facts.
+5. The output of `python3 ratings.py --json` and `python3 ratings.py --costs`.
+
+Emit ONE JSON object and nothing else. No prose, no markdown fence, no
+commentary before or after.
+
+Rules for what goes in it:
+
+- Every leaf is a FACT, not a sentence. "20 of 27 findings verified real" is a
+  fact. "MiniMax M3 performed impressively" is a sentence, and a judgment, and
+  does not belong here.
+- Every fact carries its evidence tier ("measured", "observed", "reported") and,
+  where one exists, the observation filename or snapshot date behind it.
+- Numbers stay numbers. Do not round, do not convert to prose, do not
+  editorialize a comparison into a leaf.
+- If a value is missing it is null and a sibling `note` says why. Never
+  interpolate.
+- Include everything the issue must state, including the standing regulatory
+  caveat, the churn list, the sources, and the generator review.
+
+Shape (extend where the week needs it; never drop a key):
+
+{{
+  "issue_date": "{date}",
+  "generator_version": "<from SKILL.md frontmatter>",
+  "highlights":   [{{"claim": ..., "why_it_matters": ..., "facts": [...],
+                     "tier": ..., "links": [...]}}],
+  "top_models":   [{{"id": ..., "venue": ..., "price": ..., "stats": [...],
+                     "facts": [...], "rating": ..., "links": [...]}}],
+  "catalog":      {{"venues": [...], "rows": [...]}},
+  "stealth":      [...],
+  "tried":        [{{"model": ..., "counts": {{...}}, "observation_file": ...}}],
+  "costs":        {{"tables": [...], "reading": [...]}},
+  "caveats":      [...],
+  "churn":        {{"added": [...], "delisted": [...], "repriced": [...]}},
+  "sources":      [{{"title": ..., "url": ..., "used_for": ...}}],
+  "generator_review": {{"triggers_fired": [...], "proposed_edits": [...]}}
+}}
+"""
+
+PROSE_PROMPT = """\
+You are the prose pass of the Oxbox Survey generator. Write one issue in
+Markdown from the facts below, and do nothing else.
+
+You cannot see the snapshot, the observations, the run logs or the repository.
+That is deliberate. Everything you are allowed to state is in the JSON below.
+Do not add a fact, a number, a comparison, a hedge or an example that is not
+there. If something reads as though it needs one more detail, it does not get
+one -- write around it, or say plainly that the record does not say.
+
+Do not drop anything either. Every fact in the JSON appears in the issue.
+
+=== THE WRITING RULES (follow these exactly) ===
+
+{rules}
+
+=== THE REPORT FORMAT ===
+
+{format_block}
+
+=== THE FACTS ===
+
+{intermediate}
+
+Write the issue now. Output only the Markdown.
+"""
+
+
+def extract_section(text, heading):
+    """Pull one '## heading' section out of SKILL.md."""
+    pat = re.compile(r"^## %s\s*$" % re.escape(heading), re.M)
+    m = pat.search(text)
+    if not m:
+        raise SystemExit("generate_issue: no '## %s' section in SKILL.md" % heading)
+    rest = text[m.end():]
+    nxt = re.search(r"^## ", rest, re.M)
+    return rest[:nxt.start()].strip() if nxt else rest.strip()
+
+
+def run_cli(arm, prompt, cwd, deny_tools, timeout, dry_run, mode="manual"):
+    """One non-interactive CLI call.
+
+    The two passes need opposite permission postures. The content pass has to
+    read the snapshot, the observations and ratings.py output, so it runs in
+    `auto`. The prose pass must read nothing at all, so it runs in `manual`
+    with prompts answered by nobody, every file and network tool named in
+    --disallowed-tools, and an empty working directory underneath. Three
+    independent barriers, because the isolation is the point of the split and
+    one flag is one point of failure."""
+    cmd = [
+        "claude", "-p",
+        "--model", arm["model"],
+        "--effort", arm["effort"],
+        "--output-format", "json",
+        "--permission-mode", mode,
+    ]
+    if mode == "manual":
+        cmd += ["--permission-prompts", "none"]
+    if deny_tools:
+        cmd += ["--disallowed-tools"] + deny_tools
+    if dry_run:
+        print("  cwd: %s" % cwd)
+        print("  cmd: %s" % " ".join(cmd))
+        print("  prompt: %d bytes" % len(prompt))
+        return None
+    started = time.time()
+    proc = subprocess.run(cmd, input=prompt, cwd=str(cwd), capture_output=True,
+                          text=True, timeout=timeout, check=False)
+    elapsed = round(time.time() - started, 1)
+    if proc.returncode != 0:
+        sys.stderr.write("generate_issue: exit=%d\n%s\n"
+                         % (proc.returncode, proc.stderr[-2000:]))
+        return None
+    try:
+        envelope = json.loads(proc.stdout)
+    except ValueError:
+        sys.stderr.write("generate_issue: CLI did not return JSON\n")
+        return None
+    envelope["_elapsed_s"] = elapsed
+    return envelope
+
+
+def responding_models(envelope):
+    """Which model actually answered. More than one means the run mixed two,
+    which is what a safeguard reroute or a --fallback-model hit looks like."""
+    usage = envelope.get("modelUsage") or {}
+    return sorted(usage.keys())
+
+
+def strip_fence(text):
+    text = text.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\n", "", text)
+        text = re.sub(r"\n```\s*$", "", text)
+    return text.strip()
+
+
+def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None):
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stem = out_dir / ("%s-%s" % (date, arm_name))
+    skill_text = SKILL.read_text(encoding="utf-8")
+    record = {"arm": arm_name, "model_requested": arm["model"],
+              "effort": arm["effort"], "date": date, "passes": {}}
+
+    inter_path = Path(str(stem) + ".intermediate.json")
+    if only in (None, "content"):
+        print("[%s] content pass" % arm_name)
+        env = run_cli(arm, CONTENT_PROMPT.format(date=date), HERE, None,
+                      timeout, dry_run, mode="auto")
+        if dry_run:
+            pass
+        elif env is None:
+            return None
+        else:
+            body = strip_fence(env.get("result", ""))
+            try:
+                json.loads(body)
+            except ValueError:
+                Path(str(stem) + ".content.raw.txt").write_text(body,
+                                                               encoding="utf-8")
+                sys.stderr.write("generate_issue: content pass produced no JSON; "
+                                 "raw kept\n")
+                return None
+            inter_path.write_text(body, encoding="utf-8")
+            record["passes"]["content"] = {
+                "responding_models": responding_models(env),
+                "cost_usd": env.get("total_cost_usd"),
+                "elapsed_s": env.get("_elapsed_s"),
+                "bytes": len(body),
+            }
+
+    if only in (None, "prose"):
+        print("[%s] prose pass" % arm_name)
+        empty = out_dir / "empty-cwd"
+        empty.mkdir(exist_ok=True)
+        intermediate = (inter_path.read_text(encoding="utf-8")
+                        if inter_path.exists() else "{}")
+        prompt = PROSE_PROMPT.format(
+            rules=extract_section(skill_text, "How to write it"),
+            format_block=extract_section(skill_text, "Report format"),
+            intermediate=intermediate,
+        )
+        env = run_cli(arm, prompt, empty, PROSE_DENIED, timeout, dry_run,
+                      mode="manual")
+        if dry_run:
+            return None
+        if env is None:
+            return None
+        issue = strip_fence(env.get("result", ""))
+        Path(str(stem) + ".issue.md").write_text(issue, encoding="utf-8")
+        record["passes"]["prose"] = {
+            "responding_models": responding_models(env),
+            "cost_usd": env.get("total_cost_usd"),
+            "elapsed_s": env.get("_elapsed_s"),
+            "bytes": len(issue),
+        }
+
+    seen = set()
+    for p in record["passes"].values():
+        seen.update(p["responding_models"])
+    record["responding_models_all"] = sorted(seen)
+    record["uniform"] = len(seen) <= 1
+    record["cost_usd_total"] = round(
+        sum(p.get("cost_usd") or 0 for p in record["passes"].values()), 4)
+    Path(str(stem) + ".meta.json").write_text(
+        json.dumps(record, indent=1) + "\n", encoding="utf-8")
+    if not record["uniform"]:
+        sys.stderr.write(
+            "generate_issue: arm=%s MIXED -- more than one model answered: %s\n"
+            % (arm_name, ", ".join(record["responding_models_all"])))
+    return record
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p.add_argument("--arm", default="fable-high",
+                   help="one of %s, or 'all'" % ", ".join(ARMS))
+    p.add_argument("--date", help="issue date, e.g. 2026-09-01")
+    p.add_argument("--out", default="work/generated", help="output directory")
+    p.add_argument("--pass", dest="only", choices=["content", "prose"],
+                   help="run only one pass (default: both)")
+    p.add_argument("--timeout", type=int, default=3600, help="seconds per pass")
+    p.add_argument("--dry-run", action="store_true",
+                   help="print the commands and prompt sizes, call nothing")
+    p.add_argument("--list", action="store_true", help="show the arms")
+    args = p.parse_args(argv)
+
+    if args.list:
+        for name, arm in ARMS.items():
+            print("%-12s %-20s effort=%-5s %s"
+                  % (name, arm["model"], arm["effort"], arm["note"]))
+        return 0
+    if not args.date:
+        p.error("--date is required")
+
+    names = list(ARMS) if args.arm == "all" else [args.arm]
+    for name in names:
+        if name not in ARMS:
+            p.error("unknown arm %r; --list shows them" % name)
+
+    out_dir = Path(args.out)
+    results = []
+    for name in names:
+        r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
+                     args.dry_run, args.only)
+        if r:
+            results.append(r)
+
+    if results:
+        print("\n| arm | responding model | uniform | cost USD | seconds |")
+        print("|---|---|---|---|---|")
+        for r in results:
+            secs = sum(p.get("elapsed_s") or 0 for p in r["passes"].values())
+            print("| %s | %s | %s | %.4f | %.0f |"
+                  % (r["arm"], ", ".join(r["responding_models_all"]) or "?",
+                     "yes" if r["uniform"] else "NO -- MIXED",
+                     r["cost_usd_total"], secs))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
