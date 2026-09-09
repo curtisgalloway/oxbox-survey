@@ -46,8 +46,8 @@ None counts words. When something earns its place, it gets the room it needs.
   or venue. **No fourth-level headings at all.**
 - **No table wider than four columns**, and none longer than the venue's own row
   count. A wider table is a link to the workbook.
-- At most **five items** under "New this week", at most **four** models under "Top
-  models to try".
+- At most **five items** under "What's new this week", **five** under "Top things we
+  learned", and **four** models under "Top models to try".
 
 ## The sections, in order
 
@@ -56,18 +56,30 @@ None counts words. When something earns its place, it gets the room it needs.
 `# The Oxbox Survey`, then a byline line carrying the issue number and date. The
 title is the publication's name, not a description of the week.
 
+### What this is
+
+Two sentences, in the same words every week, directly under the byline: what the
+survey does, and what task these models are being given — today that is reviewing
+public code, run through oxbox. Then a link to the background page for a reader who
+wants more than two sentences.
+
+A reader who has never seen an issue should not have to infer the task from the
+tables. Keep it to two sentences and a link. The standing explanation lives on the
+linked page, not here, and a returning reader skips the block on sight because it has
+not changed.
+
 ### The opening paragraph
 
-One paragraph, before any section. The single fact that most changes what a reader
-does this week, stated plainly, with the number in it. No preamble about what the
-survey is, no table of contents sentence, no methodology.
+One paragraph, after the two-sentence block and before any section. The single fact
+that most changes what a reader does this week, stated plainly, with the number in it.
+No further preamble, no table of contents sentence, no methodology.
 
 ### Editor's notes
 
 The editor's own, in first person, written by them. The generator leaves the heading
 and nothing under it. Every other section is third person.
 
-### New this week
+### What's new this week
 
 Leads the issue. At most five items, each one a thing that changed and that a reader
 would act on: a model appeared or vanished, a route stopped answering, a price moved,
@@ -75,6 +87,17 @@ a cloaked listing was revealed, a run found something.
 
 Each item is a bold headline fact, then an italic *Why you should care:* line, then
 the body. "Unchanged" is not an item. The survey's own tooling is never an item.
+
+### Top things we learned
+
+The top things learned this week: what broke, what workarounds were necessary, etc.
+Again, at most five things.
+
+This is the operational half of the thesis and the section nobody else writes. A
+model that needs its context halved to answer, a route that only works with a
+retry, a flag that has to be set or the run returns nothing — that is what a reader
+came for. The distinction from "What's new this week": that section is what changed
+in the world, this one is what you have to do about it.
 
 ### Top models to try
 
@@ -104,16 +127,16 @@ would bite a reader. Everything else the snapshot carries is in the workbook.
 
 Then a short paragraph only for the entries whose limitation needs explaining.
 
-### The stealth slot
+### The stealth models
 
 One paragraph per cloaked model: slug, listed date, context, the stated free window
 and days left, terms, and the attribution with its evidence and the base rate of such
 guesses being wrong. One line for the whole section when the slot is empty.
 
-### What changed since the last issue
+### What models changed since the last issue
 
-Added, delisted, repriced, revealed. One line each. Fold this into "New this week"
-when the week is thin; two churn sections is one too many.
+Added, delisted, repriced, revealed. One line each. Fold this into "What's new this
+week" when the week is thin; two churn sections is one too many.
 
 ### How far to trust this
 
@@ -155,4 +178,5 @@ questions. If any answer is no, the draft is not ready.
    models?
 
 Then count: second-level sections at most 10, table columns at most 4, items under
-"New this week" at most 5, models under "Top models to try" at most 4.
+"What's new this week" at most 5, things under "Top things we learned" at most 5, and
+models under "Top models to try" at most 4.
