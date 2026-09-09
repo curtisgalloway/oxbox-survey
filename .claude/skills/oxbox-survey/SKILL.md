@@ -1,8 +1,8 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.6.0
-last_generator_review: 2026-09-08
+version: 2.7.0
+last_generator_review: 2026-09-09
 ---
 
 <!--
@@ -443,14 +443,33 @@ often broken:
 **The generator review is not in the issue.** It goes to
 `docs/generator-reviews/<date>.md`. See below.
 
+**The section headings are the spec's, verbatim, in the spec's order.** The 2.6.0 run
+met every count and still paraphrased: "New this week" for "What's new this week",
+"Caveats" for "How far to trust this", the models ahead of the lessons, and "What this
+is" promoted to a section of its own. A heading is an identifier. `scripts/generate_issue.py`
+carries the list as `SECTIONS` and hands it to the writer with the spec, because the
+prose pass cannot open a file and a pointer it cannot follow gets paraphrased.
+
+**The two-sentence block under the byline**, in these words every week, then the link:
+
+> The Oxbox Survey catalogs the free and cheap models on the public gateways, tries a
+> few of them, and reports what it took to get a usable code review out of each one.
+> Every model here was given the same job: review public code, through
+> [oxbox](https://github.com/curtisgalloway/oxbox).
+> [More about the survey](https://oxbox.ai/survey/).
+
+A returning reader skips it on sight because it has not changed. Everything else a
+new reader might want is on the linked page, not here.
+
 
 **The cost comparison.** Run `python3 ratings.py --costs` for the text form and
 `uv run --with openpyxl python3 costsheet.py <out.xlsx>` for the workbook, upload the
 workbook to the Oxbox Survey Drive folder (it converts to a Google Sheet, one tab per
 checking model plus the same-batch, per-fixture, ratings and rubric tabs), and link the
-Sheet from "What it costs" rather than pasting twelve-column tables into prose; the
-editor found the pasted form unreadable (2026-09-06). Paste only the same-batch table and
-the two-sentence reading inline. It prints one table per checking model, and the editor's standing
+Sheet from "What a review cost" rather than pasting twelve-column tables into prose;
+the editor found the pasted form unreadable (2026-09-06). The issue quotes two or three
+numbers in sentences and names the checking model beside each; the same-batch table
+appears inline only when it fits in four columns, and the full tables never do. It prints one table per checking model, and the editor's standing
 direction (2026-09-06) is to run both Opus 5 and Fable 5.1 as checkers on each verified
 batch so both tables fill and a reader can choose; where a run was checked by both, the
 same-batch table shows each checker on its own tokens. A second checker is recorded as a
@@ -470,15 +489,18 @@ tokens than Fable 5.1 on the same job, so a comparison between supervisors is a 
 run, not a multiplication. Never adjust a figure by
 hand; if a window is shared or missing, the table says so and the caveat stands.
 
-**The catalog table, and the Editor's Rating.** Run `python3 ratings.py` and paste what
-it prints. Every model ever put through oxbox is a row, failures included: a run the
+**The scores, and the Editor's Rating.** `python3 ratings.py` prints the score table,
+and the table goes to the workbook beside the cost tables, never into the issue: every
+model ever put through oxbox is a row of it, and the issue quotes a model's scores only
+where that model appears, under "Top models to try". In the table, failures are rows too: a run the
 venue refused shows its disqualifier and dashed scores; a run that answered with
 nothing shows quality 0. A `benign` count (confirmed failures in the safe direction) appears beside real when present and is never counted as real. Three 0-5 scores per fixture, bucketed by the script from
 observation frontmatter, never typed: quality (seeded defects found), cost (USD per real
 defect, both halves, against the fixture's Fable 5.1 ceiling), speed (wall clock). A
 dash is unmeasured, never zero. Every score sits beside its fixture id and n, because
-the fixtures discriminate unequally. Print the rubric (`ratings.py --rubric`) in every
-issue, and say once, up top, that the scores are measured and the rating is the editor's.
+the fixtures discriminate unequally. The rubric (`ratings.py --rubric`) is the workbook's
+rubric tab, not a section of the issue; the issue says once, where its first score
+appears, that the scores are measured and the rating is the editor's.
 
 The Editor's Rating is Good / Acceptable / Marginal / Poor, from `editor-ratings.json`.
 **You never write that file.** If a tried model has no rating, the row says `unrated`
@@ -490,8 +512,8 @@ rows carry no rating and never enter the manifest. **Ratings must not rely on co
 the word, never a red/green dot as the only carrier of meaning, and never "the green
 ones" in prose.
 
-**The standing regulatory-exposure caveat.** Every issue's Caveats section carries
-this, updated to the week's catalog, because a model's vendor can be on a United
+**The standing regulatory-exposure caveat.** Every issue's "How far to trust this"
+section carries this, updated to the week's catalog, because a model's vendor can be on a United
 States restricted-party list and nothing in a catalog card says so. Added at the
 user's direction on 2026-09-06. State it as facts about lists, tiered, with a link to
 the primary source for each, and never as legal advice; say once that a reader in a

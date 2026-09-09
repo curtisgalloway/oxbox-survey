@@ -53,6 +53,30 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
 SKILL = HERE / ".claude" / "skills" / "oxbox-survey" / "SKILL.md"
+SHAPE = HERE / "docs" / "issue-shape.md"
+
+# The second-level headings of an issue, verbatim and in order. They mirror the
+# "### " entries under "The sections, in order" in docs/issue-shape.md, minus the
+# three that are not headings (title and byline, the two-sentence block, the
+# opening paragraph). surveytest.py checks the two lists against each other.
+#
+# Listed here as well as in the spec because the 2.6.0 run, handed only a
+# pointer to the spec, paraphrased every name it could not see: "New this week"
+# for "What's new this week", "Caveats" for "How far to trust this", and put
+# the models before the lessons. A writer that cannot open the file has to be
+# given the words.
+SECTIONS = [
+    "Editor's notes",
+    "What's new this week",
+    "Top things we learned",
+    "Top models to try",
+    "What a review cost",
+    "The models",
+    "The stealth models",
+    "What models changed since the last issue",
+    "How far to trust this",
+    "Sources",
+]
 
 # One entry per model-and-effort combination to compare. `effort` is the CLI's
 # --effort flag. Fable's thinking is always on and cannot be switched off, so
@@ -164,24 +188,47 @@ Include the standing regulatory caveat, the churn list and the sources, which
 are required every issue. The generator review is required too and goes to
 `docs/generator-reviews/`, never into the issue.
 
+The keys below are the sections of `docs/issue-shape.md`, in the order the
+issue prints them, and the caps are that file's caps: at most five
+highlights, five lessons, four top models. Selection is yours. The prose pass
+prints what it is given and cannot trim, so a sixth highlight here is a sixth
+highlight in the issue.
+
+- `lead` is the ONE fact that most changes what a reader does this week, with
+  its number. It becomes the opening paragraph. Pick it; do not leave it to
+  the writer, who cannot see what it was chosen over.
+- `highlights` is what changed in the world ("What's new this week").
+- `lessons` is what a reader has to do about it ("Top things we learned"):
+  what broke, the workaround that was necessary, the flag that had to be set.
+  This is the operational half of the survey and the section nobody else
+  writes. Every lesson names the observation file it came from.
+
 Shape (extend where the week needs it; never drop a key):
 
 {{
   "issue_date": "{date}",
   "generator_version": "<from SKILL.md frontmatter>",
+  "lead":         {{"fact": ..., "number": ..., "tier": ..., "source": ...}},
   "highlights":   [{{"claim": ..., "why_it_matters": ..., "facts": [...],
                      "tier": ..., "links": [...]}}],
+  "lessons":      [{{"lesson": ..., "what_broke": ..., "what_to_do": ...,
+                     "facts": [...], "tier": ..., "observation_file": ...}}],
   "top_models":   [{{"id": ..., "venue": ..., "price": ..., "stats": [...],
                      "facts": [...], "rating": ..., "links": [...]}}],
+  "costs":        {{"numbers": [...], "checking_model": ..., "reading": [...],
+                     "workbook_link": ...}}],
   "catalog":      {{"venues": [...], "rows": [...]}},
   "stealth":      [...],
-  "tried":        [{{"model": ..., "counts": {{...}}, "observation_file": ...}}],
-  "costs":        {{"tables": [...], "reading": [...]}},
+  "churn":        {{"added": [...], "delisted": [...], "repriced": [...],
+                     "revealed": [...]}},
   "caveats":      [...],
-  "churn":        {{"added": [...], "delisted": [...], "repriced": [...]}},
   "sources":      [{{"title": ..., "url": ..., "used_for": ...}}],
+  "tried":        [{{"model": ..., "counts": {{...}}, "observation_file": ...}}],
   "generator_review": {{"triggers_fired": [...], "proposed_edits": [...]}}
 }}
+
+`tried` is the record behind `top_models` and `lessons`, kept so a number can
+be traced; it is not a section of its own.
 """
 
 PROSE_PROMPT = """\
@@ -200,7 +247,23 @@ Do not drop anything either. Every fact in the JSON appears in the issue.
 
 {rules}
 
-=== THE REPORT FORMAT ===
+=== THE SHAPE OF THE ISSUE (authoritative; this is the format) ===
+
+{shape}
+
+=== THE HEADINGS ===
+
+The second-level headings are exactly these, in exactly this order, with
+exactly these words:
+
+{headings}
+
+Add none. Rename none. Do not promote "What this is" or the opening paragraph
+to a heading; the shape above says where they go. Leave "Editor's notes" in
+place with nothing under it. Omit a heading only where the shape says the
+section folds into another or reduces to one line, and say so in that line.
+
+=== STANDING RULES FOR PARTICULAR SECTIONS ===
 
 {format_block}
 
@@ -518,8 +581,15 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
         empty.mkdir(exist_ok=True)
         intermediate = (inter_path.read_text(encoding="utf-8")
                         if inter_path.exists() else "{}")
+        # The shape is handed over whole. The skill's format block is a
+        # pointer to docs/issue-shape.md, and the prose pass, by design, has
+        # no file to follow a pointer to; the 2.6.0 run showed what a writer
+        # does with a pointer it cannot open.
         prompt = PROSE_PROMPT.format(
             rules=extract_section(skill_text, "How to write it"),
+            shape=SHAPE.read_text(encoding="utf-8"),
+            headings="\n".join("%d. ## %s" % (i + 1, h)
+                               for i, h in enumerate(SECTIONS)),
             format_block=extract_section(skill_text, "Report format"),
             intermediate=intermediate,
         )

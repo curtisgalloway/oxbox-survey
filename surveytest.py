@@ -1435,6 +1435,53 @@ def test_ratings():
            "the three delisted rows in the record are marked and the listed one is not")
 
 
+def test_issue_shape():
+    """The generator's heading list is the spec's, and the spec is what the
+    writer is handed.
+
+    docs/issue-shape.md is the approved format. The prose pass cannot open it,
+    so scripts/generate_issue.py carries the second-level headings as SECTIONS
+    and pastes the file into the prompt. Two copies of a list drift, which is
+    what this checks: every SECTIONS entry is a "### " heading under "The
+    sections, in order", in that order, and the count is under the cap the
+    spec sets. The 2.6.0 run paraphrased four names it was never shown."""
+    print("\n=== the shape of an issue ===")
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "generate_issue", HERE / "scripts" / "generate_issue.py")
+    gen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gen)
+
+    shape = (HERE / "docs" / "issue-shape.md").read_text(encoding="utf-8")
+    m = re.search(r"^## The sections, in order\s*$(.*?)^## ", shape, re.M | re.S)
+    report(m is not None, "issue-shape.md lists the sections in order")
+    spec_heads = re.findall(r"^### (.+?)\s*$", m.group(1), re.M) if m else []
+    missing = [h for h in gen.SECTIONS if h not in spec_heads]
+    report(not missing, "every SECTIONS heading is a section of the spec", missing)
+    order = [spec_heads.index(h) for h in gen.SECTIONS if h in spec_heads]
+    report(order == sorted(order), "SECTIONS keeps the spec's order")
+    cap = re.search(r"At most \*\*(\d+) second-level sections\*\*", shape)
+    report(cap is not None and len(gen.SECTIONS) <= int(cap.group(1)),
+           "SECTIONS fits under the spec's second-level cap",
+           "%d headings" % len(gen.SECTIONS))
+    not_heads = ("Title and byline", "What this is", "The opening paragraph")
+    report(not any(h in gen.SECTIONS for h in not_heads),
+           "the byline block and the opening paragraph are not headings")
+
+    # The prompt has slots for the spec and the headings, and fills them from
+    # the file rather than from a paraphrase.
+    report("{shape}" in gen.PROSE_PROMPT and "{headings}" in gen.PROSE_PROMPT,
+           "the prose prompt takes the spec and the headings")
+    report(gen.SHAPE == HERE / "docs" / "issue-shape.md",
+           "the prose prompt reads the spec from docs/issue-shape.md")
+    # The content pass has to know the sections it selects for; a key it is
+    # not told about is invented or omitted at the pass's discretion.
+    for key in ("lead", "highlights", "lessons", "top_models", "costs",
+                "catalog", "stealth", "churn", "caveats", "sources"):
+        report('"%s":' % key in gen.CONTENT_PROMPT,
+               "the content prompt names the %s key" % key)
+
+
 def main():
     ox = load_oxsurvey()
     test_adapters(ox)
@@ -1449,6 +1496,7 @@ def main():
     test_usagereport()
     test_repo_discipline()
     test_ratings()
+    test_issue_shape()
 
     print("\nplatform: %s" % sys.platform)
     total = PASSES + len(FAILURES)
