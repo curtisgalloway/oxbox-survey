@@ -1464,19 +1464,29 @@ def test_issue_shape():
     report(cap is not None and len(gen.SECTIONS) <= int(cap.group(1)),
            "SECTIONS fits under the spec's second-level cap",
            "%d headings" % len(gen.SECTIONS))
-    not_heads = ("Title and byline", "What this is", "The opening paragraph")
+    not_heads = ("Title and byline", "What this is")
     report(not any(h in gen.SECTIONS for h in not_heads),
-           "the byline block and the opening paragraph are not headings")
+           "the title, standfirst and byline block are not headings")
+    # The record's parts are named in the spec as bold list items under
+    # "### The record"; the writer is handed them with their anchors.
+    rec = re.search(r"^### The record\s*$(.*?)^## ", shape, re.M | re.S)
+    rec_parts = re.findall(r"^- \*\*(.+?)\.\*\*", rec.group(1), re.M) if rec else []
+    report(rec_parts == gen.RECORD, "RECORD matches the parts of the record, in order",
+           "%r vs %r" % (rec_parts, gen.RECORD))
+    report(gen.slugify("What's new this week") == "whats-new-this-week"
+           and gen.slugify("The record") == "the-record",
+           "slugify follows the site's anchor rule")
 
     # The prompt has slots for the spec and the headings, and fills them from
     # the file rather than from a paraphrase.
-    report("{shape}" in gen.PROSE_PROMPT and "{headings}" in gen.PROSE_PROMPT,
-           "the prose prompt takes the spec and the headings")
+    report("{shape}" in gen.PROSE_PROMPT and "{headings}" in gen.PROSE_PROMPT
+           and "{record}" in gen.PROSE_PROMPT,
+           "the prose prompt takes the spec, the headings and the record")
     report(gen.SHAPE == HERE / "docs" / "issue-shape.md",
            "the prose prompt reads the spec from docs/issue-shape.md")
     # The content pass has to know the sections it selects for; a key it is
     # not told about is invented or omitted at the pass's discretion.
-    for key in ("lead", "highlights", "lessons", "top_models", "costs",
+    for key in ("standfirst", "tldr", "highlights", "lessons", "top_models", "costs",
                 "catalog", "stealth", "churn", "caveats", "sources"):
         report('"%s":' % key in gen.CONTENT_PROMPT,
                "the content prompt names the %s key" % key)

@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.7.0
+version: 2.8.0
 last_generator_review: 2026-09-09
 ---
 
@@ -388,18 +388,6 @@ and moved nothing. `scripts/prose_metrics.py` measures conformance, and the base
   Commerce Department", not the bureau inside it that issued the listing. Spell out
   cryptic abbreviations the same way: "context", not "ctx".
 
-  Two things this reader already knows, and does not need told: the ordinary
-  industry vocabulary (application programming interface, JavaScript Object
-  Notation, and the like), and the well-known names — NVIDIA, CNBC, GLM. The set
-  the script holds is in `scripts/prose_metrics.py`.
-
-  **Where the acronym earns nothing, drop it rather than expand it.** This is the
-  "or do not use it" half of the rule, and it is usually the better half. The
-  regulatory caveat below used to open "the BIS Entity List", which no reader can
-  decode; the fix is not to spell out Bureau of Industry and Security but to write
-  **the United States Commerce Department**, because which bureau inside Commerce
-  issued a listing changes nothing a reader will do. Name the agency a reader has
-  heard of, and leave the org chart out.
 - **Every paragraph opens with a concrete sentence.** A number, a name, or something
   that happened. Never a framing move ("It is worth noting that…", "There are several
   considerations here…") and never an abstraction the next sentence then explains.
@@ -422,7 +410,9 @@ is the rules working — the old length was compression, not brevity.
 **`docs/issue-shape.md` is the format, and it is authoritative.** Read it before
 writing. It gives the sections in order, what each one contains, what never appears in
 an issue, and the counts a draft is checked against. It was reviewed and approved by
-the editor on 2026-09-08 and it replaces the block that used to live here.
+the editor on 2026-09-08, revised 2026-09-09 to the framing of the editor's AI Weekly
+Survey (compact highlights up top, items in a fixed form, the long detail behind a
+link), and it replaces the block that used to live here.
 
 That block described an issue by naming scripts to run and tables to paste, and that is
 why the generated issues read as an audit of the survey. **No section of an issue is
@@ -433,7 +423,14 @@ change a decision.
 Four things from that document are worth repeating here because they are the ones most
 often broken:
 
-- At most **10 second-level sections**, and a published issue is already at exactly ten.
+- At most **10 second-level sections**; the shape uses eight, the last of them "The
+  record", after a horizontal rule, where the catalog, the stealth listing, the churn
+  list and the sources live. The top half links down to it and never repeats it.
+- **Every item is in the item form**: a bold headline with the date or number in it,
+  one or two sentences of substance, an italic *Why it matters:* sentence about what
+  the reader does differently, then the sources as named links separated by a middle
+  dot. "This week's highlights" is three to five one-liners in the same spirit, and
+  it is the section a reader stops at.
 - **No table wider than four columns.** A wider one is a link to the workbook.
 - **Item counts are capped; word counts never are.** Capping items is selection. Capping
   words is the compression that welds three facts into one sentence.
@@ -450,7 +447,12 @@ is" promoted to a section of its own. A heading is an identifier. `scripts/gener
 carries the list as `SECTIONS` and hands it to the writer with the spec, because the
 prose pass cannot open a file and a pointer it cannot follow gets paraphrased.
 
-**The two-sentence block under the byline**, in these words every week, then the link:
+**The standfirst is a sentence, not a byline.** The site shows the first paragraph
+under the title as the archive card and the feed description, so it reads
+`Issue N, YYYY-MM-DD.` and then one sentence that is the issue in a breath.
+
+**The two-sentence block under the standfirst**, in these words every week, then the
+link:
 
 > The Oxbox Survey catalogs the free and cheap models on the public gateways, tries a
 > few of them, and reports what it took to get a usable code review out of each one.

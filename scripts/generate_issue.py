@@ -57,8 +57,8 @@ SHAPE = HERE / "docs" / "issue-shape.md"
 
 # The second-level headings of an issue, verbatim and in order. They mirror the
 # "### " entries under "The sections, in order" in docs/issue-shape.md, minus the
-# three that are not headings (title and byline, the two-sentence block, the
-# opening paragraph). surveytest.py checks the two lists against each other.
+# two that are not headings (title and standfirst, the two-sentence block).
+# surveytest.py checks the two lists against each other.
 #
 # Listed here as well as in the spec because the 2.6.0 run, handed only a
 # pointer to the spec, paraphrased every name it could not see: "New this week"
@@ -66,17 +66,33 @@ SHAPE = HERE / "docs" / "issue-shape.md"
 # the models before the lessons. A writer that cannot open the file has to be
 # given the words.
 SECTIONS = [
+    "This week's highlights",
     "Editor's notes",
     "What's new this week",
     "Top things we learned",
     "Top models to try",
     "What a review cost",
+    "How far to trust this",
+    "The record",
+]
+
+# The parts of "The record", as third-level headings, in order. The top half of
+# the issue links down to these by anchor, so the writer is handed the slugs.
+RECORD = [
     "The models",
     "The stealth models",
     "What models changed since the last issue",
-    "How far to trust this",
     "Sources",
 ]
+
+
+def slugify(text):
+    """The site's anchor rule (oxsite.slugify): lowercase ASCII, hyphens."""
+    import unicodedata
+    text = re.sub(r"`([^`]*)`", r"\1", text)
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    text = re.sub(r"[^A-Za-z0-9\s-]", "", text).strip().lower()
+    return re.sub(r"[\s-]+", "-", text) or "section"
 
 # One entry per model-and-effort combination to compare. `effort` is the CLI's
 # --effort flag. Fable's thinking is always on and cannot be switched off, so
@@ -194,9 +210,13 @@ highlights, five lessons, four top models. Selection is yours. The prose pass
 prints what it is given and cannot trim, so a sixth highlight here is a sixth
 highlight in the issue.
 
-- `lead` is the ONE fact that most changes what a reader does this week, with
-  its number. It becomes the opening paragraph. Pick it; do not leave it to
-  the writer, who cannot see what it was chosen over.
+- `standfirst` is the ONE fact that most changes what a reader does this
+  week, with its number. It becomes the sentence under the title, which the
+  site shows as the archive card and the feed description.
+- `tldr` is three to five facts, drawn from anywhere below, each one a
+  headline and one sentence. It becomes "This week's highlights". Pick them;
+  do not leave it to the writer, who cannot see what they were chosen over.
+  Every tldr fact must also be present in the section it came from.
 - `highlights` is what changed in the world ("What's new this week").
 - `lessons` is what a reader has to do about it ("Top things we learned"):
   what broke, the workaround that was necessary, the flag that had to be set.
@@ -208,7 +228,8 @@ Shape (extend where the week needs it; never drop a key):
 {{
   "issue_date": "{date}",
   "generator_version": "<from SKILL.md frontmatter>",
-  "lead":         {{"fact": ..., "number": ..., "tier": ..., "source": ...}},
+  "standfirst":   {{"fact": ..., "number": ..., "tier": ..., "source": ...}},
+  "tldr":         [{{"headline": ..., "sentence": ..., "from": "<key>", "tier": ...}}],
   "highlights":   [{{"claim": ..., "why_it_matters": ..., "facts": [...],
                      "tier": ..., "links": [...]}}],
   "lessons":      [{{"lesson": ..., "what_broke": ..., "what_to_do": ...,
@@ -258,10 +279,18 @@ exactly these words:
 
 {headings}
 
-Add none. Rename none. Do not promote "What this is" or the opening paragraph
-to a heading; the shape above says where they go. Leave "Editor's notes" in
-place with nothing under it. Omit a heading only where the shape says the
-section folds into another or reduces to one line, and say so in that line.
+Add none. Rename none. Do not promote "What this is" or the standfirst to a
+heading; the shape above says where they go. Leave "Editor's notes" in place
+with nothing under it. "The record" comes after a horizontal rule and holds
+these third-level headings, in this order, with these anchors:
+
+{record}
+
+Every item above the rule is in the item form the shape describes: a bold
+headline with the date or number, one or two sentences, an italic *Why it
+matters:* sentence, then named source links separated by a middle dot. Where
+an item refers to the catalog, the churn list or the sources, it links to the
+anchor above rather than repeating the table.
 
 === STANDING RULES FOR PARTICULAR SECTIONS ===
 
@@ -588,8 +617,10 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
         prompt = PROSE_PROMPT.format(
             rules=extract_section(skill_text, "How to write it"),
             shape=SHAPE.read_text(encoding="utf-8"),
-            headings="\n".join("%d. ## %s" % (i + 1, h)
+            headings="\n".join("%d. ## %s   (#%s)" % (i + 1, h, slugify(h))
                                for i, h in enumerate(SECTIONS)),
+            record="\n".join("- ### %s   (#%s)" % (h, slugify(h))
+                              for h in RECORD),
             format_block=extract_section(skill_text, "Report format"),
             intermediate=intermediate,
         )
