@@ -81,27 +81,26 @@ ARMS = {
         "effort": "low",
         "note": "harness self-test only; never compare prose from this arm",
     },
-    # PROSE ONLY, and through ox rather than the Claude CLI. `claude -p` runs
-    # Claude models, so a cross-vendor arm needs the other house pattern:
-    # verifiercheck.py's ox-openrouter arms, `oxbox send` through OpenRouter.
+    # PROSE ONLY, through the Codex CLI. `claude -p` runs Claude models, so a
+    # cross-vendor arm needs a different driver; `codex exec` is headless, and
+    # the editor's subscription covers it.
     #
-    # It cannot do the content pass and never will. ox gives a model no tools,
-    # no shell and no filesystem -- that is oxbox's whole containment claim --
-    # and the content pass has to read the snapshot, the observations and
-    # ratings.py output. So this arm runs against an intermediate some other
-    # arm produced, via --intermediate.
+    # Prose-only is a choice about scope, not a limitation of Codex -- it could
+    # run the content pass perfectly well. Holding it to the prose pass keeps
+    # the comparison clean: with --intermediate every arm writes from the same
+    # facts, so the writer is the only variable. Gathering the facts is not
+    # what this experiment is measuring.
     #
     # Worth having because the other three arms are two Claude models, which
-    # cannot tell a portable rule from a Claude-shaped one. Listed 2026-09-03
-    # at $10/M in and $50/M out, the same list price as Fable 5.1, so the cost
-    # column compares directly.
+    # cannot tell a portable writing rule from a Claude-shaped one.
     "astra": {
-        "model": "openai/gpt-6-astra",
+        "model": "gpt-6-astra",
         "effort": "high",
-        "max_tokens": "128000",
-        "via": "ox",
+        "via": "codex",
         "prose_only": True,
-        "note": "cross-vendor prose arm, through OpenRouter; needs --intermediate",
+        "cost_basis": "subscription",
+        "note": "cross-vendor prose arm through the Codex CLI, covered by the "
+                "editor's subscription; needs --intermediate",
     },
 }
 
@@ -246,60 +245,90 @@ def run_cli(arm, prompt, cwd, deny_tools, timeout, dry_run, mode="manual"):
     return envelope
 
 
-def run_ox(arm, prompt, stem, timeout, dry_run):
-    """One toolless single-shot call through ox, for a non-Claude arm.
+CODEX_SESSIONS = Path.home() / ".codex" / "sessions"
 
-    Same shape as verifiercheck.py's ox arms: `op run` so the key never enters
-    argv, --mode ask, prompt on stdin, answer to --output, and --log-dir kept
-    beside the artifacts so an untracked logs/ does not appear in a clean tree.
-    The route ox actually reached is in the status file, which is this arm's
-    equivalent of modelUsage."""
+
+def codex_model_from_rollout(thread_id):
+    """The model that actually answered, read back from the session rollout.
+
+    `codex exec --json` does not name the model anywhere in its event stream --
+    turn.completed carries token counts and nothing else -- so the requested
+    model and the responding model cannot be compared from stdout alone. The
+    rollout file records it, and its filename carries the thread id, which is
+    why these runs are not --ephemeral. Returns None rather than guessing; an
+    unverified model is reported as unverified, not assumed to be the one asked
+    for."""
+    if not thread_id:
+        return None
+    for path in CODEX_SESSIONS.rglob("rollout-*%s.jsonl" % thread_id):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        found = re.findall(r'"model"\s*:\s*"([^"]+)"', text)
+        if found:
+            return sorted(set(found))
+    return None
+
+
+def run_codex(arm, prompt, stem, timeout, dry_run):
+    """One headless Codex call, for a cross-vendor prose arm.
+
+    Isolation matches the Claude prose pass: the working root is an empty
+    directory and the sandbox is read-only, so there is nothing to read even if
+    the model reaches for a tool.
+
+    Cost is deliberately None. The run is covered by a subscription, which
+    means unmetered rather than free, and writing 0 into the cost column would
+    state a price nobody was charged. `astra-metered` exists to answer the
+    price question with a bill."""
+    out_dir = Path(stem).parent
+    empty = out_dir / "empty-cwd"
+    empty.mkdir(parents=True, exist_ok=True)
+    last = str(stem) + ".last.txt"
     cmd = [
-        "op", "run", "--env-file", ".env", "--",
-        "oxbox", "send",
-        "--venue", "openrouter",
+        "codex", "exec", "--json",
         "--model", arm["model"],
-        "--effort", arm["effort"],
-        "--max-tokens", arm["max_tokens"],
-        "--temperature", "0.2",
-        "--mode", "ask",
-        "--stdin",
-        "--status-file", stem + ".status.json",
-        "--output", stem + ".raw.txt",
-        "--log-dir", os.path.join(os.path.dirname(stem), "ox-logs"),
+        "--skip-git-repo-check",
+        "--sandbox", "read-only",
+        "--cd", str(empty.resolve()),
+        "--output-last-message", last,
+        "-",
     ]
     if dry_run:
-        print("  cwd: %s" % HERE)
+        print("  cwd: %s" % empty)
         print("  cmd: %s" % " ".join(cmd))
         print("  prompt: %d bytes" % len(prompt))
         return None
     started = time.time()
-    proc = subprocess.run(cmd, input=prompt, cwd=str(HERE), capture_output=True,
+    proc = subprocess.run(cmd, input=prompt, cwd=str(empty), capture_output=True,
                           text=True, timeout=timeout, check=False)
     elapsed = round(time.time() - started, 1)
     if proc.returncode != 0:
-        Path(stem + ".stderr.txt").write_text(proc.stderr, encoding="utf-8")
-        sys.stderr.write("generate_issue: ox exit=%d, stderr kept\n"
+        Path(str(stem) + ".stderr.txt").write_text(proc.stderr, encoding="utf-8")
+        sys.stderr.write("generate_issue: codex exit=%d, stderr kept\n"
                          % proc.returncode)
         return None
-    status = {}
-    if os.path.exists(stem + ".status.json"):
+    thread_id, usage = None, {}
+    for line in proc.stdout.splitlines():
         try:
-            status = json.loads(Path(stem + ".status.json").read_text(
-                encoding="utf-8"))
+            ev = json.loads(line)
         except ValueError:
-            pass
-    route = status.get("route")
+            continue
+        if ev.get("type") == "thread.started":
+            thread_id = ev.get("thread_id")
+        elif ev.get("type") == "turn.completed":
+            usage = ev.get("usage") or {}
+    models = codex_model_from_rollout(thread_id)
     return {
-        "result": Path(stem + ".raw.txt").read_text(encoding="utf-8")
-        if os.path.exists(stem + ".raw.txt") else "",
-        # ox reports the route it reached, not a model-usage map. Record the
-        # route as the responding identity so the uniformity check reads the
-        # same way for both arm kinds.
-        "modelUsage": {route: {}} if route else {},
-        "total_cost_usd": status.get("usd") or status.get("harness_usd"),
+        "result": Path(last).read_text(encoding="utf-8")
+        if os.path.exists(last) else "",
+        "modelUsage": {m: {} for m in (models or [])},
+        "total_cost_usd": None,
         "_elapsed_s": elapsed,
-        "_status": status,
+        "_usage": usage,
+        "_thread_id": thread_id,
+        "_model_verified": bool(models),
     }
 
 
@@ -381,8 +410,8 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
             format_block=extract_section(skill_text, "Report format"),
             intermediate=intermediate,
         )
-        if arm.get("via") == "ox":
-            env = run_ox(arm, prompt, str(stem), timeout, dry_run)
+        if arm.get("via") == "codex":
+            env = run_codex(arm, prompt, str(stem), timeout, dry_run)
         else:
             env = run_cli(arm, prompt, empty, PROSE_DENIED, timeout, dry_run,
                           mode="manual")
@@ -395,6 +424,9 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
         record["passes"]["prose"] = {
             "responding_models": responding_models(env),
             "cost_usd": env.get("total_cost_usd"),
+            "cost_basis": arm.get("cost_basis", "metered"),
+            "model_verified": env.get("_model_verified", True),
+            "tokens": env.get("_usage"),
             "elapsed_s": env.get("_elapsed_s"),
             "bytes": len(issue),
         }
@@ -404,8 +436,12 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
         seen.update(p["responding_models"])
     record["responding_models_all"] = sorted(seen)
     record["uniform"] = len(seen) <= 1
-    record["cost_usd_total"] = round(
-        sum(p.get("cost_usd") or 0 for p in record["passes"].values()), 4)
+    # Recorded because the CLI hands it over, not because it is the question.
+    # None where the run was covered by a subscription; never 0, which would
+    # state a price nobody was charged.
+    priced = [p.get("cost_usd") for p in record["passes"].values()]
+    record["cost_usd_total"] = (None if any(c is None for c in priced)
+                                else round(sum(priced), 4))
     Path(str(stem) + ".meta.json").write_text(
         json.dumps(record, indent=1) + "\n", encoding="utf-8")
     if not record["uniform"]:
@@ -460,10 +496,12 @@ def main(argv=None):
         print("|---|---|---|---|---|")
         for r in results:
             secs = sum(p.get("elapsed_s") or 0 for p in r["passes"].values())
-            print("| %s | %s | %s | %.4f | %.0f |"
-                  % (r["arm"], ", ".join(r["responding_models_all"]) or "?",
-                     "yes" if r["uniform"] else "NO -- MIXED",
-                     r["cost_usd_total"], secs))
+            cost = ("unmetered" if r["cost_usd_total"] is None
+                    else "%.4f" % r["cost_usd_total"])
+            models = ", ".join(r["responding_models_all"]) or "unverified"
+            print("| %s | %s | %s | %s | %.0f |"
+                  % (r["arm"], models,
+                     "yes" if r["uniform"] else "NO -- MIXED", cost, secs))
     return 0
 
 
