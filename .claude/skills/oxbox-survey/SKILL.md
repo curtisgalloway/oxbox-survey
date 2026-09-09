@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.5.0
+version: 2.6.0
 last_generator_review: 2026-09-08
 ---
 
@@ -221,8 +221,10 @@ humble; we're just doing little toy tests" — sat in a file the generator never
 and the issues drifted exactly the way it warned against. A review loop that only writes
 is a loop that teaches nothing.
 
-`docs/editorial-thesis.md` is the standing statement of what the survey is for. Read it
-too. It is the source the "What the report is for" section above was drawn from.
+Two standing documents are read every run, and neither is optional.
+`docs/editorial-thesis.md` says what the survey is for and is the source of the "What
+the report is for" section above. `docs/issue-shape.md` says what that looks like on
+the page, section by section, and is the format this skill used to spell out inline.
 
 ### Effort, when writing the manifest
 
@@ -417,85 +419,30 @@ is the rules working — the old length was compression, not brevity.
 
 ## Report format
 
-Markdown. Keep it scannable — this is read weekly, not studied.
+**`docs/issue-shape.md` is the format, and it is authoritative.** Read it before
+writing. It gives the sections in order, what each one contains, what never appears in
+an issue, and the counts a draft is checked against. It was reviewed and approved by
+the editor on 2026-09-08 and it replaces the block that used to live here.
 
-```
-# The Oxbox Survey
-<Byline line carries issue number and date. The title is the publication's, not
-the week's topic.>
+That block described an issue by naming scripts to run and tables to paste, and that is
+why the generated issues read as an audit of the survey. **No section of an issue is
+specified by the script that fills it.** Scripts still produce the numbers; they produce
+them into the workbook and into `docs/`, and the issue quotes the two or three that
+change a decision.
 
-## Editor's notes
-<The editor's own, in first person, written by them and never by the generator.
-Leave the section and move on if there is no text for it.>
+Four things from that document are worth repeating here because they are the ones most
+often broken:
 
-## New this week
-<Leads the issue. What changed and what a reader should do differently: reveals,
-churn, catalog movement, a route that stopped answering. Each item is a bold
-headline fact, then an italic *Why you should care:* line, then the body.
-"Unchanged" is not an item. The survey's own process is never an item.>
-
-## Top models to try
-<What the editor would actually point oxbox at, free or cheap paid. Per model: a
-header line, then the "why" as full-width text under it, never a cramped column.
-Include the route. A headline fact opens each one -- the success rate, the count
-of real findings. No TRY markers; the section is "to try". Do not restate probe
-or reachability here.>
-
-## The models
-<The catalog, a pure listing: every venue's table, every free model, with the
-limitations column, on a no-change week too. No verdict markers. Then a short
-paragraph only for entries whose limitation needs explaining.>
-
-## Stealth tier
-<Per cloaked model: slug, listed date, endpoint context, stated free window and
-days left, terms, suspected or confirmed attribution with the evidence and the
-base rate of such guesses being wrong. One line for the whole section if the
-slot is empty.>
-
-## Tried
-<`python3 ratings.py` output: every model ever run, its disqualifier, its Editor's
-Rating with date, then the per-fixture scores. Then the rubric.>
-
-## What it costs
-<`python3 ratings.py --costs` output: per model, by tier (frontier, cheap paid, free),
-the model half per run and its wall clock, who checked it and at what prices, the
-checking half per run and its window time as upper bounds, and USD per real finding or
-hit with both halves. Time is a cost; both clocks stay in the table. Then say what the table shows this week: what a free
-model's findings cost to check, under which checking model, against what a cheap paid
-model costs to run and check. That is three comparisons; give each one its own
-sentence rather than fitting them into two.>
-
-## Tried this week
-<Per model actually run this week: the observations above, with counts and filenames.
-One line if nothing was run.>
-
-## Caveats
-<Bulleted. Anything that would make a number in this report misleading. Always
-includes the standing regulatory-exposure bullet below.>
-
-## Churn since last report
-<Added, delisted, repriced, revealed. One line each, from the fetcher's diff.
-Fold this into "New this week" when the week is thin; two churn sections is one
-too many.>
-
-## How far to trust this
-<Leads with the editor's own "use your own judgement" framing: what was tried
-here versus what a vendor said. OpenCode Zen's missing pricing is explained
-here, not in a section heading.>
-
-## Sources
-<Every URL fetched and every search run, as named links with a one-line
-description each, never bare URLs. Say which were used and which were checked
-and rejected.>
-```
+- At most **10 second-level sections**, and a published issue is already at exactly ten.
+- **No table wider than four columns.** A wider one is a link to the workbook.
+- **Item counts are capped; word counts never are.** Capping items is selection. Capping
+  words is the compression that welds three facts into one sentence.
+- **The complete record is not in the issue** — not every model ever run, not both
+  supervisors' cost tables, not the rubric, not the derivation of a figure.
 
 **The generator review is not in the issue.** It goes to
 `docs/generator-reviews/<date>.md`. See below.
 
-Section order is the editor's, set 2026-08-27 and applied here 2026-09-08: the
-publication's name at the top, the editor's notes, then what changed, then what to
-try, then the catalog. The issue leads with what a reader does differently, never
-with the catalog and never with the survey's own week.
 
 **The cost comparison.** Run `python3 ratings.py --costs` for the text form and
 `uv run --with openpyxl python3 costsheet.py <out.xlsx>` for the workbook, upload the

@@ -45,10 +45,16 @@ direction on voice and on what is interesting, in their own words. Until
 2026-09-08 nothing read it back, and a week of direction sat in a file the
 generator never opened while the issues drifted exactly the way it warned
 against. **A rule that lives outside the generator is not a rule** — direction
-belongs in `SKILL.md` or in `docs/editorial-thesis.md`, and both are read every
-run. `docs/editorial-thesis.md` is the standing answer to what the survey is for
-and what earns a place in an issue; it governs selection, and selection happens
-before any prose is written.
+belongs in `SKILL.md`, `docs/editorial-thesis.md` or `docs/issue-shape.md`, and
+all three are read every run. `docs/editorial-thesis.md` is the standing answer
+to what the survey is for and what earns a place in an issue; it governs
+selection, and selection happens before any prose is written.
+`docs/issue-shape.md` is what that looks like on the page — the sections in
+order, what each contains, what never appears, and the counts a draft is checked
+against. It was reviewed and approved 2026-09-08 and replaced the format block
+that used to be spelled out in the skill. **No section of an issue is specified
+by the script that fills it**; that phrasing is what put the complete record in
+the reader's path.
 
 The issue is then reviewed in a Google Doc before it is committed — see **The
 review loop** below.

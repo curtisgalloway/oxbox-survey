@@ -5,8 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 # The shape of an issue
 
-**DRAFT.**
-
 What a published issue contains, section by section, and what it never contains.
 This replaces the report-format block in the generator, which described the issue by
 naming the scripts to run and the tables to paste. That is why the generated issues
