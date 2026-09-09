@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.4.0
+version: 2.5.0
 last_generator_review: 2026-09-08
 ---
 
@@ -294,10 +294,41 @@ are skimming for the one fact that changes what they do, and write so that fact 
 findable in one pass. Nothing here is written for the person who maintains the
 generator.
 
-These rules are mechanical on purpose. "Write clearly" and "avoid jargon" have been in
-this file's spirit since issue 0.1 and moved nothing; `scripts/prose_metrics.py`
-measures whether the rules below are actually being followed, and the baseline they are
-measured against is `docs/prose-baseline-2026-09-08.md`.
+**The base is Associated Press style.** Follow the `newsroom-style` skill, which states
+it: numbers, attribution, abbreviations, restrictive versus nonrestrictive clauses, the
+inverted pyramid, short paragraphs, and its red flags — passive voice hiding who did
+what, sentences opening "There is" or "There are", "very" and "extremely". Read it
+rather than restating it here; what follows is only where this report departs from it,
+and what it adds.
+
+AP is the base because this is a report, the conventions are shared, and a rule with a
+stylebook behind it survives an argument that a house preference does not.
+
+**Where this report departs from AP, and why.**
+
+- **Dates are ISO 8601.** `2026-09-01`, never "Sept. 1". Every claim here carries an
+  as-of date, snapshots are named by date, and issues are diffed week over week; a
+  sortable unambiguous date is load-bearing. Astra's 2026-09-08 run converted every date
+  to AP form unprompted, which is how this departure was found.
+- **Model and vendor identifiers are reproduced verbatim**, in a code span, never
+  recapitalized or reflowed: `minimax/minimax-m3:free`, `z-ai/glm-5.3-flash`. AP's
+  company-name rule governs a name in prose (Nvidia), not an identifier a reader pastes
+  into a command. Getting one wrong is a defect, not a style slip.
+- **The serial comma stays.** AP drops it; the items in this report's lists are long and
+  technical and misread without it.
+- **First person is allowed in the editor's notes, and only there.** That section is the
+  editor's, written by a person. AP's red flag against first person governs the rest.
+- **The Editor's Rating is a judgment and says so.** "No editorializing" governs the
+  reporting; the rating column is the one place an opinion is the product.
+
+AP's numbers rule needs no departure: its own exemption for "tabular matter and
+statistical and sequential forms" already covers `2 of 10 findings` and every measured
+figure here.
+
+**What AP does not cover, and this report adds.** The rules below. They are mechanical
+on purpose — "write clearly" and "avoid jargon" were this file's spirit since issue 0.1
+and moved nothing. `scripts/prose_metrics.py` measures conformance, and the baseline is
+`docs/prose-baseline-2026-09-08.md`.
 
 - **One idea per sentence.** No sentence carries more than one subordinate clause. Two
   independent clauses joined by a semicolon, or by "and", "but" or "so", are two
@@ -313,15 +344,47 @@ measured against is `docs/prose-baseline-2026-09-08.md`.
   repository's exposure verdict into public" — instead the count, then the three
   examples as a list.
 - **Prefer a finite verb to a nominalization.** "The model degraded on long contexts",
-  not "degradation of the model was observed on long contexts."
+  not "degradation of the model was observed on long contexts." AP's red flag against
+  passive voice hiding who did what is the same defect one step further on: a
+  nominalization hides the actor *and* the action.
+
+  This is the rule that fails quietly when the others are followed, so it gets a check
+  of its own. Astra's 2026-09-08 run had the best sentence-length numbers of any arm —
+  nothing over 30 words, median 8 — and the worst nominalization rate, 25.1 per
+  thousand words against 15.0 for Opus on the same facts. It shortened its sentences by
+  moving the complexity into abstract nouns rather than removing it. **Short sentences
+  full of nominalizations are not clear writing; they are the same density in smaller
+  pieces.**
+
+  Two tests, both cheap. Every sentence needs a subject that did something: if the
+  actor is missing, the verb is hiding in a noun. And when a `-tion`/`-ment`/`-ance`
+  word is the object of a weak verb — *perform*, *conduct*, *provide*, *achieve*,
+  *observe*, *carry out* — the noun is the real verb, so use it: "we verified the
+  findings", never "verification of the findings was performed".
+
+  Watch the rate, not the count, with `python3 scripts/prose_metrics.py --terms`, and
+  read the matched terms before believing a move. The scan cannot tell a nominalization
+  from a domain noun, and `completion` is almost always the card field "max completion
+  tokens" rather than a writing choice.
 - **No noun stack longer than two words.** Break it apart with a preposition. A
   product's own name is exempt and is not a stack: `Nemotron 3 Ultra` and
   `Claude Fable 5.1` are names, and there is no preposition to insert.
-- **Expand every acronym at first use in each issue, or do not use it.** Each issue
-  stands alone, so the expansion is repeated every week rather than assumed from the
-  last one. A model or vendor name is not an acronym and is never expanded: `GLM-5.3`,
-  `MiniMax M3`, `SWE-Bench` are names. This extends the standing rule to spell out
-  cryptic abbreviations — write "context", not "ctx".
+- **Acronyms follow AP, which is not what an agent's instinct suggests.** Give a name in
+  full on first use and the short form after — and **never** the parenthetical-initials
+  construction: not "Bureau of Industry and Security (BIS)". AP rejects that form
+  outright, and an earlier draft of this file wrongly required it.
+
+  Some are common enough to use unexpanded, as AP allows for CIA and FBI. Here that is
+  the ordinary industry vocabulary and the well-known names: API, JSON, CPU, AI, URL,
+  HTTP, CLI, LLM, Nvidia, CNBC, GLM. The set the checker holds is `ASSUMED_KNOWN` in
+  `scripts/prose_metrics.py`. A model or vendor name is never an acronym: `GLM-5.3`,
+  `MiniMax M3`, `SWE-Bench` are names.
+
+  **Where an acronym earns nothing, drop it rather than expand it** — AP's "if it would
+  not otherwise be clear, do not use it", and usually the better half of the rule. Name
+  the agency a reader has heard of and leave out the org chart: "the United States
+  Commerce Department", not the bureau inside it that issued the listing. Spell out
+  cryptic abbreviations the same way: "context", not "ctx".
 
   Two things this reader already knows, and does not need told: the ordinary
   industry vocabulary (application programming interface, JavaScript Object
@@ -357,22 +420,37 @@ is the rules working — the old length was compression, not brevity.
 Markdown. Keep it scannable — this is read weekly, not studied.
 
 ```
-# OpenRouter free models — week of <date>
+# The Oxbox Survey
+<Byline line carries issue number and date. The title is the publication's, not
+the week's topic.>
 
-## Verdict
-<What to point oxbox at this week, what changed, and what you ran. Three
-facts, so at least three sentences; take the room they need. A two-sentence
-verdict is where three facts get welded together, which is the compression
-this section keeps producing.>
+## Editor's notes
+<The editor's own, in first person, written by them and never by the generator.
+Leave the section and move on if there is no text for it.>
 
-## Catalog
-<Generated table, every free model, with the limitations column. Then a short
+## New this week
+<Leads the issue. What changed and what a reader should do differently: reveals,
+churn, catalog movement, a route that stopped answering. Each item is a bold
+headline fact, then an italic *Why you should care:* line, then the body.
+"Unchanged" is not an item. The survey's own process is never an item.>
+
+## Top models to try
+<What the editor would actually point oxbox at, free or cheap paid. Per model: a
+header line, then the "why" as full-width text under it, never a cramped column.
+Include the route. A headline fact opens each one -- the success rate, the count
+of real findings. No TRY markers; the section is "to try". Do not restate probe
+or reachability here.>
+
+## The models
+<The catalog, a pure listing: every venue's table, every free model, with the
+limitations column, on a no-change week too. No verdict markers. Then a short
 paragraph only for entries whose limitation needs explaining.>
 
 ## Stealth tier
 <Per cloaked model: slug, listed date, endpoint context, stated free window and
 days left, terms, suspected or confirmed attribution with the evidence and the
-base rate of such guesses being wrong.>
+base rate of such guesses being wrong. One line for the whole section if the
+slot is empty.>
 
 ## Tried
 <`python3 ratings.py` output: every model ever run, its disqualifier, its Editor's
@@ -396,11 +474,28 @@ One line if nothing was run.>
 includes the standing regulatory-exposure bullet below.>
 
 ## Churn since last report
-<Added, delisted, repriced, revealed. One line each, from the fetcher's diff.>
+<Added, delisted, repriced, revealed. One line each, from the fetcher's diff.
+Fold this into "New this week" when the week is thin; two churn sections is one
+too many.>
 
-## Generator review
-<See below.>
+## How far to trust this
+<Leads with the editor's own "use your own judgement" framing: what was tried
+here versus what a vendor said. OpenCode Zen's missing pricing is explained
+here, not in a section heading.>
+
+## Sources
+<Every URL fetched and every search run, as named links with a one-line
+description each, never bare URLs. Say which were used and which were checked
+and rejected.>
 ```
+
+**The generator review is not in the issue.** It goes to
+`docs/generator-reviews/<date>.md`. See below.
+
+Section order is the editor's, set 2026-08-27 and applied here 2026-09-08: the
+publication's name at the top, the editor's notes, then what changed, then what to
+try, then the catalog. The issue leads with what a reader does differently, never
+with the catalog and never with the survey's own week.
 
 **The cost comparison.** Run `python3 ratings.py --costs` for the text form and
 `uv run --with openpyxl python3 costsheet.py <out.xlsx>` for the workbook, upload the
