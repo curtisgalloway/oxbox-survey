@@ -20,9 +20,9 @@ python3 scripts/prose_metrics.py ../oxbox.ai/editions/2026-08-24.md \
 
 | issue | prose words | sents | median | p90 | >30w | acr | acr unexp | nominal | /1k words | stacks | stacks-x | slop |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 2026-08-24 (0.2) | 1494 | 107 | 12 | 26 | 7% | 20 | 9 | 27 | 18.1 | 0 | 0 | 0 |
-| 2026-08-27 (0.3) | 1815 | 110 | 13 | 32 | 13% | 25 | 8 | 34 | 18.7 | 5 | 1 | 0 |
-| 2026-09-01 (1) | 3929 | 220 | 16 | 34 | 14% | 23 | 7 | 60 | 15.3 | 6 | 0 | 1 |
+| 2026-08-24 (0.2) | 1494 | 107 | 12 | 26 | 7% | 10 | 6 | 27 | 18.1 | 0 | 0 | 0 |
+| 2026-08-27 (0.3) | 1815 | 110 | 13 | 32 | 13% | 12 | 4 | 34 | 18.7 | 5 | 1 | 0 |
+| 2026-09-01 (1) | 3929 | 220 | 16 | 34 | 14% | 4 | 2 | 60 | 15.3 | 6 | 0 | 1 |
 
 Tables, code fences, headings and navigation rows are excluded. A catalog table is
 supposed to be dense, and counting it would swamp the paragraphs this is about.
@@ -68,11 +68,19 @@ is almost entirely the card field "max completion tokens", which is a field name
 not a writing choice. Track the rate per 1000 words rather than the raw count, and
 read the term list before concluding anything from a move.
 
-**Unexpanded acronyms are real but need a ruling.** Issue 1 uses AI, API, CPU, GLM,
-JSON, M3 and SWE without expanding any of them. `M3` is part of the model name
-`MiniMax M3` and is a false positive. Whether API, JSON, CPU and AI need expanding
-for this readership is a judgment about the audience, not something the script can
-decide; see the open question in the report that accompanies this baseline.
+**Unexpanded acronyms: two real ones, and an audience call.** The counter skips two
+sets. `NOT_ACRONYMS` holds single letters, units and currencies. `ASSUMED_KNOWN`
+holds the ones this readership is taken to know already, and that set is the audience
+call -- it is provisionally API, JSON, CPU, AI, URL, HTTP, CLI and LLM, and it is
+marked `TODO(editor)` in the script because it belongs to whoever knows the readers.
+A letter followed by digits is skipped as a model designator, which is what `M3` in
+`MiniMax M3` is.
+
+What is left is small and consistent: **GLM in all three issues, SWE in two.** Those
+are this report's own vocabulary rather than the industry's, and the rule now says to
+expand them every week. The extra hits in the two pre-launch issues are `USE`, `HOLD`,
+`AVOID` and `BUG` -- the status markers retired on 2026-09-06, which are all-caps
+labels and not acronyms at all.
 
 ## What is deliberately not measured
 

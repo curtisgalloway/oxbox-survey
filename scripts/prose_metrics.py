@@ -189,12 +189,30 @@ def words_of(sentence):
 
 ACRONYM_RE = re.compile(r"\b([A-Z][A-Z0-9]{1,7})\b")
 
-# Not acronyms in this corpus: roman-ish tokens, units, and the report's own
-# tier markers, which are defined in every issue's own trust section.
-ACRONYM_SKIP = {
+# Never acronyms: single letters, units, currencies and the report's own
+# evidence-tier markers, which every issue defines in its own trust section.
+NOT_ACRONYMS = {
     "I", "A", "OK", "TL", "DR", "AM", "PM", "UTC", "USD", "US", "UK", "EU",
     "M", "R", "N", "GB", "MB", "KB", "TB", "K",
 }
+
+# Acronyms this readership is assumed to know, so using one unexpanded is not
+# a finding. The reader is "an engineer competent in adjacent areas who has not
+# read a previous issue" -- which settles GLM and SWE (expand them; they are
+# this report's vocabulary, not the industry's) but genuinely does not settle
+# API, JSON, CPU or AI.
+#
+# TODO(editor): this is the audience call, and it belongs to whoever knows the
+# readership. Anything left out of this set must be expanded at first use in
+# every issue, per the "Expand every acronym at first use" rule in SKILL.md.
+# Expanding AI as "artificial intelligence (AI)" in a report about models
+# reads as padding; leaving JSON unexpanded may not. Add or remove entries and
+# re-run with --terms to see what changes.
+ASSUMED_KNOWN = {
+    "API", "JSON", "CPU", "AI", "URL", "HTTP", "CLI", "LLM",
+}
+
+ACRONYM_SKIP = NOT_ACRONYMS | ASSUMED_KNOWN
 
 NOMINALIZATION_RE = re.compile(
     r"\b([A-Za-z]{4,}?(?:tion|ment|ance|ence|ency|ity))\b", re.I
@@ -227,6 +245,11 @@ def find_acronyms(prose_text):
     for m in ACRONYM_RE.finditer(prose_text):
         acr = m.group(1)
         if acr in ACRONYM_SKIP:
+            continue
+        # A letter followed by digits is a model designator, not an acronym:
+        # the M3 of "MiniMax M3", the S2 of "Laguna S 2.1". There is nothing
+        # to expand.
+        if re.fullmatch(r"[A-Z]\d+", acr):
             continue
         counts[acr] = counts.get(acr, 0) + 1
         first_use.setdefault(acr, m.start())
