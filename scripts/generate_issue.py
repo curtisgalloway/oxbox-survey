@@ -81,6 +81,28 @@ ARMS = {
         "effort": "low",
         "note": "harness self-test only; never compare prose from this arm",
     },
+    # PROSE ONLY, and through ox rather than the Claude CLI. `claude -p` runs
+    # Claude models, so a cross-vendor arm needs the other house pattern:
+    # verifiercheck.py's ox-openrouter arms, `oxbox send` through OpenRouter.
+    #
+    # It cannot do the content pass and never will. ox gives a model no tools,
+    # no shell and no filesystem -- that is oxbox's whole containment claim --
+    # and the content pass has to read the snapshot, the observations and
+    # ratings.py output. So this arm runs against an intermediate some other
+    # arm produced, via --intermediate.
+    #
+    # Worth having because the other three arms are two Claude models, which
+    # cannot tell a portable rule from a Claude-shaped one. Listed 2026-09-03
+    # at $10/M in and $50/M out, the same list price as Fable 5.1, so the cost
+    # column compares directly.
+    "astra": {
+        "model": "openai/gpt-6-astra",
+        "effort": "high",
+        "max_tokens": "128000",
+        "via": "ox",
+        "prose_only": True,
+        "note": "cross-vendor prose arm, through OpenRouter; needs --intermediate",
+    },
 }
 
 # Withheld from the prose pass. The empty working directory already leaves it
@@ -224,6 +246,63 @@ def run_cli(arm, prompt, cwd, deny_tools, timeout, dry_run, mode="manual"):
     return envelope
 
 
+def run_ox(arm, prompt, stem, timeout, dry_run):
+    """One toolless single-shot call through ox, for a non-Claude arm.
+
+    Same shape as verifiercheck.py's ox arms: `op run` so the key never enters
+    argv, --mode ask, prompt on stdin, answer to --output, and --log-dir kept
+    beside the artifacts so an untracked logs/ does not appear in a clean tree.
+    The route ox actually reached is in the status file, which is this arm's
+    equivalent of modelUsage."""
+    cmd = [
+        "op", "run", "--env-file", ".env", "--",
+        "oxbox", "send",
+        "--venue", "openrouter",
+        "--model", arm["model"],
+        "--effort", arm["effort"],
+        "--max-tokens", arm["max_tokens"],
+        "--temperature", "0.2",
+        "--mode", "ask",
+        "--stdin",
+        "--status-file", stem + ".status.json",
+        "--output", stem + ".raw.txt",
+        "--log-dir", os.path.join(os.path.dirname(stem), "ox-logs"),
+    ]
+    if dry_run:
+        print("  cwd: %s" % HERE)
+        print("  cmd: %s" % " ".join(cmd))
+        print("  prompt: %d bytes" % len(prompt))
+        return None
+    started = time.time()
+    proc = subprocess.run(cmd, input=prompt, cwd=str(HERE), capture_output=True,
+                          text=True, timeout=timeout, check=False)
+    elapsed = round(time.time() - started, 1)
+    if proc.returncode != 0:
+        Path(stem + ".stderr.txt").write_text(proc.stderr, encoding="utf-8")
+        sys.stderr.write("generate_issue: ox exit=%d, stderr kept\n"
+                         % proc.returncode)
+        return None
+    status = {}
+    if os.path.exists(stem + ".status.json"):
+        try:
+            status = json.loads(Path(stem + ".status.json").read_text(
+                encoding="utf-8"))
+        except ValueError:
+            pass
+    route = status.get("route")
+    return {
+        "result": Path(stem + ".raw.txt").read_text(encoding="utf-8")
+        if os.path.exists(stem + ".raw.txt") else "",
+        # ox reports the route it reached, not a model-usage map. Record the
+        # route as the responding identity so the uniformity check reads the
+        # same way for both arm kinds.
+        "modelUsage": {route: {}} if route else {},
+        "total_cost_usd": status.get("usd") or status.get("harness_usd"),
+        "_elapsed_s": elapsed,
+        "_status": status,
+    }
+
+
 def responding_models(envelope):
     """Which model actually answered. More than one means the run mixed two,
     which is what a safeguard reroute or a --fallback-model hit looks like."""
@@ -239,14 +318,32 @@ def strip_fence(text):
     return text.strip()
 
 
-def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None):
+def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
+             shared=None):
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = out_dir / ("%s-%s" % (date, arm_name))
     skill_text = SKILL.read_text(encoding="utf-8")
     record = {"arm": arm_name, "model_requested": arm["model"],
               "effort": arm["effort"], "date": date, "passes": {}}
 
-    inter_path = Path(str(stem) + ".intermediate.json")
+    if arm.get("prose_only") and only != "prose":
+        only = "prose"
+        if not shared:
+            sys.stderr.write(
+                "generate_issue: arm=%s is prose-only and needs --intermediate; "
+                "ox gives a model no tools, so it cannot run the content pass\n"
+                % arm_name)
+            return None
+
+    # An arm that ran its own content pass is comparable to the published
+    # issue but NOT to another arm: two intermediates differ, so a prose
+    # difference is confounded with a content difference. --intermediate holds
+    # the facts fixed and leaves the writer as the only variable.
+    inter_path = Path(shared) if shared else Path(str(stem) + ".intermediate.json")
+    record["intermediate"] = str(inter_path)
+    record["intermediate_shared"] = bool(shared)
+    if shared and only in (None, "content"):
+        only = "prose"
     if only in (None, "content"):
         print("[%s] content pass" % arm_name)
         env = run_cli(arm, CONTENT_PROMPT.format(date=date), HERE, None,
@@ -284,8 +381,11 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None):
             format_block=extract_section(skill_text, "Report format"),
             intermediate=intermediate,
         )
-        env = run_cli(arm, prompt, empty, PROSE_DENIED, timeout, dry_run,
-                      mode="manual")
+        if arm.get("via") == "ox":
+            env = run_ox(arm, prompt, str(stem), timeout, dry_run)
+        else:
+            env = run_cli(arm, prompt, empty, PROSE_DENIED, timeout, dry_run,
+                          mode="manual")
         if dry_run:
             return None
         if env is None:
@@ -323,6 +423,11 @@ def main(argv=None):
     p.add_argument("--out", default="work/generated", help="output directory")
     p.add_argument("--pass", dest="only", choices=["content", "prose"],
                    help="run only one pass (default: both)")
+    p.add_argument("--intermediate",
+                   help="reuse this intermediate instead of running the content "
+                        "pass. Holds the facts fixed so the writer is the only "
+                        "variable, which is what makes two arms' prose "
+                        "comparable. Required by a prose-only arm.")
     p.add_argument("--timeout", type=int, default=3600, help="seconds per pass")
     p.add_argument("--dry-run", action="store_true",
                    help="print the commands and prompt sizes, call nothing")
@@ -346,7 +451,7 @@ def main(argv=None):
     results = []
     for name in names:
         r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
-                     args.dry_run, args.only)
+                     args.dry_run, args.only, args.intermediate)
         if r:
             results.append(r)
 
