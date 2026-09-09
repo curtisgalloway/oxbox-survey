@@ -210,6 +210,13 @@ NOT_ACRONYMS = {
 # re-run with --terms to see what changes.
 ASSUMED_KNOWN = {
     "API", "JSON", "CPU", "AI", "URL", "HTTP", "CLI", "LLM",
+    # Ruled by the editor 2026-09-08, from the first generated run:
+    # NVIDIA and CNBC are well known, and GLM is clear in the context of
+    # models. BIS is not, and stays flagged -- the standing regulatory caveat
+    # glosses it as "(Commerce Department export controls)", which says what
+    # the bureau does without ever saying that the letters are Bureau of
+    # Industry and Security. A gloss is not an expansion.
+    "NVIDIA", "CNBC", "GLM",
 }
 
 ACRONYM_SKIP = NOT_ACRONYMS | ASSUMED_KNOWN

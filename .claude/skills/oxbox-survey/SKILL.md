@@ -259,6 +259,19 @@ measured against is `docs/prose-baseline-2026-09-08.md`.
   last one. A model or vendor name is not an acronym and is never expanded: `GLM-5.3`,
   `MiniMax M3`, `SWE-Bench` are names. This extends the standing rule to spell out
   cryptic abbreviations — write "context", not "ctx".
+
+  Two things this reader already knows, and does not need told: the ordinary
+  industry vocabulary (application programming interface, JavaScript Object
+  Notation, and the like), and the well-known names — NVIDIA, CNBC, GLM. The set
+  the script holds is in `scripts/prose_metrics.py`.
+
+  **Where the acronym earns nothing, drop it rather than expand it.** This is the
+  "or do not use it" half of the rule, and it is usually the better half. The
+  regulatory caveat below used to open "the BIS Entity List", which no reader can
+  decode; the fix is not to spell out Bureau of Industry and Security but to write
+  **the United States Commerce Department**, because which bureau inside Commerce
+  issued a listing changes nothing a reader will do. Name the agency a reader has
+  heard of, and leave the org chart out.
 - **Every paragraph opens with a concrete sentence.** A number, a name, or something
   that happened. Never a framing move ("It is worth noting that…", "There are several
   considerations here…") and never an abstraction the next sentence then explains.
@@ -379,8 +392,8 @@ user's direction on 2026-09-06. State it as facts about lists, tiered, with a li
 the primary source for each, and never as legal advice; say once that a reader in a
 regulated setting should check the lists themselves and their own procurement rules.
 
-- **The BIS Entity List** (Commerce Department export controls) restricts supplying
-  listed companies with United States-origin items. Zhipu AI, the vendor behind the
+- **The Entity List** (United States Commerce Department export controls) restricts
+  supplying listed companies with United States-origin items. Zhipu AI, the vendor behind the
   `z-ai/` models, was added effective 2025-01-16 `[M]`
   ([Federal Register, 2025-00704](https://www.federalregister.gov/documents/2025/01/16/2025-00704/addition-of-entities-to-and-revision-of-entry-on-the-entity-list)).
   Being listed does not by itself forbid a customer from calling the vendor's hosted
