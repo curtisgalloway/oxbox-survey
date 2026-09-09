@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.8.0
+version: 2.9.0
 last_generator_review: 2026-09-09
 ---
 
@@ -432,8 +432,11 @@ often broken:
   version of this shape put all of that inside the items and came out 26% longer.
 - **Every item is in the item form**: a bold headline with the date or number in it,
   one or two sentences of substance, an italic *Why it matters:* sentence about what
-  the reader does differently, then the sources as named links separated by a middle
-  dot. "This week's highlights" is three to five one-liners in the same spirit, and
+  the reader does differently (*Why this model:* under "Models we're using this
+  week"), then the sources as named links separated by a middle dot. The item is the
+  reader's problem, never the survey's: how oxbox works and what the survey did about
+  a finding in its own code is inside baseball, and a mistake the survey made checking
+  a run is its own bug, not a lesson. "This week's highlights" is three to five one-liners in the same spirit, and
   it is the section a reader stops at.
 - **No table wider than four columns.** A wider one is a link to the workbook.
 - **Item counts are capped; word counts never are.** Capping items is selection. Capping
@@ -475,7 +478,11 @@ checking model plus the same-batch, per-fixture, ratings and rubric tabs), and l
 Sheet from "What a review cost" rather than pasting twelve-column tables into prose;
 the editor found the pasted form unreadable (2026-09-06). The issue quotes two or three
 numbers in sentences and names the checking model beside each; the same-batch table
-appears inline only when it fits in four columns, and the full tables never do. It prints one table per checking model, and the editor's standing
+appears inline only when it fits in four columns, and the full tables never do. Every
+figure is at the checking model's list price and the issue says so once; a reader whose
+checking model is covered by a subscription pays in quota rather than dollars, and the
+issue says that too, in one sentence, because the two are not the same bill (the
+editor, 2026-09-09). It prints one table per checking model, and the editor's standing
 direction (2026-09-06) is to run both Opus 5 and Fable 5.1 as checkers on each verified
 batch so both tables fill and a reader can choose; where a run was checked by both, the
 same-batch table shows each checker on its own tokens. A second checker is recorded as a
@@ -498,7 +505,7 @@ hand; if a window is shared or missing, the table says so and the caveat stands.
 **The scores, and the Editor's Rating.** `python3 ratings.py` prints the score table,
 and the table goes to the workbook beside the cost tables, never into the issue: every
 model ever put through oxbox is a row of it, and the issue quotes a model's scores only
-where that model appears, under "Top models to try". In the table, failures are rows too: a run the
+where that model appears, under "Models we're using this week". In the table, failures are rows too: a run the
 venue refused shows its disqualifier and dashed scores; a run that answered with
 nothing shows quality 0. A `benign` count (confirmed failures in the safe direction) appears beside real when present and is never counted as real. Three 0-5 scores per fixture, bucketed by the script from
 observation frontmatter, never typed: quality (seeded defects found), cost (USD per real
@@ -518,8 +525,10 @@ rows carry no rating and never enter the manifest. **Ratings must not rely on co
 the word, never a red/green dot as the only carrier of meaning, and never "the green
 ones" in prose.
 
-**The standing regulatory-exposure caveat.** Every issue's "How far to trust this"
-section carries this, updated to the week's catalog, because a model's vendor can be on a United
+**The standing regulatory-exposure caveat.** Every issue carries this in the record,
+under "Restricted-party listings", and "How far to trust this" carries one line that
+points to it (the editor's ruling of 2026-09-09: "Move it."). It is updated to the
+week's catalog, because a model's vendor can be on a United
 States restricted-party list and nothing in a catalog card says so. Added at the
 user's direction on 2026-09-06. State it as facts about lists, tiered, with a link to
 the primary source for each, and never as legal advice; say once that a reader in a

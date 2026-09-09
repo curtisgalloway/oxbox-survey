@@ -70,7 +70,7 @@ SECTIONS = [
     "Editor's notes",
     "What's new this week",
     "Top things we learned",
-    "Top models to try",
+    "Models we're using this week",
     "What a review cost",
     "How far to trust this",
     "The record",
@@ -83,6 +83,7 @@ RECORD = [
     "The stealth models",
     "What models changed since the last issue",
     "The runs",
+    "Restricted-party listings",
     "Sources",
 ]
 
