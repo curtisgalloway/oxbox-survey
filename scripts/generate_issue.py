@@ -165,9 +165,13 @@ Read, in this order:
 1. `.claude/skills/oxbox-survey/SKILL.md` -- the generator's rules. Follow the
    evidence-tier rules and the honesty rules exactly. Ignore the "How to write
    it" section; that governs the prose pass, not you.
-2. The newest snapshot at or before {date} under `snapshots/`, and the one
-   before it, so churn is a diff and not a memory.
-3. Every file in `observations/` dated after the previous issue.
+2. The newest snapshot at or before {date} under `snapshots/`, and the
+   snapshot the previous issue was built from, the newest at or before
+   {previous}, so churn is a diff since the last issue and not a memory
+   (`./oxsurvey --diff OLD NEW` prints one). Snapshots between the two are
+   how a change is dated. The `-access.json` beside each snapshot is the
+   probe: whether each listed model answered, and with what error.
+3. Every file in `observations/` dated after {previous}, the previous issue.
 4. `providers/*.md` for standing venue facts.
 5. The output of `python3 ratings.py --json` and `python3 ratings.py --costs`.
 
@@ -546,8 +550,20 @@ def extract_json(text):
     return None
 
 
+def previous_issue_date(date):
+    """The previous issue's date: the newest generator review before `date`.
+
+    Every issue leaves docs/generator-reviews/<date>.md behind, so the newest
+    one before the issue being written is the last issue. Falls back to the
+    date itself when there is none, which makes "since the previous issue"
+    mean "this snapshot only" rather than crashing the content pass."""
+    reviews = sorted(p.stem for p in (HERE / "docs" / "generator-reviews").glob("*.md")
+                     if p.stem < date)
+    return reviews[-1] if reviews else date
+
+
 def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
-             shared=None):
+             shared=None, previous=None):
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = out_dir / ("%s-%s" % (date, arm_name))
     skill_text = SKILL.read_text(encoding="utf-8")
@@ -585,8 +601,10 @@ def generate(arm_name, arm, date, out_dir, timeout, dry_run, only=None,
         only = "prose"
     if only in (None, "content"):
         print("[%s] content pass" % arm_name)
-        env = run_cli(arm, CONTENT_PROMPT.format(date=date), HERE, None,
-                      timeout, dry_run, mode="auto")
+        prev = previous or previous_issue_date(date)
+        record["previous_issue"] = prev
+        env = run_cli(arm, CONTENT_PROMPT.format(date=date, previous=prev),
+                      HERE, None, timeout, dry_run, mode="auto")
         if dry_run:
             pass
         elif env is None:
@@ -686,6 +704,10 @@ def main(argv=None):
                         "pass. Holds the facts fixed so the writer is the only "
                         "variable, which is what makes two arms' prose "
                         "comparable. Required by a prose-only arm.")
+    p.add_argument("--previous",
+                   help="the previous issue's date, which bounds churn and the "
+                        "observations read (default: the newest generator "
+                        "review before --date)")
     p.add_argument("--timeout", type=int, default=3600, help="seconds per pass")
     p.add_argument("--jobs", type=int,
                    help="arms to run at once (default: all of them). Use 1 to "
@@ -725,7 +747,8 @@ def main(argv=None):
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
-                             args.dry_run, args.only, args.intermediate)
+                             args.dry_run, args.only, args.intermediate,
+                             args.previous)
             buffers[name] = buf.getvalue()
             return r
 
@@ -737,7 +760,8 @@ def main(argv=None):
     else:
         for name in names:
             r = generate(name, ARMS[name], args.date, out_dir, args.timeout,
-                         args.dry_run, args.only, args.intermediate)
+                         args.dry_run, args.only, args.intermediate,
+                         args.previous)
             if r:
                 results.append(r)
 
