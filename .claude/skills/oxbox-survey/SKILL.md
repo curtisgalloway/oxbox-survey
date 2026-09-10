@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.10.0
+version: 2.11.0
 last_generator_review: 2026-09-09
 ---
 
@@ -401,7 +401,19 @@ and moved nothing. `scripts/prose_metrics.py` measures conformance, and the base
   that happened. Never a framing move ("It is worth noting that…", "There are several
   considerations here…") and never an abstraction the next sentence then explains.
 - **Say the number in the units a reader thinks in.** K and M in prose (1.31M, 944K);
-  exact figures belong in tables and lists.
+  exact figures belong in tables and lists. **Money above the rule is rounded to the
+  cent** ($2.57, not $2.5698); the four-decimal figure a cost was computed to belongs
+  in the record's cost entry and nowhere else (the editor, 2026-09-10: "let's round to
+  pennies here please").
+- **The words this report uses, and the ones it does not.** The reader's vocabulary is
+  models, routers and listings, so the report's is too (the editor's r9 comments,
+  2026-09-10). A **model** is what the reader calls; never "row", which is a database
+  word for the same thing. A **listing** is a router's entry for a model; never
+  "card". The **catalog** is the model list a router publishes, and the first use in
+  an issue says so in those words. A router that turns a call away has **refused**
+  it; never "gate", which the editor asked to have explained and then replaced. Say
+  "a listing doesn't mean the model is actually available", not "a listing is not
+  availability"; the second is a slogan and the first is a sentence.
 - **Link on first mention, inline, inside the sentence.** "[Zhipu claimed the
   model](url)", never a parenthetical "(see link)" or a bare URL in the prose.
 - **Never name a path inside this repository in reader-facing text.** Say "the survey's
