@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.9.0
+version: 2.10.0
 last_generator_review: 2026-09-09
 ---
 
@@ -290,11 +290,20 @@ issue when the first pinned manifest goes out.
 ## How to write it
 
 **Who is reading.** An engineer who is competent in adjacent areas, is deciding which
-free model to point at a code review this week, and has not read a previous issue.
-They do not know this report's vocabulary and will not look anything up. Assume they
-are skimming for the one fact that changes what they do, and write so that fact is
-findable in one pass. Nothing here is written for the person who maintains the
-generator.
+free or cheap model to point at a code review this week from their own code or tools,
+and has not read a previous issue. They do not know this report's vocabulary and will
+not look anything up. Assume they are skimming for the one fact that changes what they
+do, and write so that fact is findable in one pass. Nothing here is written for the
+person who maintains the generator.
+
+What they came for, in the editor's words (2026-09-09): *"free and cheap models, how
+they perform, what works well and what doesn't, which routers work well."* What they
+did not: *"Bugs in oxbox, things we changed there, don't hold their interest so much."*
+The survey's own code is only the specimen; a finding in it is evidence about the model
+and appears for that reason alone, without the commit, the harness internals or the
+fix timing. The test for every item: does it tell the reader something about a model,
+a router or a cost? `docs/editorial-thesis.md`, "Who the reader is", is the standing
+version.
 
 **The base is Associated Press style.** Follow the `newsroom-style` skill, which states
 it: numbers, attribution, abbreviations, restrictive versus nonrestrictive clauses, the

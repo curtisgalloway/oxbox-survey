@@ -31,6 +31,27 @@ and whether it pays.
 
 The measurement is the evidence for that claim. It is not the product.
 
+## Who the reader is
+
+The editor, 2026-09-09:
+
+> The reader doesn't care particularly about 'oxbox' and how the tool works; they are
+> interested in free and cheap models, how they perform, what works well and what
+> doesn't, which routers work well, etc. Bugs in oxbox, things we changed there, don't
+> hold their interest so much.
+
+So the reader is an engineer choosing a free or cheap model to point at code this
+week, from their own code or their own tools. What they came for: which models answer
+and how they perform, what works and what does not, which routers and gateways work
+well, and what it costs to check the output. What they did not come for: how oxbox
+works, bugs found in oxbox, what oxbox changed.
+
+The survey's own code is only the specimen the models are tried on. A finding in it is
+evidence about the model, and that is the sole reason it appears: name the model, the
+finding, and whether it held up, and leave out the commit, the harness internals and
+the fix timing. **The test for every item: does it tell the reader something about a
+model, a router or a cost?** If it tells them something about oxbox, it is out.
+
 ## The five things that earn space
 
 - **Access.** Does it answer, through the route a reader can actually reach, today.
