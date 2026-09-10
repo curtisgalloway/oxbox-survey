@@ -8,7 +8,7 @@ venue: opencode
 base_url: https://opencode.ai/zen/v1
 catalog: https://opencode.ai/zen/v1/models
 pricing_class: B
-last_verified: 2026-09-01
+last_verified: 2026-09-10
 ---
 
 # OpenCode Zen
@@ -61,6 +61,21 @@ because it is the opposite of how these tiers are marketed.
   that 403 is bot filtering, not a routing answer.
 - The filtering makes this venue the one most likely to look "down" when it is
   merely refusing your client. Check the header before believing an outage.
+- **The first roster-wide probe, 2026-09-10: 60 of 70 listings called on
+  `/zen/v1/chat/completions`, 13 answered** `[M]`. Every `claude-`, `gemini-`,
+  `gpt-` and `grok-` id returned HTTP 500 "Internal server error" (42 listings;
+  `grok-4.5` a 503), while the deepseek, glm, kimi and minimax families answered
+  the tripwire. Three free listings (`big-pickle`, `ling-3.0-flash-fin-free`,
+  `mimo-v2.5-free`) returned HTTP 400 `MissingSessionID` with the body
+  "OpenCode's free tier can only be used in OpenCode" `[M]`, so the free tier is
+  not callable from outside the OpenCode client. Recorded in
+  `snapshots/opencode/2026-09-10-access.json`.
+- **Why the closed-vendor models 500 is unverified** `[?]`. The pattern lines up
+  with the docs advertising `/zen/v1/responses` and `/zen/v1/messages` for those
+  vendors, so the chat-completions route may simply not be wired for them rather
+  than the venue being down. Nobody has tried the other two routes from here.
+  The editor's direction (2026-09-10): provider page only, no issue item, until
+  someone does.
 
 ## Catalog quirks
 

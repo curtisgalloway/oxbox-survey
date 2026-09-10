@@ -216,9 +216,6 @@ highlights, five lessons, four top models. Selection is yours. The prose pass
 prints what it is given and cannot trim, so a sixth highlight here is a sixth
 highlight in the issue.
 
-- `standfirst` is the ONE fact that most changes what a reader does this
-  week, with its number. It becomes the sentence under the title, which the
-  site shows as the archive card and the feed description.
 - `tldr` is three to five facts, drawn from anywhere below, each one a
   headline and one sentence. It becomes "This week's highlights". Pick them;
   do not leave it to the writer, who cannot see what they were chosen over.
@@ -234,7 +231,6 @@ Shape (extend where the week needs it; never drop a key):
 {{
   "issue_date": "{date}",
   "generator_version": "<from SKILL.md frontmatter>",
-  "standfirst":   {{"fact": ..., "number": ..., "tier": ..., "source": ...}},
   "tldr":         [{{"headline": ..., "sentence": ..., "from": "<key>", "tier": ...}}],
   "highlights":   [{{"claim": ..., "why_it_matters": ..., "facts": [...],
                      "tier": ..., "links": [...]}}],
@@ -291,7 +287,7 @@ exactly these words:
 
 {headings}
 
-Add none. Rename none. Do not promote "What this is" or the standfirst to a
+Add none. Rename none. Do not promote "What this is" or the issue line to a
 heading; the shape above says where they go. Leave "Editor's notes" in place
 with nothing under it. "The record" comes after a horizontal rule and holds
 these third-level headings, in this order, with these anchors:

@@ -1,8 +1,8 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.13.0
-last_generator_review: 2026-09-09
+version: 2.14.0
+last_generator_review: 2026-09-10
 ---
 
 <!--
@@ -129,6 +129,12 @@ note — the card fact that would actually bite you on a review run. Sort by som
 factual and stable (endpoint context, descending) so the table diffs cleanly week over
 week.
 
+**A vendor that withdraws a free listing while keeping the paid one is a repricing, not a
+delisting**, and the churn line says so with both prices. `minimax/minimax-m3:free` left
+OpenRouter between 2026-09-01 and 2026-09-07 while `minimax/minimax-m3` stayed at $0.30
+and $1.20 per million; a reader who reads that as "the model is gone" draws the wrong
+conclusion about what to plan for. (Generator review 2026-09-10, T9 and T4; accepted.)
+
 The limitations note is the point of the section. A 1M-context endpoint with no
 `response_format` and a deprecation date in six weeks is a different proposition from
 its neighbour in the table, and the row should say which way.
@@ -198,7 +204,7 @@ carry:
 | Stealth listings | `https://openrouter.ai/stealth` | Terms text, stated free-window length, listing notes |
 | Free collection | `https://openrouter.ai/collections/free-models` | Token volumes and category ranks (not in the API) |
 | Rate limits | OpenRouter rate-limit docs | Any change to the req/min and req/day structure |
-| Attribution | Web search for reveals | Whether a previously cloaked model has been claimed |
+| Attribution | Web search for reveals | Whether a previously cloaked model has been claimed. Skip it when every venue's capture reports zero cloaked listings, and say in the sources that it was skipped and why. |
 
 Then read the two Observed-tier sources, which together are the entire input to part 2:
 
@@ -487,9 +493,11 @@ is" promoted to a section of its own. A heading is an identifier. `scripts/gener
 carries the list as `SECTIONS` and hands it to the writer with the spec, because the
 prose pass cannot open a file and a pointer it cannot follow gets paraphrased.
 
-**The standfirst is a sentence, not a byline.** The site shows the first paragraph
-under the title as the archive card and the feed description, so it reads
-`Issue N, YYYY-MM-DD.` and then one sentence that is the issue in a breath.
+**The line under the title is the issue number and date, nothing more:**
+`Issue N, YYYY-MM-DD.` The editor's ruling on the 2026-09-10 issue: "Leave info for the
+highlights. This is just the header explaining what it is and with the issue number."
+The site shows that line as the archive card and the feed description, and that is
+accepted.
 
 **The two-sentence block under the standfirst**, in these words every week, then the
 link:
@@ -638,8 +646,10 @@ each trigger:
   benchmarks back out of the aside, and possibly to stop hand-running models.
 - **T6.** A tried model's behavior contradicted the snapshot twice running → the catalog
   is being trusted further than it earns, and part 1 needs a reliability caveat.
-- **T7.** The stealth slot has been empty for three consecutive weeks → consider folding
-  the stealth section into a single line rather than a section.
+- **T7.** The stealth slot has been empty across three consecutive issues → the stealth
+  section folds to one line in the record until a listing appears (applied 2026-09-10).
+  Issues, not weeks and not captures: the editor's ruling of 2026-09-10 is that "issues
+  come out whenever they come out", so no spacing rule applies.
 - **T8.** The `oxbox` workflow itself changed → the scope section is stale.
 - **T9.** Platform ownership or free-tier economics changed — a repricing, a policy
   change, or a deprecation date appearing on a previously open-ended free endpoint.
@@ -689,3 +699,9 @@ working generator.
   silently pick one.
 - If the data for a field is missing, it reads "no data". Do not fill gaps with
   plausible-sounding estimates, and do not interpolate from an adjacent benchmark.
+- **A catalog price is one endpoint's price, and it is Measured only for a pinned run.**
+  On a venue that routes, the listing's price is a floor: two runs on 2026-09-06 were
+  billed at 2x and 1.6x list because the router chose a different endpoint. Quote the
+  billed figure from the run's status record for any run that was not pinned, and never
+  present a catalog computation as what a run cost. (Generator review 2026-09-10, T6;
+  accepted by the editor.)

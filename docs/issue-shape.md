@@ -97,11 +97,10 @@ does not belong.
 
 ### Title and byline
 
-`# The Oxbox Survey`, then one paragraph: `Issue N, YYYY-MM-DD.` followed by one
-sentence that is the issue in a breath, with the number in it. The site takes this
-first paragraph under the title as the archive card's summary and as the feed entry's
-description, so it is what a reader sees before they open the issue. It is the
-standfirst, not a table of contents.
+`# The Oxbox Survey`, then one line: `Issue N, YYYY-MM-DD.` Nothing else. The
+editor's ruling on the 2026-09-10 issue: *"Leave info for the highlights. This is
+just the header explaining what it is and with the issue number."* The site takes this
+line as the archive card's summary and the feed entry's description; that is accepted.
 
 ### What this is
 
@@ -193,7 +192,9 @@ third-level headings in this order:
   workbook.
 - **The stealth models.** One paragraph per cloaked model: slug, listed date, context,
   the stated free window and days left, terms, and the attribution with its evidence
-  and the base rate of such guesses being wrong. One line when the slot is empty.
+  and the base rate of such guesses being wrong. One line when the slot is empty, and
+  after three consecutive empty issues the line moves into the churn entry and the
+  heading goes until a listing appears (generator review 2026-09-10, accepted).
 - **What models changed since the last issue.** Added, delisted, repriced, revealed.
   One line each.
 - **The runs.** Every run the top half draws on, in date order, one short entry each:

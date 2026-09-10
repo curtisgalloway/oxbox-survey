@@ -1486,7 +1486,7 @@ def test_issue_shape():
            "the prose prompt reads the spec from docs/issue-shape.md")
     # The content pass has to know the sections it selects for; a key it is
     # not told about is invented or omitted at the pass's discretion.
-    for key in ("standfirst", "tldr", "highlights", "lessons", "top_models", "costs",
+    for key in ("tldr", "highlights", "lessons", "top_models", "costs",
                 "catalog", "stealth", "churn", "caveats", "sources"):
         report('"%s":' % key in gen.CONTENT_PROMPT,
                "the content prompt names the %s key" % key)
