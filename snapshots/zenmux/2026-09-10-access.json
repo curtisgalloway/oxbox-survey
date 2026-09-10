@@ -1,0 +1,63 @@
+{
+  "endpoint": "https://zenmux.ai/api/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model. The tripwire verdict is one synthetic snippet: it orders a shortlist and disqualifies, and can never justify a USE.",
+  "probe": "tripwire",
+  "probed": 5,
+  "probed_at": "2026-09-10T02:13:06+00:00",
+  "results": [
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "dots-studio/dots3-note-prev",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "inclusionai/ling-3.0-tiny",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "sapiens-ai/agnes-2.5-flash",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "rate_limited",
+      "detail": "{\"error\":{\"code\":\"429\",\"type\":\"rate_limit\",\"message\":\"\u8be5\u6a21\u578b\u5f53\u524d\u8bbf\u95ee\u91cf\u8fc7\u5927\uff0c\u8bf7\u60a8\u7a0d\u540e\u518d\u8bd5 (request_id: 28c66f8b577d42498c36515c61cf8402)\"}}",
+      "http_status": 429,
+      "id": "z-ai/glm-4.6v-flash-free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "z-ai/glm-4.7-flash-free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    }
+  ],
+  "tier": "observed",
+  "venue": "zenmux"
+}

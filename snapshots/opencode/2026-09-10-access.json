@@ -1,0 +1,530 @@
+{
+  "endpoint": "https://opencode.ai/zen/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model. The tripwire verdict is one synthetic snippet: it orders a shortlist and disqualifies, and can never justify a USE.",
+  "probe": "tripwire",
+  "probed": 60,
+  "probed_at": "2026-09-10T02:08:58+00:00",
+  "results": [
+    {
+      "access": "error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"MissingSessionID\",\"message\":\"Error from provider (Console): OpenCode's free tier can only be used in OpenCode\"}}",
+      "http_status": 400,
+      "id": "big-pickle",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-fable-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-fable-5-1",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-haiku-4-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-opus-4-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-opus-4-6",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-opus-4-7",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-opus-4-8",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-opus-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-sonnet-4",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-sonnet-4-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-sonnet-4-6",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "claude-sonnet-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "deepseek-v4-flash",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "error",
+      "detail": "{\"error\":{\"type\":\"server_error\",\"message\":\"Error from provider (Console): Upstream request failed: Model is unavailable.\"}}",
+      "http_status": 400,
+      "id": "deepseek-v4-flash-free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "deepseek-v4-flash-vision-exp",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "deepseek-v4-pro",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3-flash",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.1-pro",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.5-flash",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.5-flash-lite",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.6-flash",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.7-flash",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gemini-3.8-flash",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "glm-5",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "glm-5.1",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "glm-5.2",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "glm-5.3",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "glm-5.3-flash",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5-codex",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5-nano",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.1",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.1-codex",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.1-codex-max",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.1-codex-mini",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.2",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.2-codex",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.3-codex",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.3-codex-spark",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.4",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.4-mini",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.4-nano",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.4-pro",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.5-pro",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.6-luna",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.6-sol",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-5.6-terra",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "gpt-6-astra",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"error\":{\"type\":\"server_error\",\"message\":\"Error from provider (Console): Upstream request failed: Endpoint is unavailable.\"}}",
+      "http_status": 503,
+      "id": "grok-4.5",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "grok-4.6",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "upstream_error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"error\",\"message\":\"Internal server error\"}}",
+      "http_status": 500,
+      "id": "grok-build-0.1",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "kimi-k2.5",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "kimi-k2.6",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "kimi-k2.7-code",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "kimi-k3",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"MissingSessionID\",\"message\":\"Error from provider (Console): OpenCode's free tier can only be used in OpenCode\"}}",
+      "http_status": 400,
+      "id": "ling-3.0-flash-fin-free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "error",
+      "detail": "{\"type\":\"error\",\"error\":{\"type\":\"MissingSessionID\",\"message\":\"Error from provider (Console): OpenCode's free tier can only be used in OpenCode\"}}",
+      "http_status": 400,
+      "id": "mimo-v2.5-free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "minimax-m2.5",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    }
+  ],
+  "tier": "observed",
+  "venue": "opencode"
+}

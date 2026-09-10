@@ -1,0 +1,66 @@
+{
+  "manifest_version": 1,
+  "note": "Carried forward from the 2026-09-07 manifest for issue 2 (2026-09-10): the same two Acceptables in the same order, no rating changed, minimax/minimax-m3:free still absent from OpenRouter's free catalog. One number moved: z-ai/glm-5.3-flash's list price on OpenRouter fell to $0.07/$0.2333 per M in the 2026-09-10 catalog, and its max_price guard follows the new list so a route still billing the old price is skipped. Format v1 (oxbox 1.1.0, 2026-09-07): an entry may carry `provider`, OpenRouter's routing object, sent verbatim and honored on the openrouter venue only. Requires oxbox >= 1.1.0 to read; an older oxbox refuses this file with a pointer to update rather than dropping the pin. Every entry is paid, so oxbox send skips them all unless the paid gate is open: --allow-paid on the call, or from oxbox 1.2.0 (2026-09-07) `allow_paid = true` under [send] in ~/.config/oxbox/config.ini, which is what the review skill's users will want. Design: https://github.com/curtisgalloway/oxbox/issues/10 (v0) and /issues/50 (provider). Derived from the Editor's Rating (editor-ratings.json): Good then Acceptable, minus standing disqualifiers. Two Acceptables, in the rating file's order: z-ai/glm-5.3-flash, then deepseek/deepseek-v4-flash, rated 2026-09-07 after the routing fix and added the same day. minimax/minimax-m3:free, rank 1 of the 2026-09-01 manifest and rated Good, is absent from OpenRouter's catalog as of the 2026-09-07 snapshot (its endpoints list is empty; only the paid minimax/minimax-m3 remains at $0.30/$1.20 per M) and is held out as delisted. nemotron-3-ultra-free, rank 3 last issue, is rated Poor. The pin follows the fill rule in the survey skill: `only` is the endpoints the rated runs actually went to, `allow_fallbacks` false so a refusal is visible instead of routed around, `max_price` at the catalog row so a route priced above list is skipped. No entry carries params.max_tokens: the completion caps are 131,072 (glm-5.3-flash) and 384,000 (deepseek-v4-flash), both above the 100,000 default.",
+  "survey": "The Oxbox Survey",
+  "issue_date": "2026-09-10",
+  "defaults": {
+    "max_tokens": 100000
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "venue": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "z-ai/glm-5.3-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.07,
+        "output": 0.2333
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "z-ai/fp8",
+          "gmicloud/fp8",
+          "streamlake/fp8",
+          "siliconflow/fp8"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.07,
+          "completion": 0.2333
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-06): fast and mostly good; Z.AI's regulatory status is a concern. Six runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice, the zero-defect control 1 real of 8 findings over two runs, the scanner fix passed all three gates as a baseline and produced a corrupt hunk as a candidate. Effort pinned at high, below the model's own default of max, because every survey run went out at high. OpenRouter's list price fell between the 2026-09-07 and 2026-09-10 catalogs, from $0.075/$0.25 to $0.07/$0.2333 per M, and max_price follows the new list. Pinned to the four routes those runs were served from; SiliconFlow billed 2x the catalog row on 2026-09-06, so max_price at list excludes it until it prices at list again, and with fallbacks off a refusal from the remaining routes fails the run instead of sending the payload somewhere unmeasured."
+    },
+    {
+      "rank": 2,
+      "venue": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "deepseek/deepseek-v4-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.0886,
+        "output": 0.1772
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "digitalocean",
+          "streamlake/fp8",
+          "novita/fp8"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.0886,
+          "completion": 0.1772
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-07): we fixed the routing problem; otherwise it's decent. The cheapest paid row in the survey. Nine runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice; the scanner fix failed the apply gate twice; the zero-defect control 1 real of 4 findings over four candidate runs, the last two of them pinned to StreamLake and DigitalOcean by name, the first pinned runs the survey made. Effort high is the model's own default. Pinned to the three routes those runs were served from, with max_price at the catalog row: Novita billed 1.6x list on 2026-09-06, so the guard excludes it until it prices at list, and DigitalOcean's shared pool refused two of three pinned attempts on 2026-09-07 before answering, which with fallbacks off fails the run rather than sending the payload elsewhere."
+    }
+  ]
+}

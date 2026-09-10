@@ -1,0 +1,201 @@
+{
+  "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+  "note": "Access is Observed, not Measured. It reflects one moment; a rate limit or an upstream outage is not a property of the model. The tripwire verdict is one synthetic snippet: it orders a shortlist and disqualifies, and can never justify a USE.",
+  "probe": "tripwire",
+  "probed": 21,
+  "probed_at": "2026-09-10T02:09:56+00:00",
+  "results": [
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "cohere/north-mini-code:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "dots-studio/dots-3-note-preview:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "rate_limited",
+      "detail": "{\"error\":{\"message\":\"Provider returned error\",\"code\":429,\"metadata\":{\"raw\":\"google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate",
+      "http_status": 429,
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "rate_limited",
+      "detail": "{\"error\":{\"message\":\"Provider returned error\",\"code\":429,\"metadata\":{\"raw\":\"google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate you",
+      "http_status": 429,
+      "id": "google/gemma-4-31b-it:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "error",
+      "detail": "{\"error\":{\"message\":\"Provider returned error\",\"code\":400,\"metadata\":{\"raw\":\"{\\n  \\\"error\\\": {\\n    \\\"code\\\": 400,\\n    \\\"message\\\": \\\"Request contains an invalid argument.\\\",\\n    \\\"status\\\": \\\"INVALI",
+      "http_status": 400,
+      "id": "google/lyria-3-clip-preview",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "google/lyria-3-pro-preview",
+      "tripwire": "malformed",
+      "tripwire_lines": [],
+      "tripwire_reply": "[[A0]] [[B1]] [:] The line is drawn, the function named. [:] A quiet quest where bugs are tamed. [:] One by one, they should fall in place, [:] No room for error in this space. [:] (A simple take, or so it seemed.) [:] The perfect logic tha [...]"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "inclusionai/ling-3.0-flash-fin:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "inclusionai/ling-3.0-flash-sante:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "liquid/lfm-2.5-2.6b:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nex-agi/nex-n2.5-mini:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "nex-agi/nex-n2.5-pro:free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "nvidia/nemotron-3.5-content-safety:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "nvidia/nemotron-3.5-lightning:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "ok",
+      "detail": null,
+      "http_status": 200,
+      "id": "openrouter/free",
+      "tripwire": "correct",
+      "tripwire_lines": [
+        5
+      ],
+      "tripwire_reply": "5"
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "poolside/laguna-s-2.1:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "not_found",
+      "detail": "{\"error\":{\"message\":\"0 endpoints out of 1 requested are available matching your guardrail restrictions and data policy. We removed them for the following reasons (an endpoint may have matched multiple",
+      "http_status": 404,
+      "id": "poolside/laguna-xs-2.1:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "unauthorized",
+      "detail": "{\"error\":{\"message\":\"thinkingmachines/inkling-small:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps\",\"code\":40",
+      "http_status": 403,
+      "id": "thinkingmachines/inkling-small:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    },
+    {
+      "access": "unauthorized",
+      "detail": "{\"error\":{\"message\":\"thinkingmachines/inkling:free is only available on agentic harnesses. Try plugging it into a coding agent or productivity app listed on https://openrouter.ai/apps\",\"code\":403,\"met",
+      "http_status": 403,
+      "id": "thinkingmachines/inkling:free",
+      "tripwire": null,
+      "tripwire_lines": []
+    }
+  ],
+  "tier": "observed",
+  "venue": "openrouter"
+}

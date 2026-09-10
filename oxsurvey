@@ -632,8 +632,13 @@ def latest_snapshot(venue, exclude=None):
     directory = venue_dir(venue)
     if not os.path.isdir(directory):
         return None, None
+    # Access files sit beside the catalog snapshots in the same directory and
+    # carry no model list, so a same-day rerun that picked today's
+    # "<date>-access.json" as the previous snapshot died in diff() with
+    # KeyError: 'models' (2026-09-10). They are a different document; skip them.
     names = sorted(
-        f for f in os.listdir(directory) if f.endswith(".json") and f != exclude
+        f for f in os.listdir(directory)
+        if f.endswith(".json") and not f.endswith("-access.json") and f != exclude
     )
     if not names:
         return None, None
