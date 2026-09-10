@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.12.0
+version: 2.13.0
 last_generator_review: 2026-09-09
 ---
 
@@ -400,8 +400,14 @@ and moved nothing. `scripts/prose_metrics.py` measures conformance, and the base
 - **Every paragraph opens with a concrete sentence.** A number, a name, or something
   that happened. Never a framing move ("It is worth noting that…", "There are several
   considerations here…") and never an abstraction the next sentence then explains.
-- **Say the number in the units a reader thinks in.** K and M in prose (1.31M, 944K);
-  exact figures belong in tables and lists. **Money above the rule is rounded to the
+- **Say the number in the units a reader thinks in.** K and M in prose (1.31M, 944K),
+  context windows included (524K, not 524,288); exact figures belong in tables and
+  lists. **A tally of error codes is a table, not a sentence in an item**: "eight HTTP
+  404, three HTTP 429, two HTTP 403" belongs in the record's catalog table, and the item
+  says "fifteen returned an error" (the editor, 2026-09-10: "Details of the errors can
+  be in the long section. Not interesting here."). **A run of dates that only means
+  "recently" is "the last three captures"**; a date appears in an item when the reader
+  needs that date, not to prove the survey has one. **Money above the rule is rounded to the
   cent** ($2.57, not $2.5698); the four-decimal figure a cost was computed to belongs
   in the record's cost entry and nowhere else (the editor, 2026-09-10: "let's round to
   pennies here please").
