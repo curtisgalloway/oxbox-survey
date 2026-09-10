@@ -1,7 +1,7 @@
 ---
 name: oxbox-survey
 description: Generate an issue of the Oxbox Survey — a catalog of the free and stealth models on OpenRouter built from measured card facts and their limitations, plus observations from the ones actually run through oxbox that week, plus a self-review of the generator's own rules. Use this whenever the user asks for the weekly free-model report, the stealth model report, "what's free on OpenRouter this week", an update on cloaked models, or when a scheduled routine fires this skill by name. Also use it after ./oxsurvey has written a new snapshot. Also use it when the user asks whether the report rules need revising, or mentions oxbox alongside model selection.
-version: 2.11.0
+version: 2.12.0
 last_generator_review: 2026-09-09
 ---
 
@@ -410,8 +410,14 @@ and moved nothing. `scripts/prose_metrics.py` measures conformance, and the base
   2026-09-10). A **model** is what the reader calls; never "row", which is a database
   word for the same thing. A **listing** is a router's entry for a model; never
   "card". The **catalog** is the model list a router publishes, and the first use in
-  an issue says so in those words. A router that turns a call away has **refused**
-  it; never "gate", which the editor asked to have explained and then replaced. Say
+  an issue says so in those words. **A router error stops your request**; it does not
+  "turn the model away", "refuse the model" or "gate" it. The request is the object
+  of the sentence, never the model (the editor, 2026-09-10: "It doesn't turn the model
+  away, it stops our request to use the model"). Say what kind of error and whose
+  rule it is: an account setting, a provider rule, a rate limit. **"Refusal" is
+  reserved for a model declining to answer**, which is what the word means in model
+  vocabulary; a reader who sees "two kinds of refusal" about a router will picture
+  safety behavior, and that is the wrong picture. "Gate" is never used. Say
   "a listing doesn't mean the model is actually available", not "a listing is not
   availability"; the second is a slogan and the first is a sentence.
 - **Link on first mention, inline, inside the sentence.** "[Zhipu claimed the
