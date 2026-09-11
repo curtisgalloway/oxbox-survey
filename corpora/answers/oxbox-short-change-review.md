@@ -82,7 +82,8 @@ possible answer.
 
 ## What this cannot tell you
 
-One change, one file, one seeded defect the record already knew before the
-fixture was written, which means a model that has seen this repository's
-history has an unfair advantage; the commit fixing it is public. Read a hit
-as "found it on this diff", not as "would find it in yours".
+One change, one file, one seeded defect. A hit says the model found this
+defect on this diff; it does not say what it would find on a change of yours.
+The defect and its fix are public in the project's history, but the project
+is a few weeks old and small, and the model has no tools here, so that is not
+a route to the answer worth worrying about.
