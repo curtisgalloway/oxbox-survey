@@ -751,3 +751,28 @@ cheap hosted refuter (`z-ai/glm-5.3-flash`, pinned) to read whatever
 either emits. None of the four enters the manifest: the manifest is for
 models a reader can call through a venue, and these are pulled, not
 called.
+
+## The patch arms stay as measurement; the advice stays as written, for now
+
+**Decided** 2026-09-11, by the editor, when asked why the survey builds patch
+delivery arms while its standing advice to readers (special edition 3, top
+findings) is to ask a reviewer for findings rather than a patch. The advice is
+a reader recommendation and was never a corpus decision; the 2026-09-08 ruling
+kept the patch fixture and made it report three legs. The search/replace arm
+added 2026-09-10 then cut against the advice's reason: the reason was hunk
+headers small models cannot count, and with search/replace blocks delivery
+worked for three of the four local models while the failure moved to the
+regex. So the honest form of the advice may become "ask for search/replace
+blocks, never a unified diff", which is a different sentence.
+
+**Option 1 of three.** Both patch arms (`oxbox-secret-scanner-fix-v3`,
+`oxbox-secret-scanner-fix-sr`) stay active as measurement, and the advice
+stays as written until the search/replace arm has hosted rows behind it.
+Issue 4 reports the patch rows as what a model does when asked for a patch,
+not as a recommendation to ask for one, and repeats the advice as it stands.
+
+**Revisit after issue 4.** Once the manifest's hosted models have run the
+search/replace arm, decide among: keep both arms and the advice; retire the
+unified-diff arm and revise the advice to name search/replace; retire both
+arms and let the advice rest on the record it has. The generator review for
+issue 4 is where the question is put.
