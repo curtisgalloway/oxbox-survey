@@ -70,6 +70,23 @@ because it is the opposite of how these tiers are marketed.
   "OpenCode's free tier can only be used in OpenCode" `[M]`, so the free tier is
   not callable from outside the OpenCode client. Recorded in
   `snapshots/opencode/2026-09-10-access.json`.
+- **It is callable from inside it, and that was checked** `[M]`. With the account
+  connected to the local client, all three of those ids answered a prompt through
+  `opencode run` on 2026-09-11, `cost: 0` each -- including `big-pickle`, which
+  has never completed a run over `chat/completions`. `MissingSessionID` is a
+  client check, not a billing gate, a regional block or an outage. The client's
+  authenticated roster also matches this catalog (69 ids against 70; the only
+  difference is `deepseek-v4-flash-free`), so there is no client-only listing.
+  [[../observations/2026-09-11-opencode-zen-free-tier-answers-through-the-client-that-http-refuses]]
+- **A client run is not an `oxbox send` run** `[M]`. The client prepends its own
+  system prompt: 26,925 input tokens for a six-word prompt on the default agent,
+  12,509 plus 9,728 cached with every tool disabled. The default `build` agent
+  also auto-approves every permission, so an empty working directory is not
+  containment the way it is for the `agy` arm. Reachability through the client is
+  a probe; a catalog row still requires a declared arm. See `docs/decisions.md`,
+  "An OpenCode client arm is priced, is not toolless, and is not an `oxbox send`
+  run".
+  [[../observations/2026-09-11-the-opencode-client-spends-12-to-27k-input-tokens-before-the-payload]]
 - **Why the closed-vendor models 500 is unverified** `[?]`. The pattern lines up
   with the docs advertising `/zen/v1/responses` and `/zen/v1/messages` for those
   vendors, so the chat-completions route may simply not be wired for them rather

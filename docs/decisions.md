@@ -819,3 +819,85 @@ routed globally.
 **What would take it off the list.** If the region filter leaves nothing but
 paid frontier rows standing, the feature is a note in the regulatory section
 and not a venue, and the Business tier is a cost with no reader-facing return.
+
+## An OpenCode client arm is priced, is not toolless, and is not an `oxbox send` run
+
+**Decided** 2026-09-11, by the editor, after the account holder connected the
+local OpenCode client to the OpenCode Zen account and the three HTTP-gated free
+listings all answered through it
+([[../observations/2026-09-11-opencode-zen-free-tier-answers-through-the-client-that-http-refuses]]).
+The free tier is the part of this venue a reader most wants and the part
+`chat/completions` cannot serve at all, so the route matters. What it can be
+compared against is the question this settles.
+
+**It can be priced, and the two existing CLI arms cannot.** `opencode run
+--format json` emits a `step_finish` event carrying `tokens` -- input, output,
+reasoning, cache read and cache write -- and `cost`. `verifiercheck.py` states
+the flaw that removes: "a subscription CLI reports no tokens -- agy publishes
+none at all -- so the arms below it can be compared for accuracy and not for
+cost, which is the wrong way round for a question that is entirely about cost."
+A client arm here does not have that flaw.
+
+**It is not toolless, and an empty working directory does not make it so.** The
+default `build` agent carries `{"permission": "*", "action": "allow", "pattern":
+"*"}`: tools are auto-approved, and omitting `--auto` changes nothing. That is
+the opposite of the `agy` arm, which is toolless because headless mode
+auto-*denies* the `command` permission. The empty-directory trick works there
+because the denial comes first. Here it would be the only barrier, and it is not
+one. A custom agent with every tool set `false` is what makes the arm toolless,
+and it has to be part of the arm definition rather than a habit.
+
+**It is not an `oxbox send` run, and the number is 12,509.** A six-word prompt
+bills 26,925 input tokens on the default agent and 12,509 plus 9,728 cached on
+the toolless one
+([[../observations/2026-09-11-the-opencode-client-spends-12-to-27k-input-tokens-before-the-payload]]).
+The remainder is the client's own system prompt: not in the archived request,
+not what `oxbox send` sends, and between the fixture and the model on every
+call. On a free listing it costs no money; it spends context window, and it
+makes a finding attributable to the client as much as to the model.
+
+**So: probes and reachability now, rows only behind a declared arm.** The rule
+that a probe is not a run is unchanged, and nothing measured through the client
+enters the catalog table as an `oxbox send` row. If the client becomes an arm it
+is declared in `verifiercheck.py`'s `ARMS` the way `agy` is -- a model *and* a
+harness, named as the pair -- with the toolless agent and the scaffolding
+overhead stated in its definition. **What would reverse it:** a way to send a
+bare payload through the client, or an OpenCode-side route that accepts a
+session without the agent scaffolding. Neither has been looked for.
+
+## The OpenCode Zen free tier is on this week's list, and these five models
+
+**Decided** 2026-09-11, by the editor, once the client route was shown to work.
+The free tier has been listed and unreachable in this record since 2026-08-23;
+`big-pickle`, the cloaked listing that motivated adding the venue at all, has
+never completed a run. All of it is reachable now. Five models, ranked, with the
+question each one answers -- every venue and prior-run claim below is from
+`observations/`:
+
+1. **`big-pickle`** -- cloaked, free, and the reason this venue exists. No run in
+   the record: the 2026-08-23 observation is a `503` from upstream, and the
+   2026-09-10 roster probe is a gate. First actual measurement of it either way.
+2. **`mimo-v2.5-free`** -- the free listing has never run. Its paid twin
+   `xiaomi/mimo-v2.5` ran on OpenRouter 2026-09-08, so this is same weights,
+   free tier against paid tier, and the closest thing to a controlled venue
+   comparison the record can offer.
+3. **`ling-3.0-flash-fin-free`** -- ran on OpenRouter 2026-09-08 as
+   `inclusionai/ling-3.0-flash-fin:free`, where it spent its whole 32k cap
+   reasoning on the zero-defect control and returned nothing. It is the model
+   `answered: false` was added for. Same weights, different venue: whether the
+   empty return repeats here says whether that was the model or the pool.
+4. **`muse-spark-1.3-contributor-free`** -- zero observations, at any venue, ever.
+   Nothing is known about it and the catalog carries no pricing, so a run is the
+   only thing that would say anything at all.
+5. **`nemotron-3.5-lightning-free`** -- ran on OpenRouter as
+   `nvidia/nemotron-3.5-lightning`; the OpenCode free listing never has. Same
+   pairing as row 3, on a model that did answer.
+
+`nemotron-3-ultra-free` is deliberately not on the list: it completed a real
+review run here on 2026-08-30 and already has a row.
+
+**Ordering, not a batch.** These run one at a time, most-informative first, and
+the list is cut wherever the week ends rather than padded to five. The
+scaffolding overhead above means none of these produces a catalog row until the
+arm is declared; what they produce first is reachability and behavior at the
+venue a reader would actually use.
