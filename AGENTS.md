@@ -94,7 +94,12 @@ private Drive. Rounds are numbered from `r1` per edition.
 7. Repeat until the user says it is done. Then commit the edition and retitle the
    last Doc `The Oxbox Survey — <date> r<N> [CLOSED → editions/<date>.md]`,
    leaving it in the folder root. **There is no FINAL Doc** — the committed
-   markdown is the report.
+   markdown is the report. **Do not close out with an empty Editor's notes
+   section**: that section is the editor's alone and the generator never
+   fills it, so if the Doc came back approved with nothing under the heading,
+   say so and publish another round instead of committing. The site builder
+   refuses the edition anyway (ruled 2026-09-11, after the special edition
+   shipped without it).
 
 So the folder root holds exactly one Doc per issue, either awaiting the user or
 closed, and `Archive/` holds every superseded round with its comment history

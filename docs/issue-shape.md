@@ -125,6 +125,16 @@ appear again, with its sources, in an item below.
 The editor's own, in first person, written by them. The generator leaves the heading
 and nothing under it. Every other section is third person.
 
+**An edition does not publish with this section empty.** Ruled by the editor
+2026-09-11 after the special edition of 2026-09-11 went out with the heading
+and nothing under it, and had to be reopened to add it. The site builder
+(`oxsite` in the oxbox.ai repo) refuses to build an edition dated 2026-09-10 or
+later whose Editor's notes section is missing or empty, so `npm run deploy`
+cannot run; and the review loop does not close a round, or commit an edition,
+while the section is empty. The generator still writes nothing under the
+heading; the editor writes it in the review Doc, and closing out is when it is
+checked.
+
 ### What's new this week
 
 At most five items, each one a thing that changed in the world and that a reader
