@@ -717,3 +717,37 @@ parameter change are the week's material. The reader question the edition
 answers is the one the editor put first: a local model is free per token and
 the price is minutes, so `wall_s` is the headline and the v1-to-v2 comparison
 on the same hardware is the story.
+
+**The reading, recorded 2026-09-11 at the editor's direction, after the
+batch closed (41 local observations).** Local models are useful for
+reviewing a change, not for reviewing a file, and only at the vendor's
+settings.
+
+- On a small change, yes. Three of four found the one real defect in the
+  16-line commit (`oxbox-short-change-review`), two of them with no other
+  finding, in 30 seconds to 3 minutes. That is the job most readers want
+  reviewed, and it cost a cent of electricity.
+- On a whole file, no. At the vendor's settings the same models on the 6 KB
+  control either said "fine" and missed both known defects, or emitted five
+  to seven inventions per run, and reading those cost more than the run. The
+  frontier models did the same on the same file on 2026-09-10, so it is the
+  task, not the hardware.
+- Patches: one model. `qwen3.8:27b` produces patches that apply and pass,
+  at 5 to 9 minutes each (the v1 diff, the v2 search/replace block). The
+  14 GB models get the delivery right with search/replace blocks and the
+  regex wrong.
+- Settings decide everything. At temperature 0.2 and effort high, two of
+  four returned nothing for 20 minutes at a time. At the card's 1.0 and
+  effort medium, every model answered every fixture in under four minutes.
+  No reader should run these at the old settings, and the survey no longer
+  does.
+- Speed is the price. The dense 27B model is the only one that does
+  everything, at three to nine minutes a task. The MoE models answer in
+  under a minute and earn it only on the small-change job.
+
+If the issue names one pick per job: `gemma4:26b` for reviewing diffs,
+`qwen3.8:27b` when a patch is wanted and minutes are available, and a
+cheap hosted refuter (`z-ai/glm-5.3-flash`, pinned) to read whatever
+either emits. None of the four enters the manifest: the manifest is for
+models a reader can call through a venue, and these are pulled, not
+called.
