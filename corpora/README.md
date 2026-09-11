@@ -102,7 +102,7 @@ comparable to anything.
 (`max_tokens`, `temperature`, `effort`) and a run is comparable only at those.
 The v1 tasks froze temperature 0.2, effort high and a 100,000-token cap; their
 2026-09-10 successors (`-v2`, `-v3`, `-sr`) run at temperature 1.0, effort
-medium and a cap of 16,000 for review or 8,000 for ask and diff, because every
+medium and a cap of 16,000 for review and diff or 8,000 for ask, because every
 vendor card for the open-weight thinking models recommends 1.0 and three of them
 name low temperature as a cause of endless repetition, and because a gateway
 budgets about 80 percent of the cap for thinking at effort high, so the old cap

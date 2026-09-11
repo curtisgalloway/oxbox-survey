@@ -499,7 +499,7 @@ def test_corpus():
     # failure the prior-art review explained.
     v1 = {"oxbox-clean-control", "oxbox-ask-grounding", "oxbox-secret-scanner-fix"}
     successors = {"oxbox-clean-control-v2": 16000, "oxbox-ask-grounding-v2": 8000,
-                  "oxbox-secret-scanner-fix-v3": 8000, "oxbox-secret-scanner-fix-sr": 8000}
+                  "oxbox-secret-scanner-fix-v3": 16000, "oxbox-secret-scanner-fix-sr": 16000}
     report(all(tasks.get(t, {}).get("status") == "retired" for t in v1),
            "the v1 fixtures are retired, not edited",
            {t: tasks.get(t, {}).get("status") for t in v1})
