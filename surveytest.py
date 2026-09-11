@@ -493,6 +493,44 @@ def test_corpus():
            and (HERE / "corpora/scorers/ask_grounding.py").exists(),
            "ask-grounding names a scorer that runs the pinned ox rather than trusting the key")
 
+    # 2026-09-10: the v1 fixtures are frozen at the parameters that produced
+    # the exhausted runs, and their successors carry the mitigated ones. A
+    # successor that quietly reverted to the old cap would re-measure the
+    # failure the prior-art review explained.
+    v1 = {"oxbox-clean-control", "oxbox-ask-grounding", "oxbox-secret-scanner-fix"}
+    successors = {"oxbox-clean-control-v2": 16000, "oxbox-ask-grounding-v2": 8000,
+                  "oxbox-secret-scanner-fix-v3": 8000, "oxbox-secret-scanner-fix-sr": 8000}
+    report(all(tasks.get(t, {}).get("status") == "retired" for t in v1),
+           "the v1 fixtures are retired, not edited",
+           {t: tasks.get(t, {}).get("status") for t in v1})
+    wrong = {t: tasks.get(t, {}).get("params") for t, cap in successors.items()
+             if tasks.get(t, {}).get("status") != "active"
+             or tasks[t].get("params") != {"max_tokens": cap, "temperature": 1.0, "effort": "medium"}}
+    report(not wrong, "every 2026-09-10 successor is active at the mitigated parameters", wrong)
+    sr = tasks.get("oxbox-secret-scanner-fix-sr", {})
+    report(sr.get("mode") == "ask" and sr.get("scorer") == "corpora/scorers/secret_scanner_fix_sr.py"
+           and sr.get("prompt") != tasks.get("oxbox-secret-scanner-fix-v3", {}).get("prompt"),
+           "the search/replace arm is sent in ask mode with its own prompt and scorer")
+
+    # The search/replace scorer's applier, on strings: exact once, lenient on
+    # trailing whitespace, absent. The gates themselves are the diff arm's.
+    sys.path.insert(0, str(HERE / "corpora" / "scorers"))
+    import secret_scanner_fix_sr as sr_scorer
+    blocks, err = sr_scorer.extract_blocks("ox\n<<<<<<< SEARCH\na = 1\nb = 2\n=======\na = 1\nb = 3\n>>>>>>> REPLACE\n")
+    report(err is None and blocks == [("a = 1\nb = 2", "a = 1\nb = 3")],
+           "sr scorer parses a SEARCH/REPLACE block", (blocks, err))
+    text, exact, notes = sr_scorer.apply_blocks("x\na = 1\nb = 2\ny\n", blocks)
+    report(exact and text == "x\na = 1\nb = 3\ny\n" and not notes,
+           "sr scorer applies a verbatim block", (exact, notes))
+    text, exact, notes = sr_scorer.apply_blocks("x\na = 1  \nb = 2\ny\n", blocks)
+    report(not exact and text == "x\na = 1\nb = 3\ny\n" and "trailing whitespace" in notes[0],
+           "sr scorer applies a trailing-whitespace match and fails gate 1 on it", (exact, notes))
+    text, exact, notes = sr_scorer.apply_blocks("x\nc = 1\ny\n", blocks)
+    report(not exact and text == "x\nc = 1\ny\n" and "not found" in notes[0],
+           "sr scorer leaves the file alone when SEARCH is absent", (exact, notes))
+    _, err = sr_scorer.extract_blocks("no blocks here")
+    report(err is not None, "sr scorer reports an answer with no blocks")
+
     # Prompt files are payload: every byte is sent to the model, so the repo's
     # own SPDX convention stops at this directory.
     tainted = [p.name for p in sorted((HERE / "corpora" / "prompts").glob("*.txt"))
@@ -1161,14 +1199,16 @@ def test_ratings():
            "cost: inventions are 0, and n/a needs a fixture that expects nothing")
 
     # The record has to be able to tell the two apart, which is what the
-    # `answered` field was added for. These four runs recorded identical
+    # `answered` field was added for. These runs (four hosted, and two local
+    # ollama runs on 2026-09-10) recorded identical
     # measured fields to runs that gave the ideal answer.
     obs_all = rt["load_observations"]()
     unanswered = {o["model"] for o in obs_all if rt["_bool"](o.get("answered")) is False}
     report(unanswered == {"inclusionai/ling-3.0-flash-fin:free",
                           "deepseek/deepseek-v4-flash",
                           "nvidia/nemotron-3.5-lightning",
-                          "z-ai/glm-5.3-free"},
+                          "z-ai/glm-5.3-free",
+                          "gemma4:26b", "gpt-oss:20b"},
            "every empty answer in the record is marked answered: false",
            sorted(unanswered))
     rows_all = rt["run_rows"](obs_all, rt["load_corpus"]())

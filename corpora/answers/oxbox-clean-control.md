@@ -40,6 +40,21 @@ result here, and the survey should say so plainly. Declining to invent findings 
 a clean file, under a prompt asking for breadth, is the counterpart to a
 false-positive rate rather than a failure to engage.
 
+## What it measures, in the literature's words
+
+Inventing defects on correct code has a name: overcorrection. Jin and Chen,
+"Are LLMs Reliable Code Reviewers? Systematic Overcorrection in Requirement
+Conformance Judgement" (arXiv:2603.00539, 2026) find that models "frequently
+misclassify correct code implementation as non-compliant or defective," and
+that prompts demanding explanations and proposed fixes raise the rate. A 2026
+survey of code-review benchmarks (arXiv:2602.13377) lists none that carries a
+defect-free control or scores abstention, which is what this fixture does.
+Published precision on defect-bearing code is about 0.5 even for a frontier
+model (arXiv:2606.15689), so on a file whose right answer is "nothing" a high
+invention count is the expected result, not a surprise; the number that
+separates models is how many, and whether the two known defects are among them.
+See `docs/prior-art-2026-09-10.md`.
+
 ## What this cannot tell you
 
 One small file, one prompt. A model that invents nothing here can still invent on a

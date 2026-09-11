@@ -89,7 +89,7 @@ is the command from oxbox 0.7.0; it was `ox` before, with the same flags):
 git -C /path/to/oxbox checkout 6072d56
 oxbox send --mode review --stdin \
    --files .claude/skills/ox-review/scripts/oxreview.py,jailtest.py \
-   --max-tokens 100000 --temperature 0.2 --effort high \
+   --max-tokens 100000 --temperature 0.2 --effort high \   # the task's params, verbatim
    --manifest /path/to/oxbox-survey/manifests/oxbox-manifest-2026-08-29.json \
    < /path/to/oxbox-survey/corpora/prompts/oxbox-review-queue.txt
 ```
@@ -97,6 +97,26 @@ oxbox send --mode review --stdin \
 Then check `meta.json` in the run's log dir: `context_bytes` must equal the task's
 `bytes`. If it does not, the payload is not the fixture and the run is not
 comparable to anything.
+
+**The parameters are the task's, not the defaults'.** Each task carries `params`
+(`max_tokens`, `temperature`, `effort`) and a run is comparable only at those.
+The v1 tasks froze temperature 0.2, effort high and a 100,000-token cap; their
+2026-09-10 successors (`-v2`, `-v3`, `-sr`) run at temperature 1.0, effort
+medium and a cap of 16,000 for review or 8,000 for ask and diff, because every
+vendor card for the open-weight thinking models recommends 1.0 and three of them
+name low temperature as a cause of endless repetition, and because a gateway
+budgets about 80 percent of the cap for thinking at effort high, so the old cap
+authorized the exhausted runs it then measured. The reasons and their sources
+are in `docs/prior-art-2026-09-10.md`; the runs that prompted them are the
+local ollama observations of 2026-09-10 and 2026-09-11.
+
+**The patch fixture has two delivery arms.** `oxbox-secret-scanner-fix-v3` asks
+for a unified diff, as before; `oxbox-secret-scanner-fix-sr` asks for the same
+change as SEARCH/REPLACE blocks with no line numbers or hunk headers, sent in
+ask mode so oxbox's diff-mode system prompt does not ask for a diff over the
+top of it. Both are scored by the same eight verdicts; `git apply --recount` on
+the diff arm and a trailing-whitespace-lenient match on the search/replace arm
+are reported but do not pass gate 1.
 
 Record the result in `observations/` as usual, with one added frontmatter field:
 

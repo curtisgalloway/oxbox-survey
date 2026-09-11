@@ -172,6 +172,22 @@ group observations without interpreting prose:
   the two ways of asking can be compared. A metered checker reads and cannot
   run, so under the reproduce-first rule it is the fallback, and its cost is the
   cost of the fallback. Decided 2026-09-06, round 4 question 3.
+- **Refute cheaply before reading dearly.** Decided by the editor 2026-09-10 on
+  the prior-art review (`docs/prior-art-2026-09-10.md`): the metered frontier
+  check cost 18 to 41 cents per batch on 2026-09-10, more than the runs it
+  checked and in the case of a local model the whole bill, which inverts the
+  cascade the survey is arguing for (FrugalGPT's verifier is a DistilBERT). So
+  the checking order is: (1) reproduce any finding that can be executed against
+  the pin in a jail, as before; (2) put the rest to a cheap refuter first, the
+  same verifier contract and pinned files as one `oxbox send --mode ask`
+  request to a model in the manifest's cheap paid tier, and record it as a
+  check record with its bill; (3) send only the findings the refuter CONFIRMED
+  or left UNCERTAIN to the metered frontier check. A finding the refuter
+  REFUTED with evidence at a cited line the reader can confirm in the pin is
+  refuted; one it refuted without a checkable line goes to step 3. Read-only
+  judges agree with each other far more than with execution (kappa 0.75
+  against at most 0.26, doi:10.3390/jcp6050153), which is why step 1 stays
+  first and why every check record says it read and ran nothing.
 - **A disqualifier is open until a later run clears it.** `disqualifier:` on a
   run-backed access or availability observation names why the venue refused
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands
