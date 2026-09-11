@@ -180,8 +180,11 @@ group observations without interpreting prose:
   the checking order is: (1) reproduce any finding that can be executed against
   the pin in a jail, as before; (2) put the rest to a cheap refuter first, the
   same verifier contract and pinned files as one `oxbox send --mode ask`
-  request to a model in the manifest's cheap paid tier, and record it as a
-  check record with its bill; (3) send only the findings the refuter CONFIRMED
+  request to a model in the manifest's cheap paid tier, **pinned to a route
+  that has answered** (the first unpinned refuter request of 2026-09-11
+  landed on a provider that reasoned for 13k tokens and returned an error
+  after five minutes; pinned, the same batch answered in a minute), and
+  record it as a check record with its bill; (3) send only the findings the refuter CONFIRMED
   or left UNCERTAIN to the metered frontier check. A finding the refuter
   REFUTED with evidence at a cited line the reader can confirm in the pin is
   refuted; one it refuted without a checkable line goes to step 3. Read-only
