@@ -693,14 +693,22 @@ The control's answer key names overcorrection and cites the sources.
 `surveytest.py` holds the successors to their parameters.
 
 **What did not change, and why.** Provider pinning was already the survey's
-rule since oxbox 1.1.0. A short fixture in the 10-to-50-changed-line regime
-the literature says review does best in needs a target with a known defect in
-a hunk that size and is not built yet; the 6 KB control is the nearest thing
-the corpus has. The ollama server on argenta was not reconfigured mid-batch:
+rule since oxbox 1.1.0. The ollama server on argenta was not reconfigured mid-batch:
 an explicit `OLLAMA_CONTEXT_LENGTH` and a quantized KV cache are filed in the
 iac repo's TODO for a restart between batches, and the `-64k` tags created
 for the v2 runs are registered there. Nothing here changes a published
 edition; the v1 rows stay in the catalog table with their scores.
+
+**The short arm, added the same day.** The editor asked why the fixture in
+the 10-to-50-changed-line regime, where the literature says review does best,
+had been left out; the answer was a judgment call, not a blocker, and the
+project's own history had the material. `oxbox-short-change-review` is commit
+`6072d56` (16 lines added to `jailtest.py`) sent as a diff in the task text
+with the post-change file attached, at the v2 parameters, with one seeded
+defect: the stat oracle the commit left unguarded two lines below its new
+skip, which a113e62 fixed after Gemini 3.7 Flash found it on 2026-09-02. The
+answer key was written before any run and rules on the two real defects
+outside the change (real, not hits) and the record's standing inventions.
 
 **For issue 4.** The local rows, the exhaustions, the research and the
 parameter change are the week's material. The reader question the edition

@@ -340,6 +340,31 @@
      "notes": "Successor to oxbox-ask-grounding at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). Still the smoke test it was demoted to on 2026-09-08; an 8,000-token cap is four times the longest answer recorded on the v1 fixture."
     },
     {
+     "id": "oxbox-short-change-review",
+     "mode": "review",
+     "files": [
+      "jailtest.py"
+     ],
+     "bytes": 5915,
+     "prompt": "corpora/prompts/oxbox-short-change-review.txt",
+     "answer_key": "corpora/answers/oxbox-short-change-review.md",
+     "quality": {
+      "unit": "seeded defects found",
+      "of": 1
+     },
+     "cost_ceiling_usd_per_real": null,
+     "params": {
+      "max_tokens": 16000,
+      "temperature": 1.0,
+      "effort": "medium"
+     },
+     "status": "active",
+     "verification": "human",
+     "scorer": null,
+     "evidence": [],
+     "notes": "The short arm, added 2026-09-10 at the editor's direction after the prior-art review (docs/prior-art-2026-09-10.md): published review quality peaks on changes of 10 to 50 lines (arXiv:2505.17928) and every other fixture here is a whole file. The change under review is the project's own commit 6072d56, 16 lines added to jailtest.py, sent as a diff in the task text with the post-change file attached; the pin is the project's, already verified. One seeded defect: the commit skips the /etc/shadow read probe at uid 0 because the probe cannot test there, and leaves the stat oracle on EXISTING[0] untouched two lines below, so when the home-relative paths are absent (a CI container) the oracle stats /etc/shadow, which needs only search permission on /etc, succeeds inside both jails, and reports a jail that holds as leaking. The project fixed it in a113e62 after google/gemini-3.7-flash found it on 2026-09-02 (the record's G1). Real defects the file carries outside the change (the unclosed sockets fixed in 6302b12, the network probes scoring any raise as containment) count in real but not in hits; see the answer key. Verified by a reader against the key and the pin, the same discipline as the control."
+    },
+    {
      "id": "oxbox-json-findings",
      "mode": "review",
      "files": [
