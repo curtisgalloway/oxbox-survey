@@ -776,3 +776,46 @@ search/replace arm, decide among: keep both arms and the advice; retire the
 unified-diff arm and revise the advice to name search/replace; retire both
 arms and let the advice rest on the record it has. The generator review for
 issue 4 is where the question is put.
+
+## OpenRouter in-region routing is on this week's list, and it is a venue
+
+**Decided** 2026-09-11, by the editor, on the day OpenRouter's in-region
+routing was noticed
+([docs](https://openrouter.ai/docs/guides/features/in-region-routing)) and the
+account was upgraded from Pro to Business to get it. The upgrade is not free:
+the commission on credit purchases goes from 5.5% to 8%, which is a standing
+cost on every run the survey makes, so the feature has to earn a section.
+
+**What it is.** Not a request field. Two extra base URLs,
+`https://us.openrouter.ai/api/v1` and `https://eu.openrouter.ai/api/v1`, on
+which the request is decrypted inside the region and routed only to provider
+endpoints in that region. It **fails closed**: a model with no in-region
+endpoint returns an error rather than a silent fallback to a global one.
+Provider deployments marked global or cross-region are excluded, and the
+multi-model routers (Auto Router) are not available. Business or Enterprise
+plans only; US and EU are the only regions.
+
+**How it goes into oxbox: a fifth venue, not `--base-url`.** `--base-url`
+exists but is the wrong lever here on two counts. It refuses `--provider`
+outright (`crates/oxbox-send/src/main.rs`, "--provider does not apply with
+--base-url"), and the survey's manifests have pinned providers since oxbox
+1.1.0; and a manifest's own `base_url` is documentation only, because `venue`
+must name a row in the `VENUES` table. The change is a row in that table --
+`openrouter-us`, the US URL, the same `OPENROUTER_API_KEY`,
+`provider_routing: true` -- which keeps the pin, keeps the venue in every
+observation, and makes the region a fact the record carries rather than a flag
+someone remembered to type.
+
+**What the survey would measure, and why the answer may be the story.** The
+subject of this publication is the free and cheap pools, and those are exactly
+the endpoints most likely to be global-only. Fail-closed means the experiment
+is self-reporting: run the current manifest against `openrouter` and
+`openrouter-us` back to back and the delta is a list of which free and cheap
+models a US-resident reader can actually reach. A short list is a finding, not
+a failed run. Second reading, from the same pair: whether a row that survives
+the region filter differs in latency, cap or refusal rate from the same row
+routed globally.
+
+**What would take it off the list.** If the region filter leaves nothing but
+paid frontier rows standing, the feature is a note in the regulatory section
+and not a venue, and the Business tier is a cost with no reader-facing return.
