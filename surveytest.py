@@ -1208,7 +1208,8 @@ def test_ratings():
                           "deepseek/deepseek-v4-flash",
                           "nvidia/nemotron-3.5-lightning",
                           "z-ai/glm-5.3-free",
-                          "gemma4:26b", "gpt-oss:20b"},
+                          "gemma4:26b", "gpt-oss:20b",
+                          "z-ai/glm-5.3-flash"},
            "every empty answer in the record is marked answered: false",
            sorted(unanswered))
     rows_all = rt["run_rows"](obs_all, rt["load_corpus"]())
