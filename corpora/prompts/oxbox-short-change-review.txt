@@ -1,0 +1,45 @@
+Review the change below to jailtest.py, the self-test that runs inside the jail. The file
+as it stands after the change is attached in full; the change is the unified diff at the
+end of this message, 16 lines added and none removed.
+
+Report defects the change introduces, or that it leaves standing in the lines it touches:
+a case the new skip does not cover, a probe that can now pass without testing anything,
+a place where the comment promises something the code does not do. For each finding give
+the line, one sentence stating the defect, and a concrete scenario in which it produces a
+wrong result. Findings elsewhere in the file are outside this change; if you report one,
+label it OUT OF SCOPE. If the change is correct as written, say so.
+
+diff --git a/jailtest.py b/jailtest.py
+index 857dbfb..2be1129 100644
+--- a/jailtest.py
++++ b/jailtest.py
+@@ -24,6 +24,17 @@ REPO_ROOT = os.environ.get("REPO_ROOT", "")
+ PLATFORM = os.environ.get("OXBOX_PLATFORM", sys.platform)
+ EXISTING = [line for line in os.environ.get("OXBOX_EXISTING_PATHS", "").splitlines() if line]
+ 
++# Reading a root-owned file proves nothing about the jail when you ARE root.
++# What keeps /etc/shadow unreadable is file permissions, and uid 0 bypasses
++# them, so the probe reports a leak when what leaked is the account you ran as.
++# It cannot tell the two apart, and a probe that cannot test should skip rather
++# than answer vacuously -- the same rule that moved existence checks out to
++# oxbox. Everything else in EXISTING lives under the real home, which the jail
++# never binds in at all: absence blocks those, not permissions, so they stay
++# meaningful at any uid.
++IS_ROOT = getattr(os, "geteuid", lambda: -1)() == 0
++DAC_DEPENDENT = ("/etc/shadow",)
++
+ results = []
+ skipped = []
+ 
+@@ -113,6 +124,11 @@ probe("network: outbound UDP", udp_send)
+ 
+ if EXISTING:
+     for path in EXISTING:
++        if IS_ROOT and path in DAC_DEPENDENT:
++            skipped.append(
++                f"fs read: {label_for(path)} (uid 0 bypasses the file "
++                "permissions this probe tests; rerun as an ordinary user)")
++            continue
+         probe(f"fs read: {label_for(path)}", read_probe(path))
+     probe(f"fs metadata: stat {label_for(EXISTING[0])} (oracle)", stat_outside)
+ else:
