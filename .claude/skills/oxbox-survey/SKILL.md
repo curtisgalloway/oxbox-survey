@@ -232,6 +232,14 @@ Two standing documents are read every run, and neither is optional.
 the report is for" section above. `docs/issue-shape.md` says what that looks like on
 the page, section by section, and is the format this skill used to spell out inline.
 
+**Read `docs/decisions.md` from the last issue's date forward, and any `docs/prior-art-*.md`
+newer than the last issue.** The decisions log is where a fixture change, a scoring
+ruling, or a verification-order change lands between issues, with its reasons; a
+prior-art file is outside research the editor commissioned. Both are the week's
+material when they exist, and an issue that reports rows scored under a rule the
+reader was never told about is misreporting them. First instance: 2026-09-10, the
+local ollama batch, the v2 fixtures, and `docs/prior-art-2026-09-10.md`.
+
 ### Effort, when writing the manifest
 
 The snapshot carries each model's `reasoning` block — `supported_efforts` and

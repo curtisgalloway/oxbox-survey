@@ -642,3 +642,68 @@ The third leg is reported as partial and will stay that way until the corpus
 has regression tests. Gate 3, a single self-scan of `ox`, is the only evidence
 the corpus has that a patch did not break something else, and calling that
 "preserves regression tests" would claim a measurement that does not exist.
+
+## Local models, vendor sampling, and the v2 fixtures
+
+**Decided** 2026-09-10, by the editor, on the first local ollama batch and the
+prior-art review it prompted. Four models on argenta (a Mac Studio M3 Ultra,
+60-core GPU, 96 GB, ollama 0.34.0) ran the three fixtures at the v1
+parameters. `qwen3.8:27b` answered every fixture, slowly: 26 minutes and ten
+findings, two real, on the 6 KB control, and a 900-second timeout at the
+release's read timeout before that. `gemma4:26b` and `gpt-oss:20b` answered the
+grounding quiz in under a minute and spent the whole 100,000-token cap
+reasoning on the control and on the patch task, returning nothing, in loops
+of a few hundred distinct lines. `qwen3-coder:30b` was refused by ollama
+outright because oxbox always sends a reasoning-effort field and the model
+does not think.
+
+An Opus 5 research agent was then briefed with every problem the record holds
+on cheap, free and local review, and its report is `docs/prior-art-2026-09-10.md`.
+The findings that changed what we run:
+
+- Every vendor card for the open-weight thinking models sets temperature 1.0
+  (gpt-oss, Qwen 3.8, Gemma 4; DeepSeek 0.6), and three name low temperature
+  as a cause of endless repetition. The fixtures sent 0.2.
+- A gateway budgets about 80 percent of `max_tokens` for thinking at effort
+  `high`. A 100,000-token cap authorized the 80,000-token thoughts it measured.
+- gpt-oss looping at effort `high` under ollama is an open upstream issue since
+  2025-10; ollama forwards effort unevenly by model family through its
+  OpenAI-compatible endpoint; open-weight accuracy has been reported to fall
+  with effort.
+- Inventing defects on correct code is a published phenomenon, overcorrection
+  (arXiv:2603.00539), and prompts that demand explanations and fixes raise it.
+  No standard code-review benchmark carries a defect-free control.
+- Search/replace blocks beat unified diffs by about 4.7x exact-match on a 7B
+  open model (Diff-XYZ, arXiv:2510.12487); Aider and OpenAI's apply_patch
+  strip line numbers by design.
+- Cascades in the literature verify with something cheap (FrugalGPT's is a
+  DistilBERT); a metered frontier check that costs more than the run inverts
+  them. Read-only judges agree with each other far more than with execution.
+
+**What changed.** The three v1 fixtures are retired, frozen with their record.
+Their successors, `oxbox-clean-control-v2`, `oxbox-ask-grounding-v2`,
+`oxbox-secret-scanner-fix-v3` and the new search/replace arm
+`oxbox-secret-scanner-fix-sr`, are byte-identical in files, pins and task text
+and run at temperature 1.0, effort `medium`, and a cap of 16,000 for review or
+8,000 for ask and diff. The search/replace arm has its own prompt and scorer
+(`corpora/scorers/secret_scanner_fix_sr.py`), which imports the diff arm's
+gates so the two cannot drift. The checking order in `observations/README.md`
+now puts a cheap refuter between reproduction and the metered frontier read.
+The control's answer key names overcorrection and cites the sources.
+`surveytest.py` holds the successors to their parameters.
+
+**What did not change, and why.** Provider pinning was already the survey's
+rule since oxbox 1.1.0. A short fixture in the 10-to-50-changed-line regime
+the literature says review does best in needs a target with a known defect in
+a hunk that size and is not built yet; the 6 KB control is the nearest thing
+the corpus has. The ollama server on argenta was not reconfigured mid-batch:
+an explicit `OLLAMA_CONTEXT_LENGTH` and a quantized KV cache are filed in the
+iac repo's TODO for a restart between batches, and the `-64k` tags created
+for the v2 runs are registered there. Nothing here changes a published
+edition; the v1 rows stay in the catalog table with their scores.
+
+**For issue 4.** The local rows, the exhaustions, the research and the
+parameter change are the week's material. The reader question the edition
+answers is the one the editor put first: a local model is free per token and
+the price is minutes, so `wall_s` is the headline and the v1-to-v2 comparison
+on the same hardware is the story.
