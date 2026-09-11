@@ -684,8 +684,10 @@ The findings that changed what we run:
 Their successors, `oxbox-clean-control-v2`, `oxbox-ask-grounding-v2`,
 `oxbox-secret-scanner-fix-v3` and the new search/replace arm
 `oxbox-secret-scanner-fix-sr`, are byte-identical in files, pins and task text
-and run at temperature 1.0, effort `medium`, and a cap of 16,000 for review or
-8,000 for ask and diff. The search/replace arm has its own prompt and scorer
+and run at temperature 1.0, effort `medium`, and a cap of 16,000 for review and
+diff or 8,000 for ask (the diff arms were first set at 8,000 and raised the same
+night when the first model tried spent its whole cap reasoning on the
+search/replace arm). The search/replace arm has its own prompt and scorer
 (`corpora/scorers/secret_scanner_fix_sr.py`), which imports the diff arm's
 gates so the two cannot drift. The checking order in `observations/README.md`
 now puts a cheap refuter between reproduction and the metered frontier read.
