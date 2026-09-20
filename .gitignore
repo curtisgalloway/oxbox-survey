@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 work/
+
+# ox run logs from genuine-work batches: evidence, cited by run id in
+# observations, but not the record itself.
+logs/
