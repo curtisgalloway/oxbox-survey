@@ -1416,6 +1416,20 @@ def test_ratings():
     report(not rated_baselines, "no baseline-only model carries an Editor's Rating",
            rated_baselines)
 
+    # The smoke test is a gate, not evidence (2026-09-20). A model whose only
+    # candidate runs are on a smoke-scored fixture has shown it can read a file
+    # and answer questions about it, which earns a row and no rating. Same
+    # shape as the baseline-only rule above, and the reason it exists is that
+    # seven models scored 10 of 10 on ask-grounding-v2 in two days.
+    smoke_rows = {}
+    for row in rt["run_rows"](obs, tasks):
+        if row["role"] == "candidate":
+            smoke_rows.setdefault(row["model"], []).append(row["smoke"])
+    smoke_only = {m for m, flags in smoke_rows.items() if flags and all(flags)}
+    rated_smoke = [m for m, e in ratings.items() if e.get("rating") and m in smoke_only]
+    report(not rated_smoke,
+           "no model rated on smoke runs alone carries an Editor's Rating", rated_smoke)
+
     # The manifest is derived from the rating. Exercised on synthetic data so
     # every branch is seen to bite, then applied to the real latest manifest
     # once it is dated on or after the rule.

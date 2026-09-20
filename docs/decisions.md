@@ -1024,3 +1024,55 @@ because the file is the thing the release is for.
 would make the two documents converge rather than diverge; or the region
 premium falling far enough that a reader has no reason to run the global file
 at all, which would make the US pins the only pins.
+
+## The smoke test is a gate; ratings come from genuine work
+
+**Decided** 2026-09-20, by the editor, after seven models scored 10 of 10 on
+`oxbox-ask-grounding-v2` in two days — glm-5.3-flash twice, deepseek-v4-flash
+paid and free, ling-3.0-flash-vl, and the baselines before them. A fixture that
+everything passes is not measuring the thing a rating is about.
+
+**The smoke test becomes eligibility, not evidence.** ask-grounding was demoted
+to a smoke test on 2026-09-08; this takes that to its conclusion. A pass says
+the model reads a 39 KB file and answers questions about it accurately enough
+to be worth spending real work on. It opens the door and it contributes
+*nothing* to the Editor's Rating. A model that has only smoke runs has no
+rating, the way a model with only baseline runs has none.
+
+**The rating comes from adjudicated real batches.** Review work the editor
+actually needed that week, verified finding by finding against the source, the
+same discipline every run already answers to. This is not a new capability:
+the most consequential observation of the week — glm-5.3-flash's max_price
+guard matching no endpoint — came from three review batches against a real
+codebase, not from a fixture. The measured fields do not change; `findings`,
+`real`, `benign` and `unresolved` are what an adjudicated batch already
+produces.
+
+**What it costs, stated plainly: comparability.** Fixtures exist so two models
+face identical input. Under genuine work, one model reviews a Rust wire parser
+and another a Python CLI, and "A rated above B" partly records which week each
+showed up in. Three ways to hold that were considered, and the editor took the
+first two while keeping the third:
+
+1. **Lean into it.** The Editor's Rating is already a human call and not a
+   formula — judging dissimilar work is what an editor does. The rating file
+   already carries a date and a why for exactly this reason.
+2. **Pair the batches.** When real work goes out, send it to two or three
+   candidates at once. On cheap and free rows this costs almost nothing and
+   restores a direct comparison on input that actually mattered to someone.
+3. **Keep the zero-defect control.** It is not a smoke test and nothing here
+   retires it. It is the only instrument in the corpus that measures invention,
+   and it still discriminates where ask-grounding does not: on 2026-09-20
+   ling-3.0-flash-vl scored 10 of 10 on ask-grounding and emitted two findings,
+   neither real, on the control.
+
+**What does not change.** The disqualifier rules, the manifest derivation, the
+cost-per-real-defect figures and the run-backed-row requirement all stand. A
+smoke run is still a row in the record — it is still a run, still dated, still
+counted in the Tried table. It simply cannot be cited as a reason for a rating.
+
+**What would reverse it.** A fixture that separates models again: the patch
+arms once the search/replace leg has hosted rows behind it, or a harder
+grounding task whose ceiling is not 10 of 10. If the corpus regains a
+mechanically-scored fixture with spread, a rating could rest on it again, and
+the comparability argument would pull back the other way.

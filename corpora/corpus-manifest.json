@@ -1,495 +1,496 @@
 {
- "corpus_version": 0,
- "survey": "The Oxbox Survey",
- "updated": "2026-09-10",
- "note": "The targets side of the survey. manifests/ says which model to call; this says what to send it. An entry pins a repository at a commit, an exact file list, and the exact prompt text, so two models can be given a byte-identical payload and the difference in their output is theirs. Not dated per issue: a corpus changes when a target moves, not weekly. No expected-findings key by design -- this is a fixture set, not a benchmark. Where a task can be scored mechanically, the criteria live in corpora/answers/ and are measured, not asserted. A task's quality field says what its hits/hits_of frontmatter pair counts and which boolean gates zero it; null means the fixture has no seeded set and earns no quality score. cost_ceiling_usd_per_real is Fable 5.1's cost per real defect on that fixture, null until Fable has run it; ratings.py buckets against it. Parameters are per task: the v1 tasks froze temperature 0.2, effort high and a 100,000-token cap; the successors of 2026-09-10 run at the vendors' sampling and a cap the task needs, see docs/prior-art-2026-09-10.md.",
- "defaults": {
-  "mode": "review",
-  "max_tokens": 100000,
-  "temperature": 0.2,
-  "effort": "high"
- },
- "projects": [
-  {
-   "id": "oxbox",
-   "name": "oxbox",
-   "url": "https://github.com/curtisgalloway/oxbox",
-   "license": "Apache-2.0",
-   "visibility": "public",
-   "visibility_verified": "2026-08-30",
-   "languages": [
-    "python"
-   ],
-   "commit": "6072d56830dd3f80d567bf8c71593bcab95fbc74",
-   "commit_verified": "2026-08-30",
-   "why": "The containment itself, and the only target whose every line the reviewer knows. Small enough that a whole file fits in a prompt, and a finding here gets fixed the same day, so verification is cheap and the confirmations are checkable in the oxbox log. Its fix history doubles as an answer key: a defect that was found, verified and fixed is a scoreable task when posed at the commit before the fix.",
-   "notes": "This pin was chosen because it reproduces the 2026-08-29 minimax payloads exactly: both request.json bodies are byte-identical to `git show 6072d56:<path>` for all four files. Note the drift trap -- the working tree now carries the fixes, plus comments describing the bugs that were fixed, so a verifier reading HEAD scores real findings as false positives.",
-   "tasks": [
-    {
-     "id": "oxbox-review-queue",
-     "mode": "review",
-     "files": [
-      ".claude/skills/ox-review/scripts/oxreview.py",
-      "jailtest.py"
-     ],
-     "bytes": 22910,
-     "prompt": "corpora/prompts/oxbox-review-queue.txt",
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "active",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [
-      "observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"
-     ],
-     "notes": "Concurrency and lock handling: a directory lock with a 120s retry floor, and a sandbox self-test. Five of five findings held up on the one run this fixture reproduces."
-    },
-    {
-     "id": "oxbox-exposure-gate",
-     "mode": "review",
-     "files": [
-      ".claude/skills/ox-review/scripts/exposure.py",
-      ".claude/skills/ox-review/scripts/preflight.py"
-     ],
-     "bytes": 27246,
-     "prompt": "corpora/prompts/oxbox-exposure-gate.txt",
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "active",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [
-      "observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"
-     ],
-     "notes": "Subprocess handling, URL parsing and unauthenticated network probes. Eight of ten real on the one run this fixture reproduces, including the one clear false positive in that batch."
-    },
-    {
-     "id": "oxbox-secret-scanner-fix",
-     "mode": "diff",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-secret-scanner-fix.txt",
-     "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
-     "quality": {
-      "unit": "gate verdicts held",
-      "of": 8,
-      "requires": [
-       "applies"
-      ]
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "retired",
-     "verification": "git-apply",
-     "scorer": "corpora/scorers/secret_scanner_fix.py",
-     "evidence": [
-      "observations/2026-09-02-sonnet-5-baseline-secret-scanner-fix-right-patterns-wrong-hunk-header-and-a-self-hit.md",
-      "observations/2026-09-02-gemini-3.7-flash-baseline-secret-scanner-fix-passes-all-three-gates.md",
-      "observations/2026-09-02-gpt-5.6-sol-baseline-secret-scanner-fix-passes-all-three-gates-in-2000-tokens.md",
-      "observations/2026-09-02-deepseek-v4-flash-baseline-secret-scanner-fix-corrupt-hunk-and-the-aws-key-still-missed.md",
-      "observations/2026-09-02-glm-5.3-flash-baseline-secret-scanner-fix-passes-and-guarded-the-self-hit-unprompted.md",
-      "observations/2026-09-06-fable-5.1-refuses-the-secret-scanner-fix-fixture.md",
-      "observations/2026-09-06-glm-5.3-flash-candidate-secret-scanner-fix-corrupt-hunk-after-passing-as-a-baseline.md",
-      "observations/2026-09-06-deepseek-v4-flash-candidate-secret-scanner-fix-corrupt-hunk-again-eight-of-eight-behind-it.md",
-      "observations/2026-09-10-gemini-3.1-pro-baseline-secret-scanner-fix-passes-all-three-gates-on-the-resend-for-25-cents.md",
-      "observations/2026-09-10-gemini-3.1-pro-patch-fixture-http-504-upstream-idle-timeout-after-180-seconds.md",
-      "observations/2026-09-10-gemini-3.8-flash-baseline-secret-scanner-fix-passes-all-three-gates-after-62k-reasoning-tokens.md",
-      "observations/2026-09-10-gpt-5.6-terra-pro-baseline-secret-scanner-fix-corrupt-hunk-eight-of-eight-behind-it.md",
-      "observations/2026-09-10-opus-5-refuses-the-secret-scanner-fix-fixture-like-fable-did.md"
-     ],
-     "notes": "Retired 2026-09-10, superseded by oxbox-secret-scanner-fix-v3 and oxbox-secret-scanner-fix-sr: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8. No cost ceiling: Fable 5.1 refuses this fixture (content_filter, three times on 2026-09-06 including a motivated variant), and a diagnostic pair the same day showed the task text is the trigger, not the file: the prompt against the pattern list alone was refused, a neutral review of the full ox was answered. The cost score stays a dash here for every model."
-    },
-    {
-     "id": "oxbox-secret-scanner-fix-v3",
-     "mode": "diff",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-secret-scanner-fix.txt",
-     "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
-     "quality": {
-      "unit": "gate verdicts held",
-      "of": 8,
-      "requires": [
-       "applies"
-      ]
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 16000,
-      "temperature": 1.0,
-      "effort": "medium"
-     },
-     "status": "active",
-     "verification": "git-apply",
-     "scorer": "corpora/scorers/secret_scanner_fix.py",
-     "evidence": [],
-     "notes": "Successor to oxbox-secret-scanner-fix at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The unified-diff arm, kept as a named second arm beside the search/replace arm oxbox-secret-scanner-fix-sr. The v2 id was the 2026-09-06 refusal diagnostic and is unrelated to this. Cap raised from 8,000 to 16,000 on 2026-09-11 before any run was recorded against the task: the first model tried (gemma4:26b) spent 21,241 characters of reasoning on the search/replace arm and hit 8,000 with no answer, and finished the diff arm at 7,472; a cap that ends runs is measuring the cap."
-    },
-    {
-     "id": "oxbox-secret-scanner-fix-sr",
-     "mode": "ask",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-secret-scanner-fix-sr.txt",
-     "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
-     "quality": {
-      "unit": "gate verdicts held",
-      "of": 8,
-      "requires": [
-       "applies"
-      ]
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 16000,
-      "temperature": 1.0,
-      "effort": "medium"
-     },
-     "status": "active",
-     "verification": "git-apply",
-     "scorer": "corpora/scorers/secret_scanner_fix_sr.py",
-     "evidence": [],
-     "notes": "Successor to oxbox-secret-scanner-fix at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The search/replace arm: the same change delivered as SEARCH/REPLACE blocks with no line numbers or hunk headers, the format Diff-XYZ (arXiv:2510.12487) measured at about 4.7x the exact-match rate of a unified diff on a 7B open model and that Aider and OpenAI's apply_patch use by design. Sent in ask mode so oxbox's diff-mode system prompt does not ask for a unified diff over the top of it. Scored by the same eight gate verdicts; gate 1 is that every block's SEARCH text is found verbatim at the pin, with a whitespace-lenient match reported the way --recount is for the diff arm. Cap raised from 8,000 to 16,000 on 2026-09-11 before any run was recorded against the task: the first model tried (gemma4:26b) spent 21,241 characters of reasoning on the search/replace arm and hit 8,000 with no answer, and finished the diff arm at 7,472; a cap that ends runs is measuring the cap."
-    },
-    {
-     "id": "oxbox-secret-scanner-fix-v2",
-     "mode": "diff",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-secret-scanner-fix-v2.txt",
-     "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
-     "quality": {
-      "unit": "gate verdicts held",
-      "of": 8,
-      "requires": [
-       "applies"
-      ]
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "proposed",
-     "verification": "git-apply",
-     "scorer": "corpora/scorers/secret_scanner_fix.py",
-     "evidence": [
-      "observations/2026-09-06-fable-5.1-refuses-the-scanner-fix-with-the-motivation-stated.md"
-     ],
-     "notes": "PROPOSED, and so far only a diagnostic. The scanner-fix prompt with a motivation preamble (what ox is, that the scanner is a refusal gate, that the change is defensive, that the values are placeholders); the rest of the prompt and the payload are byte-identical to oxbox-secret-scanner-fix, so the same scorer applies. Written 2026-09-06 to test whether Fable 5.1's content_filter refusal was about framing. It was not: refused again the same afternoon. Kept so the experiment is on the record. Not run against any other model."
-    },
-    {
-     "id": "oxbox-clean-control",
-     "mode": "review",
-     "files": [
-      "jailtest.py"
-     ],
-     "bytes": 6096,
-     "commit": "6302b12c95473204875b63cc350a92b1c933a259",
-     "commit_verified": "2026-08-30",
-     "prompt": "corpora/prompts/oxbox-clean-control.txt",
-     "answer_key": "corpora/answers/oxbox-clean-control.md",
-     "quality": null,
-     "expected_findings": 0,
-     "cost_ceiling_usd_per_real": 0.4685,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "retired",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [
-      "observations/2026-09-02-sonnet-5-baseline-clean-control-two-findings-zero-real-three-uncertain-all-hedged-right.md",
-      "observations/2026-09-02-gemini-3.7-flash-baseline-clean-control-one-finding-and-it-is-real.md",
-      "observations/2026-09-02-gpt-5.6-sol-baseline-clean-control-eight-findings-one-real-six-invented.md",
-      "observations/2026-09-02-deepseek-v4-flash-baseline-clean-control-no-defects-found-the-ideal-answer-at-the-lowest-price.md",
-      "observations/2026-09-02-glm-5.3-flash-baseline-clean-control-four-findings-one-real-and-it-hedged-the-right-one.md",
-      "observations/2026-09-06-fable-5.1-baseline-clean-control-five-findings-both-known-defects-hedged.md",
-      "observations/2026-09-06-glm-5.3-flash-candidate-clean-control-four-findings-one-real-and-a-different-one-than-last-time.md",
-      "observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-spends-the-whole-budget-reasoning-and-returns-nothing-in-33-minutes.md",
-      "observations/2026-09-06-check-fable-5.1-on-glm-5.3-flash-baseline-clean-control-refutes-all-four-including-g1.md",
-      "observations/2026-09-06-check-opus-5-on-glm-5.3-flash-baseline-clean-control-confirms-g1-refutes-the-rest.md",
-      "observations/2026-09-07-deepseek-v4-flash-candidate-clean-control-pinned-to-streamlake-one-finding-zero-real-in-151-seconds.md",
-      "observations/2026-09-07-deepseek-v4-flash-pinned-to-digitalocean-refused-429-twice-with-fallbacks-off-the-pin-held.md",
-      "observations/2026-09-07-deepseek-v4-flash-candidate-clean-control-pinned-to-digitalocean-one-finding-zero-real-in-320-seconds-after-two-429s.md",
-      "observations/2026-09-10-gemini-3.1-pro-baseline-zero-defect-control-two-findings-zero-real-both-the-records-standing-inventions.md",
-      "observations/2026-09-10-gemini-3.8-flash-baseline-zero-defect-control-two-findings-one-real-after-40k-reasoning-tokens.md",
-      "observations/2026-09-10-gpt-5.6-terra-pro-baseline-zero-defect-control-five-findings-one-real-four-invented-31-cents.md",
-      "observations/2026-09-10-opus-5-baseline-zero-defect-control-nine-findings-both-known-defects-one-benign-six-invented.md"
-     ],
-     "notes": "Retired 2026-09-10, superseded by oxbox-clean-control-v2: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. The zero-defect control: expected finding count is zero. Pinned one commit LATER than the rest of the project, at 6302b12, where the single real defect this file is known to carry -- unclosed probe sockets, found by MiniMax M3 on 2026-08-29 -- is fixed. The prompt is deliberately indistinguishable from a normal review prompt. Invention rate is otherwise only ever a by-product of a mixed batch; this measures it directly, on 6 KB. Cost ceiling: Fable 5.1 on 2026-09-06, $0.3663 billed for the run plus its own metered check through OpenRouter ($0.5707 billed), over 2 real findings: $0.4685 per real. Re-derived 2026-09-07 when the editor ruled that the metered check sets a ceiling; it had been $0.9152 from the in-harness subagent check priced at list ($1.4641). Expected finding count is recorded as expected_findings: 0 since 2026-09-08 so the cost rule can be mechanical: on a fixture that expects nothing, a run that answered and found nothing scores cost as a dash rather than 0 (round 11, question 5). An empty answer or a timeout is not that answer and stays 0, which is what the answered field distinguishes."
-    },
-    {
-     "id": "oxbox-clean-control-v2",
-     "mode": "review",
-     "files": [
-      "jailtest.py"
-     ],
-     "bytes": 6096,
-     "commit": "6302b12c95473204875b63cc350a92b1c933a259",
-     "commit_verified": "2026-08-30",
-     "prompt": "corpora/prompts/oxbox-clean-control.txt",
-     "answer_key": "corpora/answers/oxbox-clean-control.md",
-     "quality": null,
-     "expected_findings": 0,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 16000,
-      "temperature": 1.0,
-      "effort": "medium"
-     },
-     "status": "active",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [],
-     "notes": "Successor to oxbox-clean-control at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The zero-defect control measures what the literature calls overcorrection (arXiv:2603.00539); no standard code-review benchmark carries a defect-free control, so this fixture stays."
-    },
-    {
-     "id": "oxbox-ask-grounding",
-     "mode": "ask",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-ask-grounding.txt",
-     "answer_key": "corpora/answers/oxbox-ask-grounding.md",
-     "quality": {
-      "unit": "questions answered correctly",
-      "of": 10
-     },
-     "scoring": "smoke",
-     "cost_ceiling_usd_per_real": 0.02756,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "retired",
-     "verification": "answer-key",
-     "scorer": "corpora/scorers/ask_grounding.py",
-     "evidence": [
-      "observations/2026-09-02-sonnet-5-baseline-ask-grounding-10-of-10-and-said-uncertain-on-all-three-traps.md",
-      "observations/2026-09-02-gemini-3.7-flash-baseline-ask-grounding-10-of-10-terse-and-declined-all-three.md",
-      "observations/2026-09-02-gpt-5.6-sol-baseline-ask-grounding-10-of-10-in-834-tokens.md",
-      "observations/2026-09-02-deepseek-v4-flash-baseline-ask-grounding-10-of-10-in-1147-bytes.md",
-      "observations/2026-09-02-glm-5.3-flash-baseline-ask-grounding-10-of-10-with-verifiable-extras.md",
-      "observations/2026-09-06-fable-5.1-baseline-ask-grounding-10-of-10-sets-the-cost-ceiling.md",
-      "observations/2026-09-06-glm-5.3-flash-candidate-ask-grounding-10-of-10-in-25-seconds.md",
-      "observations/2026-09-06-deepseek-v4-flash-candidate-ask-grounding-10-of-10-in-37-seconds-from-a-third-provider.md",
-      "observations/2026-09-06-check-fable-5.1-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md",
-      "observations/2026-09-06-check-opus-5-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md",
-      "observations/2026-09-06-check-fable-5.1-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md",
-      "observations/2026-09-06-check-opus-5-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md",
-      "observations/2026-09-10-gemini-3.1-pro-baseline-ask-grounding-10-of-10-in-20-seconds-for-5-cents.md",
-      "observations/2026-09-10-gemini-3.8-flash-baseline-ask-grounding-10-of-10-in-22-seconds-for-2-cents.md",
-      "observations/2026-09-10-gpt-5.6-terra-pro-baseline-ask-grounding-10-of-10-in-20-seconds-and-the-prompt-was-billed-three-times-over.md",
-      "observations/2026-09-10-opus-5-baseline-ask-grounding-10-of-10-in-37-seconds-for-14-cents.md"
-     ],
-     "notes": "Retired 2026-09-10, superseded by oxbox-ask-grounding-v2: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question. Cost ceiling: Fable 5.1 on 2026-09-06, $0.2756 billed over 10 hits. Scorer added 2026-09-06 (round 4, question 4): runs the pinned ox with --dry-run for questions 1, 3, 4, 5 and 6 and reports each observed fact against the key; questions 2 and 7 need an HTTP exchange ox will not fake and stay with a reader; 8 to 10 are scored on saying not settled. All twelve archived runs pass it. Demoted to a smoke test 2026-09-08 (round 11, question 8): eleven of thirteen models score a perfect five, one a four, one returned nothing, so the fixture separates two models and still costs a run and a scoring pass every week. It keeps running as a cheap check that a model answers at all and does not fabricate under a trap, and its score is recorded, but it is no longer read as an axis: a failure here annotates the model's row rather than excluding it."
-    },
-    {
-     "id": "oxbox-ask-grounding-v2",
-     "mode": "ask",
-     "files": [
-      "ox"
-     ],
-     "bytes": 39467,
-     "prompt": "corpora/prompts/oxbox-ask-grounding.txt",
-     "answer_key": "corpora/answers/oxbox-ask-grounding.md",
-     "quality": {
-      "unit": "questions answered correctly",
-      "of": 10
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 8000,
-      "temperature": 1.0,
-      "effort": "medium"
-     },
-     "status": "active",
-     "verification": "answer-key",
-     "scorer": "corpora/scorers/ask_grounding.py",
-     "evidence": [],
-     "notes": "Successor to oxbox-ask-grounding at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). Still the smoke test it was demoted to on 2026-09-08; an 8,000-token cap is four times the longest answer recorded on the v1 fixture."
-    },
-    {
-     "id": "oxbox-short-change-review",
-     "mode": "review",
-     "files": [
-      "jailtest.py"
-     ],
-     "bytes": 5915,
-     "prompt": "corpora/prompts/oxbox-short-change-review.txt",
-     "answer_key": "corpora/answers/oxbox-short-change-review.md",
-     "quality": {
-      "unit": "seeded defects found",
-      "of": 1
-     },
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 16000,
-      "temperature": 1.0,
-      "effort": "medium"
-     },
-     "status": "active",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [],
-     "notes": "The short arm, added 2026-09-10 at the editor's direction after the prior-art review (docs/prior-art-2026-09-10.md): published review quality peaks on changes of 10 to 50 lines (arXiv:2505.17928) and every other fixture here is a whole file. The change under review is the project's own commit 6072d56, 16 lines added to jailtest.py, sent as a diff in the task text with the post-change file attached; the pin is the project's, already verified. One seeded defect: the commit skips the /etc/shadow read probe at uid 0 because the probe cannot test there, and leaves the stat oracle on EXISTING[0] untouched two lines below, so when the home-relative paths are absent (a CI container) the oracle stats /etc/shadow, which needs only search permission on /etc, succeeds inside both jails, and reports a jail that holds as leaking. The project fixed it in a113e62 after google/gemini-3.7-flash found it on 2026-09-02 (the record's G1). Real defects the file carries outside the change (the unclosed sockets fixed in 6302b12, the network probes scoring any raise as containment) count in real but not in hits; see the answer key. Verified by a reader against the key and the pin, the same discipline as the control."
-    },
-    {
-     "id": "oxbox-json-findings",
-     "mode": "review",
-     "files": [
-      ".claude/skills/ox-review/scripts/preflight.py"
-     ],
-     "bytes": 11917,
-     "prompt": null,
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "proposed",
-     "verification": "json-parse",
-     "scorer": null,
-     "evidence": [],
-     "notes": "PROPOSED. The same review, with the findings demanded as a JSON array; scored by whether json.loads succeeds and the schema holds. This tests an in-prompt contract, NOT the catalog's response_format column -- ox never sends the response_format parameter (ox:781-783 builds a plain string content), so validating that column would need an ox change first."
-    }
-   ]
+  "corpus_version": 0,
+  "survey": "The Oxbox Survey",
+  "updated": "2026-09-10",
+  "note": "The targets side of the survey. manifests/ says which model to call; this says what to send it. An entry pins a repository at a commit, an exact file list, and the exact prompt text, so two models can be given a byte-identical payload and the difference in their output is theirs. Not dated per issue: a corpus changes when a target moves, not weekly. No expected-findings key by design -- this is a fixture set, not a benchmark. Where a task can be scored mechanically, the criteria live in corpora/answers/ and are measured, not asserted. A task's quality field says what its hits/hits_of frontmatter pair counts and which boolean gates zero it; null means the fixture has no seeded set and earns no quality score. cost_ceiling_usd_per_real is Fable 5.1's cost per real defect on that fixture, null until Fable has run it; ratings.py buckets against it. Parameters are per task: the v1 tasks froze temperature 0.2, effort high and a 100,000-token cap; the successors of 2026-09-10 run at the vendors' sampling and a cap the task needs, see docs/prior-art-2026-09-10.md.",
+  "defaults": {
+    "mode": "review",
+    "max_tokens": 100000,
+    "temperature": 0.2,
+    "effort": "high"
   },
-  {
-   "id": "paniolo",
-   "name": "paniolo",
-   "url": "https://github.com/curtisgalloway/paniolo",
-   "license": "Apache-2.0",
-   "visibility": "public",
-   "visibility_verified": "2026-08-30",
-   "languages": [
-    "rust"
-   ],
-   "commit": "a6abbf36904401126f5ca9c78df8924c3a5a5170",
-   "commit_verified": "2026-08-30",
-   "why": "The corpus is otherwise entirely Python, which measures one language's idioms and calls it review quality. paniolo is the reviewer's own Rust -- 68 files across seven crates -- and it is systems code with a different defect vocabulary from oxbox's: wire formats, device state machines, timeouts and partial reads rather than credentials and subprocesses. Its netbootd crate parses packets from an untrusted device on the lab network -- locally verifiable parsing and bounds defects, which is the finding class models have been most reliable on in this survey's runs.",
-   "notes": "Not yet run. Rust also tests something Python cannot: whether a model reports ownership and lifetime errors that the compiler would have caught, which is the review equivalent of a false positive with a compiler as the referee.",
-   "tasks": [
+  "projects": [
     {
-     "id": "paniolo-netboot-wire",
-     "mode": "review",
-     "files": [
-      "netbootd/src/dhcp.rs",
-      "netbootd/src/tftp.rs"
-     ],
-     "bytes": 60656,
-     "prompt": null,
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "proposed",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [],
-     "notes": "PROPOSED. DHCP and TFTP packet handling: offsets, length fields and option parsing over input from whatever device is plugged into the lab link. Twice the size of the largest oxbox batch, so it also samples a longer context than anything the corpus runs today."
-    }
-   ]
-  },
-  {
-   "id": "oh-brother",
-   "name": "oh-brother",
-   "url": "https://github.com/curtisgalloway/oh-brother",
-   "license": "Apache-2.0",
-   "visibility": "public",
-   "visibility_verified": "2026-08-30",
-   "languages": [
-    "rust"
-   ],
-   "commit": "360804cd4d42251602473137618831a35d432c2a",
-   "commit_verified": "2026-08-30",
-   "why": "A second Rust target pointed the other way. paniolo's netbootd parses packets arriving from an untrusted device; oh-brother's pt-protocol constructs command bytes and reads status back from one. Same language, opposite direction across the wire, and small self-contained crates -- so a batch here is a different question from a batch there rather than more of the same.",
-   "notes": "Not yet run. The crate's own tests (rust/pt-protocol/src/tests.rs) are deliberately left out of the batch: including them hands the model the spec, which is a different experiment and one worth running separately once there is a baseline without them.",
-   "tasks": [
-    {
-     "id": "ohbrother-ptouch-transport",
-     "mode": "review",
-     "files": [
-      "rust/pt-protocol/src/lib.rs",
-      "rust/pt-protocol/src/usb.rs",
-      "rust/pt-protocol/src/bt_macos.rs"
-     ],
-     "bytes": 25054,
-     "prompt": null,
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "proposed",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [],
-     "notes": "PROPOSED. The whole crate minus its tests: raster command construction, status reads, and two transports (USB, and CoreBluetooth on macOS). Framing, timeouts and partial reads against a physical device that cannot be asked to repeat itself. Sized to match the oxbox batches (22-27 KB) so it is comparable to them."
+      "id": "oxbox",
+      "name": "oxbox",
+      "url": "https://github.com/curtisgalloway/oxbox",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": [
+        "python"
+      ],
+      "commit": "6072d56830dd3f80d567bf8c71593bcab95fbc74",
+      "commit_verified": "2026-08-30",
+      "why": "The containment itself, and the only target whose every line the reviewer knows. Small enough that a whole file fits in a prompt, and a finding here gets fixed the same day, so verification is cheap and the confirmations are checkable in the oxbox log. Its fix history doubles as an answer key: a defect that was found, verified and fixed is a scoreable task when posed at the commit before the fix.",
+      "notes": "This pin was chosen because it reproduces the 2026-08-29 minimax payloads exactly: both request.json bodies are byte-identical to `git show 6072d56:<path>` for all four files. Note the drift trap -- the working tree now carries the fixes, plus comments describing the bugs that were fixed, so a verifier reading HEAD scores real findings as false positives.",
+      "tasks": [
+        {
+          "id": "oxbox-review-queue",
+          "mode": "review",
+          "files": [
+            ".claude/skills/ox-review/scripts/oxreview.py",
+            "jailtest.py"
+          ],
+          "bytes": 22910,
+          "prompt": "corpora/prompts/oxbox-review-queue.txt",
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "active",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [
+            "observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"
+          ],
+          "notes": "Concurrency and lock handling: a directory lock with a 120s retry floor, and a sandbox self-test. Five of five findings held up on the one run this fixture reproduces."
+        },
+        {
+          "id": "oxbox-exposure-gate",
+          "mode": "review",
+          "files": [
+            ".claude/skills/ox-review/scripts/exposure.py",
+            ".claude/skills/ox-review/scripts/preflight.py"
+          ],
+          "bytes": 27246,
+          "prompt": "corpora/prompts/oxbox-exposure-gate.txt",
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "active",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [
+            "observations/2026-08-29-minimax-m3-free-13-of-15-findings-real.md"
+          ],
+          "notes": "Subprocess handling, URL parsing and unauthenticated network probes. Eight of ten real on the one run this fixture reproduces, including the one clear false positive in that batch."
+        },
+        {
+          "id": "oxbox-secret-scanner-fix",
+          "mode": "diff",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "quality": {
+            "unit": "gate verdicts held",
+            "of": 8,
+            "requires": [
+              "applies"
+            ]
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "retired",
+          "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix.py",
+          "evidence": [
+            "observations/2026-09-02-sonnet-5-baseline-secret-scanner-fix-right-patterns-wrong-hunk-header-and-a-self-hit.md",
+            "observations/2026-09-02-gemini-3.7-flash-baseline-secret-scanner-fix-passes-all-three-gates.md",
+            "observations/2026-09-02-gpt-5.6-sol-baseline-secret-scanner-fix-passes-all-three-gates-in-2000-tokens.md",
+            "observations/2026-09-02-deepseek-v4-flash-baseline-secret-scanner-fix-corrupt-hunk-and-the-aws-key-still-missed.md",
+            "observations/2026-09-02-glm-5.3-flash-baseline-secret-scanner-fix-passes-and-guarded-the-self-hit-unprompted.md",
+            "observations/2026-09-06-fable-5.1-refuses-the-secret-scanner-fix-fixture.md",
+            "observations/2026-09-06-glm-5.3-flash-candidate-secret-scanner-fix-corrupt-hunk-after-passing-as-a-baseline.md",
+            "observations/2026-09-06-deepseek-v4-flash-candidate-secret-scanner-fix-corrupt-hunk-again-eight-of-eight-behind-it.md",
+            "observations/2026-09-10-gemini-3.1-pro-baseline-secret-scanner-fix-passes-all-three-gates-on-the-resend-for-25-cents.md",
+            "observations/2026-09-10-gemini-3.1-pro-patch-fixture-http-504-upstream-idle-timeout-after-180-seconds.md",
+            "observations/2026-09-10-gemini-3.8-flash-baseline-secret-scanner-fix-passes-all-three-gates-after-62k-reasoning-tokens.md",
+            "observations/2026-09-10-gpt-5.6-terra-pro-baseline-secret-scanner-fix-corrupt-hunk-eight-of-eight-behind-it.md",
+            "observations/2026-09-10-opus-5-refuses-the-secret-scanner-fix-fixture-like-fable-did.md"
+          ],
+          "notes": "Retired 2026-09-10, superseded by oxbox-secret-scanner-fix-v3 and oxbox-secret-scanner-fix-sr: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. The first --mode diff fixture: ox's default mode had no observation in the repo at all. Scored without a human verification pass -- `git apply --check` against the pin, then eight measured before/after verdicts on the patched pattern list, two of which are decoys that catch a fix that overshoots. The defect is real and was fixed upstream in 6ba47d8. No cost ceiling: Fable 5.1 refuses this fixture (content_filter, three times on 2026-09-06 including a motivated variant), and a diagnostic pair the same day showed the task text is the trigger, not the file: the prompt against the pattern list alone was refused, a neutral review of the full ox was answered. The cost score stays a dash here for every model."
+        },
+        {
+          "id": "oxbox-secret-scanner-fix-v3",
+          "mode": "diff",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "quality": {
+            "unit": "gate verdicts held",
+            "of": 8,
+            "requires": [
+              "applies"
+            ]
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 16000,
+            "temperature": 1.0,
+            "effort": "medium"
+          },
+          "status": "active",
+          "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix.py",
+          "evidence": [],
+          "notes": "Successor to oxbox-secret-scanner-fix at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The unified-diff arm, kept as a named second arm beside the search/replace arm oxbox-secret-scanner-fix-sr. The v2 id was the 2026-09-06 refusal diagnostic and is unrelated to this. Cap raised from 8,000 to 16,000 on 2026-09-11 before any run was recorded against the task: the first model tried (gemma4:26b) spent 21,241 characters of reasoning on the search/replace arm and hit 8,000 with no answer, and finished the diff arm at 7,472; a cap that ends runs is measuring the cap."
+        },
+        {
+          "id": "oxbox-secret-scanner-fix-sr",
+          "mode": "ask",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix-sr.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "quality": {
+            "unit": "gate verdicts held",
+            "of": 8,
+            "requires": [
+              "applies"
+            ]
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 16000,
+            "temperature": 1.0,
+            "effort": "medium"
+          },
+          "status": "active",
+          "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix_sr.py",
+          "evidence": [],
+          "notes": "Successor to oxbox-secret-scanner-fix at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The search/replace arm: the same change delivered as SEARCH/REPLACE blocks with no line numbers or hunk headers, the format Diff-XYZ (arXiv:2510.12487) measured at about 4.7x the exact-match rate of a unified diff on a 7B open model and that Aider and OpenAI's apply_patch use by design. Sent in ask mode so oxbox's diff-mode system prompt does not ask for a unified diff over the top of it. Scored by the same eight gate verdicts; gate 1 is that every block's SEARCH text is found verbatim at the pin, with a whitespace-lenient match reported the way --recount is for the diff arm. Cap raised from 8,000 to 16,000 on 2026-09-11 before any run was recorded against the task: the first model tried (gemma4:26b) spent 21,241 characters of reasoning on the search/replace arm and hit 8,000 with no answer, and finished the diff arm at 7,472; a cap that ends runs is measuring the cap."
+        },
+        {
+          "id": "oxbox-secret-scanner-fix-v2",
+          "mode": "diff",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-secret-scanner-fix-v2.txt",
+          "answer_key": "corpora/answers/oxbox-secret-scanner-fix.md",
+          "quality": {
+            "unit": "gate verdicts held",
+            "of": 8,
+            "requires": [
+              "applies"
+            ]
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "proposed",
+          "verification": "git-apply",
+          "scorer": "corpora/scorers/secret_scanner_fix.py",
+          "evidence": [
+            "observations/2026-09-06-fable-5.1-refuses-the-scanner-fix-with-the-motivation-stated.md"
+          ],
+          "notes": "PROPOSED, and so far only a diagnostic. The scanner-fix prompt with a motivation preamble (what ox is, that the scanner is a refusal gate, that the change is defensive, that the values are placeholders); the rest of the prompt and the payload are byte-identical to oxbox-secret-scanner-fix, so the same scorer applies. Written 2026-09-06 to test whether Fable 5.1's content_filter refusal was about framing. It was not: refused again the same afternoon. Kept so the experiment is on the record. Not run against any other model."
+        },
+        {
+          "id": "oxbox-clean-control",
+          "mode": "review",
+          "files": [
+            "jailtest.py"
+          ],
+          "bytes": 6096,
+          "commit": "6302b12c95473204875b63cc350a92b1c933a259",
+          "commit_verified": "2026-08-30",
+          "prompt": "corpora/prompts/oxbox-clean-control.txt",
+          "answer_key": "corpora/answers/oxbox-clean-control.md",
+          "quality": null,
+          "expected_findings": 0,
+          "cost_ceiling_usd_per_real": 0.4685,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "retired",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [
+            "observations/2026-09-02-sonnet-5-baseline-clean-control-two-findings-zero-real-three-uncertain-all-hedged-right.md",
+            "observations/2026-09-02-gemini-3.7-flash-baseline-clean-control-one-finding-and-it-is-real.md",
+            "observations/2026-09-02-gpt-5.6-sol-baseline-clean-control-eight-findings-one-real-six-invented.md",
+            "observations/2026-09-02-deepseek-v4-flash-baseline-clean-control-no-defects-found-the-ideal-answer-at-the-lowest-price.md",
+            "observations/2026-09-02-glm-5.3-flash-baseline-clean-control-four-findings-one-real-and-it-hedged-the-right-one.md",
+            "observations/2026-09-06-fable-5.1-baseline-clean-control-five-findings-both-known-defects-hedged.md",
+            "observations/2026-09-06-glm-5.3-flash-candidate-clean-control-four-findings-one-real-and-a-different-one-than-last-time.md",
+            "observations/2026-09-06-deepseek-v4-flash-candidate-clean-control-spends-the-whole-budget-reasoning-and-returns-nothing-in-33-minutes.md",
+            "observations/2026-09-06-check-fable-5.1-on-glm-5.3-flash-baseline-clean-control-refutes-all-four-including-g1.md",
+            "observations/2026-09-06-check-opus-5-on-glm-5.3-flash-baseline-clean-control-confirms-g1-refutes-the-rest.md",
+            "observations/2026-09-07-deepseek-v4-flash-candidate-clean-control-pinned-to-streamlake-one-finding-zero-real-in-151-seconds.md",
+            "observations/2026-09-07-deepseek-v4-flash-pinned-to-digitalocean-refused-429-twice-with-fallbacks-off-the-pin-held.md",
+            "observations/2026-09-07-deepseek-v4-flash-candidate-clean-control-pinned-to-digitalocean-one-finding-zero-real-in-320-seconds-after-two-429s.md",
+            "observations/2026-09-10-gemini-3.1-pro-baseline-zero-defect-control-two-findings-zero-real-both-the-records-standing-inventions.md",
+            "observations/2026-09-10-gemini-3.8-flash-baseline-zero-defect-control-two-findings-one-real-after-40k-reasoning-tokens.md",
+            "observations/2026-09-10-gpt-5.6-terra-pro-baseline-zero-defect-control-five-findings-one-real-four-invented-31-cents.md",
+            "observations/2026-09-10-opus-5-baseline-zero-defect-control-nine-findings-both-known-defects-one-benign-six-invented.md"
+          ],
+          "notes": "Retired 2026-09-10, superseded by oxbox-clean-control-v2: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. The zero-defect control: expected finding count is zero. Pinned one commit LATER than the rest of the project, at 6302b12, where the single real defect this file is known to carry -- unclosed probe sockets, found by MiniMax M3 on 2026-08-29 -- is fixed. The prompt is deliberately indistinguishable from a normal review prompt. Invention rate is otherwise only ever a by-product of a mixed batch; this measures it directly, on 6 KB. Cost ceiling: Fable 5.1 on 2026-09-06, $0.3663 billed for the run plus its own metered check through OpenRouter ($0.5707 billed), over 2 real findings: $0.4685 per real. Re-derived 2026-09-07 when the editor ruled that the metered check sets a ceiling; it had been $0.9152 from the in-harness subagent check priced at list ($1.4641). Expected finding count is recorded as expected_findings: 0 since 2026-09-08 so the cost rule can be mechanical: on a fixture that expects nothing, a run that answered and found nothing scores cost as a dash rather than 0 (round 11, question 5). An empty answer or a timeout is not that answer and stays 0, which is what the answered field distinguishes."
+        },
+        {
+          "id": "oxbox-clean-control-v2",
+          "mode": "review",
+          "files": [
+            "jailtest.py"
+          ],
+          "bytes": 6096,
+          "commit": "6302b12c95473204875b63cc350a92b1c933a259",
+          "commit_verified": "2026-08-30",
+          "prompt": "corpora/prompts/oxbox-clean-control.txt",
+          "answer_key": "corpora/answers/oxbox-clean-control.md",
+          "quality": null,
+          "expected_findings": 0,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 16000,
+            "temperature": 1.0,
+            "effort": "medium"
+          },
+          "status": "active",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [],
+          "notes": "Successor to oxbox-clean-control at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). The zero-defect control measures what the literature calls overcorrection (arXiv:2603.00539); no standard code-review benchmark carries a defect-free control, so this fixture stays."
+        },
+        {
+          "id": "oxbox-ask-grounding",
+          "mode": "ask",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-ask-grounding.txt",
+          "answer_key": "corpora/answers/oxbox-ask-grounding.md",
+          "quality": {
+            "unit": "questions answered correctly",
+            "of": 10
+          },
+          "scoring": "smoke",
+          "cost_ceiling_usd_per_real": 0.02756,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "retired",
+          "verification": "answer-key",
+          "scorer": "corpora/scorers/ask_grounding.py",
+          "evidence": [
+            "observations/2026-09-02-sonnet-5-baseline-ask-grounding-10-of-10-and-said-uncertain-on-all-three-traps.md",
+            "observations/2026-09-02-gemini-3.7-flash-baseline-ask-grounding-10-of-10-terse-and-declined-all-three.md",
+            "observations/2026-09-02-gpt-5.6-sol-baseline-ask-grounding-10-of-10-in-834-tokens.md",
+            "observations/2026-09-02-deepseek-v4-flash-baseline-ask-grounding-10-of-10-in-1147-bytes.md",
+            "observations/2026-09-02-glm-5.3-flash-baseline-ask-grounding-10-of-10-with-verifiable-extras.md",
+            "observations/2026-09-06-fable-5.1-baseline-ask-grounding-10-of-10-sets-the-cost-ceiling.md",
+            "observations/2026-09-06-glm-5.3-flash-candidate-ask-grounding-10-of-10-in-25-seconds.md",
+            "observations/2026-09-06-deepseek-v4-flash-candidate-ask-grounding-10-of-10-in-37-seconds-from-a-third-provider.md",
+            "observations/2026-09-06-check-fable-5.1-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md",
+            "observations/2026-09-06-check-opus-5-on-glm-53-flash-baseline-ask-grounding-10-of-10-confirmed.md",
+            "observations/2026-09-06-check-fable-5.1-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md",
+            "observations/2026-09-06-check-opus-5-on-deepseek-v4-flash-baseline-ask-grounding-10-of-10-confirmed.md",
+            "observations/2026-09-10-gemini-3.1-pro-baseline-ask-grounding-10-of-10-in-20-seconds-for-5-cents.md",
+            "observations/2026-09-10-gemini-3.8-flash-baseline-ask-grounding-10-of-10-in-22-seconds-for-2-cents.md",
+            "observations/2026-09-10-gpt-5.6-terra-pro-baseline-ask-grounding-10-of-10-in-20-seconds-and-the-prompt-was-billed-three-times-over.md",
+            "observations/2026-09-10-opus-5-baseline-ask-grounding-10-of-10-in-37-seconds-for-14-cents.md"
+          ],
+          "notes": "Retired 2026-09-10, superseded by oxbox-ask-grounding-v2: same files, pin and prompt at the mitigated parameters. The evidence recorded here stays comparable among itself and is not comparable to the successor's. Ten questions, seven settled by the payload and three not. The three unsettled ones are the measurement -- the survey's stated axis is that a model says UNCERTAIN instead of guessing, and nothing else in the repo tests it. Question 9 baits the answer with TIMEOUT_SECONDS, a real number in the file that answers a different question. Cost ceiling: Fable 5.1 on 2026-09-06, $0.2756 billed over 10 hits. Scorer added 2026-09-06 (round 4, question 4): runs the pinned ox with --dry-run for questions 1, 3, 4, 5 and 6 and reports each observed fact against the key; questions 2 and 7 need an HTTP exchange ox will not fake and stay with a reader; 8 to 10 are scored on saying not settled. All twelve archived runs pass it. Demoted to a smoke test 2026-09-08 (round 11, question 8): eleven of thirteen models score a perfect five, one a four, one returned nothing, so the fixture separates two models and still costs a run and a scoring pass every week. It keeps running as a cheap check that a model answers at all and does not fabricate under a trap, and its score is recorded, but it is no longer read as an axis: a failure here annotates the model's row rather than excluding it."
+        },
+        {
+          "id": "oxbox-ask-grounding-v2",
+          "mode": "ask",
+          "files": [
+            "ox"
+          ],
+          "bytes": 39467,
+          "prompt": "corpora/prompts/oxbox-ask-grounding.txt",
+          "answer_key": "corpora/answers/oxbox-ask-grounding.md",
+          "quality": {
+            "unit": "questions answered correctly",
+            "of": 10
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 8000,
+            "temperature": 1.0,
+            "effort": "medium"
+          },
+          "status": "active",
+          "verification": "answer-key",
+          "scorer": "corpora/scorers/ask_grounding.py",
+          "evidence": [],
+          "notes": "Successor to oxbox-ask-grounding at the mitigated parameters, otherwise byte-identical: same files, pin and prompt, so the scorer and answer key carry over. Params from the 2026-09-10 prior-art review (docs/prior-art-2026-09-10.md): temperature 1.0 is every vendor card's recommendation for the open-weight thinking models and the API default elsewhere, and three cards name low temperature as a cause of endless repetition; effort medium because ollama forwards effort unevenly per family and open-weight accuracy has been reported to fall with effort; the completion cap because a gateway budgets about 80 percent of max_tokens for thinking at effort high, so 100,000 authorized the exhausted runs it then measured. Decided by the editor 2026-09-10 after the local ollama batch (gemma4:26b and gpt-oss:20b looped to the cap on the control; DeepSeek V4 Flash, Ling 3.0 Flash Fin and Nemotron 3.5 Lightning had done the same hosted). Still the smoke test it was demoted to on 2026-09-08; an 8,000-token cap is four times the longest answer recorded on the v1 fixture.",
+          "scoring": "smoke"
+        },
+        {
+          "id": "oxbox-short-change-review",
+          "mode": "review",
+          "files": [
+            "jailtest.py"
+          ],
+          "bytes": 5915,
+          "prompt": "corpora/prompts/oxbox-short-change-review.txt",
+          "answer_key": "corpora/answers/oxbox-short-change-review.md",
+          "quality": {
+            "unit": "seeded defects found",
+            "of": 1
+          },
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 16000,
+            "temperature": 1.0,
+            "effort": "medium"
+          },
+          "status": "active",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [],
+          "notes": "The short arm, added 2026-09-10 at the editor's direction after the prior-art review (docs/prior-art-2026-09-10.md): published review quality peaks on changes of 10 to 50 lines (arXiv:2505.17928) and every other fixture here is a whole file. The change under review is the project's own commit 6072d56, 16 lines added to jailtest.py, sent as a diff in the task text with the post-change file attached; the pin is the project's, already verified. One seeded defect: the commit skips the /etc/shadow read probe at uid 0 because the probe cannot test there, and leaves the stat oracle on EXISTING[0] untouched two lines below, so when the home-relative paths are absent (a CI container) the oracle stats /etc/shadow, which needs only search permission on /etc, succeeds inside both jails, and reports a jail that holds as leaking. The project fixed it in a113e62 after google/gemini-3.7-flash found it on 2026-09-02 (the record's G1). Real defects the file carries outside the change (the unclosed sockets fixed in 6302b12, the network probes scoring any raise as containment) count in real but not in hits; see the answer key. Verified by a reader against the key and the pin, the same discipline as the control."
+        },
+        {
+          "id": "oxbox-json-findings",
+          "mode": "review",
+          "files": [
+            ".claude/skills/ox-review/scripts/preflight.py"
+          ],
+          "bytes": 11917,
+          "prompt": null,
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "proposed",
+          "verification": "json-parse",
+          "scorer": null,
+          "evidence": [],
+          "notes": "PROPOSED. The same review, with the findings demanded as a JSON array; scored by whether json.loads succeeds and the schema holds. This tests an in-prompt contract, NOT the catalog's response_format column -- ox never sends the response_format parameter (ox:781-783 builds a plain string content), so validating that column would need an ox change first."
+        }
+      ]
     },
     {
-     "id": "ohbrother-code128",
-     "mode": "review",
-     "files": [
-      "rust/label-render/src/code128.rs"
-     ],
-     "bytes": 12895,
-     "prompt": null,
-     "answer_key": null,
-     "quality": null,
-     "cost_ceiling_usd_per_real": null,
-     "params": {
-      "max_tokens": 100000,
-      "temperature": 0.2,
-      "effort": "high"
-     },
-     "status": "proposed",
-     "verification": "human",
-     "scorer": null,
-     "evidence": [],
-     "notes": "PROPOSED. Barcode encoding: checksum arithmetic, code-set switching, table indices. The rare review target where a defect is decidable rather than arguable -- a wrong Code128 checksum can be computed by hand -- so it is the natural first candidate to promote to a mechanical answer key once one run has shown what the findings look like."
+      "id": "paniolo",
+      "name": "paniolo",
+      "url": "https://github.com/curtisgalloway/paniolo",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": [
+        "rust"
+      ],
+      "commit": "a6abbf36904401126f5ca9c78df8924c3a5a5170",
+      "commit_verified": "2026-08-30",
+      "why": "The corpus is otherwise entirely Python, which measures one language's idioms and calls it review quality. paniolo is the reviewer's own Rust -- 68 files across seven crates -- and it is systems code with a different defect vocabulary from oxbox's: wire formats, device state machines, timeouts and partial reads rather than credentials and subprocesses. Its netbootd crate parses packets from an untrusted device on the lab network -- locally verifiable parsing and bounds defects, which is the finding class models have been most reliable on in this survey's runs.",
+      "notes": "Not yet run. Rust also tests something Python cannot: whether a model reports ownership and lifetime errors that the compiler would have caught, which is the review equivalent of a false positive with a compiler as the referee.",
+      "tasks": [
+        {
+          "id": "paniolo-netboot-wire",
+          "mode": "review",
+          "files": [
+            "netbootd/src/dhcp.rs",
+            "netbootd/src/tftp.rs"
+          ],
+          "bytes": 60656,
+          "prompt": null,
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "proposed",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [],
+          "notes": "PROPOSED. DHCP and TFTP packet handling: offsets, length fields and option parsing over input from whatever device is plugged into the lab link. Twice the size of the largest oxbox batch, so it also samples a longer context than anything the corpus runs today."
+        }
+      ]
+    },
+    {
+      "id": "oh-brother",
+      "name": "oh-brother",
+      "url": "https://github.com/curtisgalloway/oh-brother",
+      "license": "Apache-2.0",
+      "visibility": "public",
+      "visibility_verified": "2026-08-30",
+      "languages": [
+        "rust"
+      ],
+      "commit": "360804cd4d42251602473137618831a35d432c2a",
+      "commit_verified": "2026-08-30",
+      "why": "A second Rust target pointed the other way. paniolo's netbootd parses packets arriving from an untrusted device; oh-brother's pt-protocol constructs command bytes and reads status back from one. Same language, opposite direction across the wire, and small self-contained crates -- so a batch here is a different question from a batch there rather than more of the same.",
+      "notes": "Not yet run. The crate's own tests (rust/pt-protocol/src/tests.rs) are deliberately left out of the batch: including them hands the model the spec, which is a different experiment and one worth running separately once there is a baseline without them.",
+      "tasks": [
+        {
+          "id": "ohbrother-ptouch-transport",
+          "mode": "review",
+          "files": [
+            "rust/pt-protocol/src/lib.rs",
+            "rust/pt-protocol/src/usb.rs",
+            "rust/pt-protocol/src/bt_macos.rs"
+          ],
+          "bytes": 25054,
+          "prompt": null,
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "proposed",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [],
+          "notes": "PROPOSED. The whole crate minus its tests: raster command construction, status reads, and two transports (USB, and CoreBluetooth on macOS). Framing, timeouts and partial reads against a physical device that cannot be asked to repeat itself. Sized to match the oxbox batches (22-27 KB) so it is comparable to them."
+        },
+        {
+          "id": "ohbrother-code128",
+          "mode": "review",
+          "files": [
+            "rust/label-render/src/code128.rs"
+          ],
+          "bytes": 12895,
+          "prompt": null,
+          "answer_key": null,
+          "quality": null,
+          "cost_ceiling_usd_per_real": null,
+          "params": {
+            "max_tokens": 100000,
+            "temperature": 0.2,
+            "effort": "high"
+          },
+          "status": "proposed",
+          "verification": "human",
+          "scorer": null,
+          "evidence": [],
+          "notes": "PROPOSED. Barcode encoding: checksum arithmetic, code-set switching, table indices. The rare review target where a defect is decidable rather than arguable -- a wrong Code128 checksum can be computed by hand -- so it is the natural first candidate to promote to a mechanical answer key once one run has shown what the findings look like."
+        }
+      ]
     }
-   ]
-  }
- ]
+  ]
 }
