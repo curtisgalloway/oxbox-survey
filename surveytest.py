@@ -1158,6 +1158,46 @@ def test_repo_discipline():
             problems.append("latest.json is dangling")
     report(not problems, "latest.json points at the newest manifest", problems)
 
+    # manifests/us/ is the same document for OpenRouter's US edge, kept in its
+    # own directory rather than beside the global ones: the glob above is
+    # non-recursive and sorts by name, so an `oxbox-manifest-us-*.json` sitting
+    # next to them would sort last and make latest.json point at the wrong
+    # region. Same rules, checked the same way.
+    us_dir = manifest_dir / "us"
+    if us_dir.is_dir():
+        us_dated = sorted(us_dir.glob("oxbox-manifest-*.json"))
+        us_latest = us_dir / "latest.json"
+        us_problems = []
+        if not us_dated:
+            us_problems.append("manifests/us exists with no dated manifest")
+        elif not us_latest.is_symlink():
+            us_problems.append("us/latest.json is missing or is not a symlink")
+        else:
+            target = os.readlink(str(us_latest))
+            if "/" in target:
+                us_problems.append("us/latest.json points outside its directory: %s" % target)
+            if target != us_dated[-1].name:
+                us_problems.append("us/latest.json -> %s, newest is %s"
+                                   % (target, us_dated[-1].name))
+            if not us_latest.exists():
+                us_problems.append("us/latest.json is dangling")
+        report(not us_problems, "us/latest.json points at the newest US manifest", us_problems)
+        for path in us_dated:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if data.get("region") != "us":
+                us_problems.append("%s does not declare region us" % path.name)
+            for entry in data.get("recommendations", []):
+                if entry.get("venue") != "openrouter-us":
+                    us_problems.append("%s: %s is not on the openrouter-us venue"
+                                       % (path.name, entry.get("model")))
+                only = ((entry.get("provider") or {}).get("only")) or []
+                if not all(tag.endswith("/us") or tag == "azure" for tag in only):
+                    us_problems.append("%s: %s pins a route that is not a US deployment: %s"
+                                       % (path.name, entry.get("model"), only))
+        report(not us_problems,
+               "every US manifest entry declares the region and pins US deployments only",
+               us_problems)
+
     # Provider pages are the only edited-in-place documents; they must date
     # their verification, because rate limits rot faster than anything here.
     providers = sorted(p for p in (HERE / "providers").glob("*.md")
@@ -1416,6 +1456,16 @@ def test_ratings():
     else:
         print("[skip] manifest %s predates the rating rule (%s); grandfathered"
               % (latest.get("issue_date"), rt["RULE_FROM"]))
+
+    # The US manifest is the same advice for a different edge, so it answers to
+    # the same rule: the ratings are about the models, not about where they are
+    # served.
+    us_latest_path = HERE / "manifests" / "us" / "latest.json"
+    if us_latest_path.exists():
+        us_latest = json.loads(us_latest_path.read_text(encoding="utf-8"))
+        problems = check(us_latest, ratings, rt["open_disqualifiers"](obs), baselines)
+        report(not problems, "the US manifest is derived from the Editor's Rating too",
+               problems)
 
     # The cost comparison: the checking half is priced from the catalog, a
     # shared window is charged once, a free-tier id is free even when the venue

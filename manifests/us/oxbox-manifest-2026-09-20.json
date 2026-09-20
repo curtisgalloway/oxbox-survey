@@ -1,0 +1,62 @@
+{
+  "manifest_version": 1,
+  "note": "The US in-region manifest. Same survey, same two Acceptables in the same rating order, different pins -- because the global manifest does not work on OpenRouter's US edge and fails closed when it is tried. Measured 2026-09-20: of the 25 free rows in that day's catalog, 25 refuse with `Filter by Data Region`; both paid entries reach the US edge unpinned; and both fail with the global manifest's own pins. glm-5.3-flash fails at `Filter by Allowed Providers` because none of z-ai/fp8, gmicloud/fp8 or streamlake/fp8 is US-resident. deepseek-v4-flash fails at `Filter by Max Price` because the price filter runs before the provider filter and removes Azure at 0.21/0.56 under a guard of 0.098/0.196; pinned to streamlake/fp8 or digitalocean alone it fails at Allowed Providers instead, so neither is served US-side either. This file therefore pins the US deployments by name -- sail-research/us and azure/us -- with max_price at each route's own endpoint row, the same rule as the global file. Both prices were confirmed against a real bill on the ask-grounding-v2 fixture the same day, exactly: glm 9,476 x 0.1425/M + 438 x 0.475/M = $0.00155838 billed, deepseek 9,917 x 0.21/M + 1,383 x 0.56/M = $0.00285705 billed. What that costs a reader: 1.38x the global manifest on entry 1 and 5.76x on entry 2, for output that scored 10 of 10 both ways on that fixture. The spread is not a regional surcharge, it is which providers hold a US deployment -- entry 2 loses StreamLake at 0.0372/0.0745 and lands on Azure, so the cheapest paid row in the survey stops being cheap under this file. Each entry permits exactly one route, so there is no failover to buy inside an entry and a refusal from that route fails the run. Requires the `openrouter-us` venue, added to oxbox on 2026-09-11 (#74) and unreleased as of this file: v1.3.0 predates it, so an installed oxbox 1.3.0 cannot read `venue` here. Format v1 (oxbox 1.1.0, 2026-09-07); every entry is paid, so oxbox send skips them all unless the paid gate is open. Derived from the Editor's Rating (editor-ratings.json): Good then Acceptable, minus standing disqualifiers -- the same ratings as the global file, which are about the models and not about where they are served. No entry carries params.max_tokens.",
+  "survey": "The Oxbox Survey",
+  "issue_date": "2026-09-20",
+  "defaults": {
+    "max_tokens": 100000
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "venue": "openrouter-us",
+      "base_url": "https://us.openrouter.ai/api/v1",
+      "model": "z-ai/glm-5.3-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.1425,
+        "output": 0.475
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "sail-research/us"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.1425,
+          "completion": 0.475
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-06), unchanged: the rating is about the model, not about the region it is served from. Sail Research is the only US-resident deployment this model has -- sail-research/fp8, its non-US sibling, is refused by the region filter, which is how the pin was verified. max_price is that route's endpoint row. Confirmed against a real bill on 2026-09-20: 9,476 prompt and 438 completion tokens billed $0.00155838, which is 0.1425/0.475 to the digit. The same fixture scored 10 of 10 through this route, and 10 of 10 through GMICloud globally, on a smoke test that every model tried this week passed -- so that is evidence the route is not broken, not that it reviews like the global one. 1.38x the global entry's cost for the same work. One route and fallbacks off: a refusal fails the run rather than sending the payload outside the region, which is the whole point of this file."
+    },
+    {
+      "rank": 2,
+      "venue": "openrouter-us",
+      "base_url": "https://us.openrouter.ai/api/v1",
+      "model": "deepseek/deepseek-v4-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.21,
+        "output": 0.56
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "azure/us"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.21,
+          "completion": 0.56
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-07), unchanged. Azure is the only US-resident deployment this model has; neither streamlake/fp8 nor digitalocean, the global entry's routes, is served US-side at all. max_price is Azure's endpoint row, confirmed against a real bill on 2026-09-20: 9,917 prompt and 1,383 completion tokens billed $0.00285705, which is 0.21/0.56 to the digit. **This is no longer the cheapest row in the survey.** At 5.76x the global entry it costs more than entry 1 above, where globally it costs a fifth as much -- the ranking here follows the Editor's Rating, not price, and a reader choosing on cost alone should read entry 1 first under this file. Scored 10 of 10 on ask-grounding-v2 through this route, the same as through StreamLake globally, on a fixture that separates nothing at the top. One route and fallbacks off."
+    }
+  ],
+  "region": "us"
+}

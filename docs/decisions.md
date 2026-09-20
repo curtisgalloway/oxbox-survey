@@ -976,3 +976,51 @@ cheap: two 60-token requests.
 at least one endpoint meets, which would make it a usable guard again — though
 even then the endpoints API is the more direct source and there is no reason
 to go back.
+
+## The US region gets its own manifest, in its own directory
+
+**Decided** 2026-09-20, by the editor, after the in-region experiment showed
+the published manifest does not work on OpenRouter's US edge. Both entries fail
+closed there with the pins the global file carries: `z-ai/glm-5.3-flash` at
+`Filter by Allowed Providers`, because none of its three pinned routes is
+US-resident, and `deepseek/deepseek-v4-flash` at `Filter by Max Price`,
+because the price filter runs first and removes the one US endpoint under a
+guard set from global prices.
+
+**A region is a different document, not a flag.** The pins differ, the prices
+differ by 1.38x and 5.76x, and the set of reachable models differs by the
+entire free tier — 25 of 25 refused at `Filter by Data Region`. Nothing about
+that fits in a switch on the existing file.
+
+**It lives in `manifests/us/`, not beside the global ones.** The symlink check
+globs `oxbox-manifest-*.json` non-recursively and takes the last name in sort
+order; an `oxbox-manifest-us-2026-09-20.json` next to the others would sort
+after them and make `latest.json` point at the wrong region. A subdirectory
+with its own dated files and its own `latest.json` keeps both pointers honest,
+and `surveytest` now checks the US one the same way it checks the global one.
+
+**Two rules the US file adds.** Every entry declares `venue: openrouter-us`,
+and every pinned route is a US deployment — checked mechanically, because
+`sail-research/fp8` and `sail-research/us` differ by four characters and only
+one of them is in-region. The region filter refuses the wrong one, so the
+mistake is caught at runtime rather than silently honored; the check exists so
+it is caught before the file ships.
+
+**The ratings do not fork.** `check_manifest` runs on the US file too. A rating
+is about the model, not about where it is served, so the two manifests carry
+the same two Acceptables in the same order. What changes is the pin and the
+price, and entry 2's `why` says plainly that it is no longer the cheapest row —
+under this file it costs more than entry 1, where globally it costs a fifth as
+much.
+
+**It needs an oxbox release.** The `openrouter-us` venue was added on
+2026-09-11 (oxbox #74) and is unreleased: v1.3.0 is dated 2026-09-07, so an
+installed oxbox 1.3.0 refuses this file's `venue`. The manifest was verified
+against a build of oxbox `main` — both entries route, entry 1 through the
+manifest in probe mode — and it is published ahead of the release on purpose,
+because the file is the thing the release is for.
+
+**What would reverse it.** OpenRouter's free tier gaining US deployments, which
+would make the two documents converge rather than diverge; or the region
+premium falling far enough that a reader has no reason to run the global file
+at all, which would make the US pins the only pins.
