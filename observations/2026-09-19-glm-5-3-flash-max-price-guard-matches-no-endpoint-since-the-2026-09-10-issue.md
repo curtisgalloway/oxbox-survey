@@ -14,7 +14,6 @@ run: 2026-09-19T01-44-41Z, 2026-09-19T01-44-43Z, 2026-09-19T01-44-53Z
 wall_s: 1
 answered: false
 disqualifier: price_filtered
-harness_model: claude-opus-5
 ---
 
 # glm-5.3-flash's max_price guard has matched no endpoint since the issue that set it

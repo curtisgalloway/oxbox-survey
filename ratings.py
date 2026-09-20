@@ -625,10 +625,30 @@ def manifest_expected(ratings, disqualifiers, baseline_models):
     return expected
 
 
+def as_of(disqualifiers, date):
+    """The disqualifiers already standing on `date`; all of them if it is empty.
+
+    A manifest is judged against what was known when it was published. An
+    edition is immutable, so a refusal first seen after its issue date cannot
+    make it retroactively wrong -- it is the *next* manifest that has to drop
+    or re-pin the entry. Decided 2026-09-19, when glm-5.3-flash's max_price
+    guard was found to have matched no endpoint for the whole life of the
+    2026-09-10 issue: a real defect in the live pin, and still not a reason to
+    call the published file malformed.
+    """
+    if not date:
+        return disqualifiers
+    return {m: mark for m, mark in disqualifiers.items() if mark[0] <= date}
+
+
 def check_manifest(manifest, ratings, disqualifiers, baseline_models):
-    """Problems with a manifest against the rating rule. Empty means it holds."""
+    """Problems with a manifest against the rating rule. Empty means it holds.
+
+    Disqualifiers are taken as of the manifest's `issue_date` (see `as_of`).
+    """
     problems = []
     entries = manifest.get("recommendations", [])
+    disqualifiers = as_of(disqualifiers, manifest.get("issue_date", ""))
     models = [e.get("model") for e in entries]
     for model in models:
         rating = (ratings.get(model) or {}).get("rating")

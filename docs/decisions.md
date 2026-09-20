@@ -901,3 +901,35 @@ the list is cut wherever the week ends rather than padded to five. The
 scaffolding overhead above means none of these produces a catalog row until the
 arm is declared; what they produce first is reachability and behavior at the
 venue a reader would actually use.
+
+## A manifest is judged against the disqualifiers standing on its issue date
+
+**Decided** 2026-09-19, by the editor, when CI went red on the observation
+that `z-ai/glm-5.3-flash`'s `max_price` guard has matched no endpoint since
+the issue that set it. The observation records `disqualifier: price_filtered`
+against the model, and `check_manifest` duly refused `manifests/latest.json` —
+which is a symlink to the published 2026-09-10 manifest, where that model is
+rank 1. Editions are immutable, so the check was demanding an edit that is not
+allowed to happen.
+
+**The disqualifier stays on the record; the check gained a date.**
+`ratings.as_of()` filters a disqualifier map to the marks already standing on
+a given day, and `check_manifest` applies it at the manifest's `issue_date`.
+A manifest with no `issue_date` — every synthetic case in the suite — is judged
+against all of them, so the existing branches still bite.
+
+The alternative considered was dropping the field and keeping the finding in
+prose, on the argument that this refusal was caused by our own pin rather than
+by the model or the venue. Rejected because it leaves nothing mechanical
+holding the bad pin out of the *next* manifest, which is exactly where the fix
+belongs: the 2026-09-10 file stays as published, and the entry must be dropped
+or re-pinned before it can appear again.
+
+One test moved with it. "The three delisted rows in the record are marked and
+the listed one is not" asserted `z-ai/glm-5.3-flash` carried no mark at all,
+conflating *not delisted* with *not disqualified*. It now asserts the mark it
+carries is not `delisted`, which is what the check is about.
+
+**What would reverse it.** A disqualifier class that is genuinely retroactive —
+something that means the manifest was wrong when it shipped, not that it went
+wrong afterward. Nothing in the vocabulary is that today.

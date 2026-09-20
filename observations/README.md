@@ -196,7 +196,14 @@ group observations without interpreting prose:
   (`not_found`, `upstream_error`, `unauthorized`, `rate_limited`, ...). It stands
   until a run-backed row for the same model is dated on or after it; a refusal
   fixed the same afternoon is not standing. An open disqualifier holds a model
-  out of the manifest whatever its Editor's Rating.
+  out of the manifest whatever its Editor's Rating — out of the *next* one.
+  A published manifest is judged against the marks standing on its issue date
+  (`ratings.as_of`), because an edition is immutable and a refusal first seen
+  after it shipped cannot make it retroactively malformed. `price_filtered`
+  was added 2026-09-19 for a refusal the manifest's own `max_price` guard
+  caused: the venue answered 404 at the routing step and the model never saw
+  the request, so it is a fact about the pin, recorded against the model
+  because the pin is what the model is reached through.
 - **Reproduce first; read as the fallback.** Where a finding's stated failure can
   be executed against the pin inside a jail, run it, on the platform the finding
   names or on both, and let the output be the verdict's evidence. Two checkers

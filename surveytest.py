@@ -1356,6 +1356,13 @@ def test_ratings():
            "a baseline-only model in the manifest is refused")
     report(check(manifest("a", "b", "z"), synth, disq, set()),
            "an unrated model in the manifest is refused")
+    # As of the issue date, not as of today. An edition is immutable, so a
+    # refusal first seen after it shipped is the next manifest's problem.
+    dated = dict(manifest("a", "d", "b"), issue_date="2026-09-05")
+    report(not check(dated, synth, disq, set()),
+           "a disqualifier dated after the issue leaves that manifest standing")
+    report(check(dict(dated, issue_date="2026-09-06"), synth, disq, set()),
+           "a disqualifier dated on the issue date is refused")
     latest = json.loads((HERE / "manifests" / "latest.json").read_text(encoding="utf-8"))
     if latest.get("issue_date", "") >= rt["RULE_FROM"]:
         problems = check(latest, ratings, rt["open_disqualifiers"](obs), baselines)
@@ -1472,7 +1479,7 @@ def test_ratings():
     report(live.get("x-preview-f-free", ("", ""))[1] == "delisted"
            and live.get("z-ai/glm-5.3-free", ("", ""))[1] == "delisted"
            and live.get("minimax/minimax-m3:free", ("", ""))[1] == "delisted"
-           and "z-ai/glm-5.3-flash" not in live,
+           and live.get("z-ai/glm-5.3-flash", ("", ""))[1] != "delisted",
            "the three delisted rows in the record are marked and the listed one is not")
 
 
