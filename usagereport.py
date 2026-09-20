@@ -64,7 +64,15 @@ def find_runs(roots):
         # <root>/<repo>/logs/<stamp>/ is where ox puts them, because it anchors
         # ./logs at the working directory. A deeper sweep would find them in
         # nested checkouts too, at the cost of walking node_modules.
-        for pattern in ("*/logs/*/status.json", "*/*/logs/*/status.json"):
+        # Discover by meta.json as well as status.json. ox writes meta.json
+        # before it calls anyone and status.json after it has an answer or an
+        # error, so a run killed in between -- a timeout the caller interrupted,
+        # a crash, a machine that slept -- leaves meta.json and no status. Those
+        # are exactly the runs worth counting: globbing only status.json made
+        # them invisible rather than failed. Three paniolo runs on 2026-09-19
+        # were in that state.
+        for pattern in ("*/logs/*/status.json", "*/*/logs/*/status.json",
+                        "*/logs/*/meta.json", "*/*/logs/*/meta.json"):
             for found in root.glob(pattern):
                 runs.append(found.parent)
     return sorted(set(runs)), swept, skipped
@@ -130,14 +138,45 @@ def read_status(run_dir):
         return None
 
 
+def incomplete_status(run_dir):
+    """A status record for a run that never wrote one, or None if it cannot.
+
+    Built from meta.json and error.txt. It is marked `no_status` so a reader
+    can tell a reconstructed record from one ox wrote, and it is never `ok`:
+    a run that did not file a status did not finish, whatever else is true.
+    `dry_run` is read from meta so a dry run stays excluded even here.
+    """
+    run_dir = Path(run_dir)
+    try:
+        meta = json.loads((run_dir / "meta.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    error = ""
+    try:
+        error = (run_dir / "error.txt").read_text(encoding="utf-8").strip()
+    except OSError:
+        pass
+    return {
+        "ok": False,
+        "no_status": True,
+        "dry_run": bool(meta.get("dry_run")),
+        "model": meta.get("model"),
+        "venue": meta.get("venue"),
+        "mode": meta.get("mode"),
+        "error": error or "no status.json and no error.txt: the run did not finish",
+    }
+
+
 def collect(run_dirs, start, end):
     """Split runs into real ones, dry runs, and those outside the window."""
     real, dry, outside, unreadable = [], [], 0, []
     for run_dir in run_dirs:
         status = read_status(run_dir)
         if status is None:
-            unreadable.append(str(run_dir))
-            continue
+            status = incomplete_status(run_dir)
+            if status is None:
+                unreadable.append(str(run_dir))
+                continue
         # The directory name is the run stamp; ox writes it as 2026-08-30T01-11-26Z
         # (or ...Z-2 on a same-second collision), so the time separators have to
         # come back, and the suffix go, before it compares.
@@ -278,6 +317,21 @@ def render(real, dry, outside, unreadable, swept, skipped, window, manifests):
                 Path(path).name,
                 ", ".join("`%s` (%s)" % (model, cost) for _, model, cost in never)))
             out.append("")
+
+    reconstructed = [r for r in real if r.get("no_status")]
+    if reconstructed:
+        # Named separately because it is a different fact from a run that
+        # failed and said so. A run with no status.json never got to file one,
+        # so the reason is whatever error.txt holds -- or nothing at all, which
+        # is the interesting case: the run simply stopped.
+        silent = [r for r in reconstructed
+                  if "did not finish" in (r.get("error") or "")]
+        out.append("**%d run(s) never wrote a status.json** and are counted as "
+                   "failures from meta.json and error.txt%s."
+                   % (len(reconstructed),
+                      "; %d of those left no error.txt either, so nothing "
+                      "records why they stopped" % len(silent) if silent else ""))
+        out.append("")
 
     if failures:
         out.append("**Failures**")
