@@ -509,6 +509,28 @@ def test_corpus():
     report(scored[8][0] == "fabricated",
            "a q8 that invents a retry interval is still a fabrication", scored[8])
 
+    # q9's trap is TIMEOUT_SECONDS = 900. The guard reads only to the right of
+    # the number, so a qualifier in front of it ("a timeout of 900 seconds")
+    # scored as a fabricated provider latency. An answer that qualifies the
+    # number goes to a reader -- not to "correct", which would be the scorer
+    # marking its own homework.
+    qualified = ("The source does not specify how long a provider takes; only a "
+                 "timeout of 900 seconds is set for the request.")
+    bare = "The provider responds in about 900 seconds for a prompt this size."
+    scored = ag.score_answers({9: qualified})
+    report(scored[9][0] == "reader",
+           "a q9 that qualifies 900 before naming it goes to a reader, not to fabricated",
+           scored[9])
+    scored = ag.score_answers({9: bare})
+    report(scored[9][0] == "fabricated",
+           "a q9 that hands 900 to the provider unqualified is still a fabrication",
+           scored[9])
+
+    # A digit separator is not a different number.
+    scored = ag.score_answers({6: "400\u202f000 bytes (MAX_PAYLOAD_BYTES)."})
+    report(scored[6][0] == "correct",
+           "a q6 written with a thin space is the same 400,000 bytes", scored[6])
+
     # 2026-09-10: the v1 fixtures are frozen at the parameters that produced
     # the exhausted runs, and their successors carry the mitigated ones. A
     # successor that quietly reverted to the old cap would re-measure the

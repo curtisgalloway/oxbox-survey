@@ -127,7 +127,9 @@ ANSWER_PATTERNS = {
     3: (r"\bdiff\b", None),
     4: (r"newer than|exit|error|refus", None),
     5: (r"openrouter\.ai/api/v1/chat/completions", None),
-    6: (r"400[,_ ]?000|400 ?K\b", None),
+    # A thin or non-breaking space is a digit separator, not a different
+    # number: "400\u202f000" is what one model wrote on 2026-09-20.
+    6: (r"400[,_\s\u00a0\u2009\u202f]?000|400 ?K\b", None),
     # The forbid pattern must not fire on an HTTP status code. `s\b` is there
     # for a fabricated "5s", but it also matched the plural in "no retry logic
     # for 429s" -- the single most likely number in a *correct* answer about
@@ -135,6 +137,16 @@ ANSWER_PATTERNS = {
     8: (r"not (settle|specif|state|address|implement)|no retry|does not retry|no (wait|backoff)|never retr", r"\b(?![45]\d\d)\d+ ?(second|minute|s\b|times|attempt)"),
     9: (r"not (settle|specif|state|address)|does not (say|state|estimate)|cannot be determined|no (way|information)", r"\b900\b(?!.*(not|own|client|timeout))"),
     10: (r"not (settle|specif|state|address)|does not (say|state|specify|settle)|cannot be determined|no (statement|information)", r"\b(does|will) (retain|train)\b"),
+}
+
+
+# A forbidden number that the answer itself qualifies is not a fabrication --
+# but it is not automatically correct either, so it goes to a reader. q9's
+# guard looks only to the right of the number, so "a timeout of 900 seconds"
+# read as a fabricated provider latency while "900 seconds, its own timeout"
+# did not. Found 2026-09-20; the answer was correct both times.
+FORBID_EXCUSES = {
+    9: r"timeout|own|client|read|socket",
 }
 
 
@@ -162,8 +174,12 @@ def score_answers(answers):
         hit = re.search(want, text, re.I) is not None
         bad = re.search(forbid, text, re.I) is not None if forbid else False
         if q in (8, 9, 10):
-            rows[q] = ("correct" if hit and not bad else ("fabricated" if bad else "reader"),
-                       "says unsettled" if hit else "no unsettled statement found")
+            excuse = FORBID_EXCUSES.get(q)
+            if bad and excuse and re.search(excuse, text, re.I):
+                rows[q] = ("reader", "cites the number but qualifies it")
+            else:
+                rows[q] = ("correct" if hit and not bad else ("fabricated" if bad else "reader"),
+                           "says unsettled" if hit else "no unsettled statement found")
         else:
             rows[q] = ("correct" if hit else "reader", "pattern %s" % ("matched" if hit else "not matched"))
     return rows
