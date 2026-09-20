@@ -118,6 +118,29 @@ def write_watermark(log_dir, through, scraped_from, runs):
     os.replace(str(temp), str(log_dir / WATERMARK))
 
 
+def run_order(name):
+    """Sort key for a run directory name, ordering the collision suffix numerically.
+
+    `max()` over the raw names is lexicographic, and ox's suffix is a decimal
+    counter with no padding (`claim_log_dir` increments until `create_dir`
+    succeeds), so `...Z-10` sorts BELOW `...Z-2`. The watermark written from a
+    lexicographic max therefore names an earlier directory than the one the
+    survey actually read through, which is a false statement in a durable
+    artifact even where it costs nothing.
+
+    It costs nothing today because the suffix never changes which *second* a
+    run belongs to -- `stamp_to_iso` drops it, so every run claiming the same
+    second is inside or outside the window together, and the ones sorting below
+    a lexicographic watermark have therefore already been read. That is why
+    this is a correctness fix to the recorded value rather than a data-loss fix.
+    Reported by an outside review of this file on 2026-09-20.
+    """
+    base, _, suffix = name.partition("Z-")
+    if not suffix or not suffix.isdigit():
+        return (name, 0)
+    return (base + "Z", int(suffix))
+
+
 def stamp_to_iso(name):
     """2026-08-30T16-05-13Z -> 2026-08-30T16:05:13, for a human reading it.
 
@@ -372,7 +395,7 @@ def main():
         # wherever the survey happened to be pointed.
         for log_dir in sorted({r["dir"].parent for r in real}):
             covered = [r for r in real if r["dir"].parent == log_dir]
-            through = max(r["dir"].name for r in covered)
+            through = max((r["dir"].name for r in covered), key=run_order)
             write_watermark(log_dir, through, start, len(covered))
             print("\nwatermark -> %s" % (log_dir / WATERMARK))
         if not real:
