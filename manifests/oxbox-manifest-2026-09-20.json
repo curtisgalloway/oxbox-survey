@@ -1,0 +1,64 @@
+{
+  "manifest_version": 1,
+  "note": "Re-pinned from the endpoints API, not the catalog row. The 2026-09-10 manifest set each entry's max_price to the model's list price in that day's catalog. That row is not the price of any route: for z-ai/glm-5.3-flash it sits below all 29 endpoints that serve the model, so the guard filtered every one and entry 1 returned 404 at the routing step for the whole life of the issue -- eight days, every run that did not pass --failover. For deepseek/deepseek-v4-flash the row sits above one pinned route and below the other two, so entry 2 routed but ran on StreamLake alone, with DigitalOcean excluded by a guard whose stated purpose was to exclude Novita. Both entries now take max_price from https://openrouter.ai/api/v1/models/<slug>/endpoints -- the most expensive route this entry permits, as that endpoint prices it -- and a provider held out for billing above list is dropped from `only` rather than filtered by price. SiliconFlow is why: it billed 2x list on 2026-09-06 and the 2026-09-10 entry relied on max_price to exclude it, but its endpoint row now reads 0.15/0.50, identical to z-ai/fp8, so no price can separate them. Nothing else changed: same two Acceptables in the same order, no rating revisited, and the ratings and the runs behind them are the 2026-09-06 and 2026-09-07 ones the 2026-09-10 issue cites. Both re-pinned entries were probed before this file was written and both route; glm-5.3-flash then answered oxbox-ask-grounding-v2 10 of 10 through GMICloud, which billed $0.00113218 against $0.00113218 predicted from its endpoint row. Format v1 (oxbox 1.1.0, 2026-09-07): an entry may carry `provider`, OpenRouter's routing object, sent verbatim and honored on the openrouter venue only. Requires oxbox >= 1.1.0 to read; an older oxbox refuses this file with a pointer to update rather than dropping the pin. Every entry is paid, so oxbox send skips them all unless the paid gate is open: --allow-paid on the call, or from oxbox 1.2.0 (2026-09-07) `allow_paid = true` under [send] in ~/.config/oxbox/config.ini, which is what the review skill's users will want. Design: https://github.com/curtisgalloway/oxbox/issues/10 (v0) and /issues/50 (provider). Derived from the Editor's Rating (editor-ratings.json): Good then Acceptable, minus standing disqualifiers. minimax/minimax-m3:free remains held out as delisted. No entry carries params.max_tokens: the completion caps are 131,072 (glm-5.3-flash) and 384,000 (deepseek-v4-flash), both above the 100,000 default.",
+  "survey": "The Oxbox Survey",
+  "issue_date": "2026-09-20",
+  "defaults": {
+    "max_tokens": 100000
+  },
+  "recommendations": [
+    {
+      "rank": 1,
+      "venue": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "z-ai/glm-5.3-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.15,
+        "output": 0.5
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "z-ai/fp8",
+          "gmicloud/fp8",
+          "streamlake/fp8"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.15,
+          "completion": 0.5
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-06): fast and mostly good; Z.AI's regulatory status is a concern. Six runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice, the zero-defect control 1 real of 8 findings over two runs, the scanner fix passed all three gates as a baseline and produced a corrupt hunk as a candidate; a seventh run on 2026-09-20 answered ask-grounding-v2 10 of 10 at the mitigated parameters. Effort pinned at high, below the model's own default of max, because every survey run went out at high. Pinned to the routes those runs were served from, less SiliconFlow: it billed 2x the catalog row on 2026-09-06, and since its endpoint row now matches z-ai/fp8 exactly it has to be excluded by name rather than by price. max_price is the dearest permitted route as the endpoints API prices it -- z-ai/fp8 and siliconflow/fp8 at 0.15/0.50, gmicloud/fp8 at 0.105/0.35, streamlake/fp8 at 0.141/0.47 -- so a route that raises its price is still skipped, while the guard no longer excludes every route the way a list-row guard did. The figures above are the ceiling, not the likely bill: the 2026-09-20 run routed to GMICloud and cost 0.105/0.35. With fallbacks off a refusal from the three fails the run instead of sending the payload somewhere unmeasured."
+    },
+    {
+      "rank": 2,
+      "venue": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "deepseek/deepseek-v4-flash",
+      "cost": "paid",
+      "pricing_usd_per_mtok": {
+        "input": 0.098,
+        "output": 0.196
+      },
+      "params": {
+        "effort": "high"
+      },
+      "provider": {
+        "only": [
+          "streamlake/fp8",
+          "digitalocean"
+        ],
+        "allow_fallbacks": false,
+        "max_price": {
+          "prompt": 0.098,
+          "completion": 0.196
+        }
+      },
+      "why": "Editor's Rating Acceptable (2026-09-07): we fixed the routing problem; otherwise it's decent. The cheapest paid row in the survey. Nine runs through oxbox on the three fixtures: ask-grounding 10 of 10 twice; the scanner fix failed the apply gate twice; the zero-defect control 1 real of 4 findings over four candidate runs, the last two of them pinned to StreamLake and DigitalOcean by name, the first pinned runs the survey made. Effort high is the model's own default. Novita billed 1.6x list on 2026-09-06 and is now dropped from `only` by name; under the 2026-09-10 guard it was excluded by price, but so was DigitalOcean at 0.098/0.196, which left the entry running on StreamLake alone without saying so. max_price is now DigitalOcean's endpoint row, the dearer of the two permitted routes; StreamLake prices at 0.0372/0.0745, so that is the likely bill and the figures above are the ceiling. DigitalOcean's shared pool refused two of three pinned attempts on 2026-09-07 before answering, which with fallbacks off fails the run rather than sending the payload elsewhere."
+    }
+  ]
+}

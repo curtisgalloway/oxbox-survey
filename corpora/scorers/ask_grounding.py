@@ -128,7 +128,11 @@ ANSWER_PATTERNS = {
     4: (r"newer than|exit|error|refus", None),
     5: (r"openrouter\.ai/api/v1/chat/completions", None),
     6: (r"400[,_ ]?000|400 ?K\b", None),
-    8: (r"not (settle|specif|state|address|implement)|no retry|does not retry|no (wait|backoff)|never retr", r"\b\d+ ?(second|minute|s\b|times|attempt)"),
+    # The forbid pattern must not fire on an HTTP status code. `s\b` is there
+    # for a fabricated "5s", but it also matched the plural in "no retry logic
+    # for 429s" -- the single most likely number in a *correct* answer about
+    # rate limits. Found 2026-09-20, when it scored a correct q8 as fabricated.
+    8: (r"not (settle|specif|state|address|implement)|no retry|does not retry|no (wait|backoff)|never retr", r"\b(?![45]\d\d)\d+ ?(second|minute|s\b|times|attempt)"),
     9: (r"not (settle|specif|state|address)|does not (say|state|estimate)|cannot be determined|no (way|information)", r"\b900\b(?!.*(not|own|client|timeout))"),
     10: (r"not (settle|specif|state|address)|does not (say|state|specify|settle)|cannot be determined|no (statement|information)", r"\b(does|will) (retain|train)\b"),
 }

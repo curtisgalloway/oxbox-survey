@@ -493,6 +493,22 @@ def test_corpus():
            and (HERE / "corpora/scorers/ask_grounding.py").exists(),
            "ask-grounding names a scorer that runs the pinned ox rather than trusting the key")
 
+    # q8 asks about retry behavior the source does not settle, so a correct
+    # answer says "no retry logic for 429s" -- and the fabrication guard used
+    # to read the plural in "429s" as a retry interval and score it a
+    # fabrication. A status code is not an interval; an interval still is.
+    sys.path.insert(0, str(HERE / "corpora" / "scorers"))
+    import ask_grounding as ag
+    unsettled = ("The source does not settle this: there is no retry logic or "
+                 "backoff for 429s anywhere in the script.")
+    made_up = "It retries after 5 seconds, up to 3 attempts."
+    scored = ag.score_answers({8: unsettled})
+    report(scored[8][0] == "correct",
+           "a correct q8 that names 429s is not read as a fabricated interval", scored[8])
+    scored = ag.score_answers({8: made_up})
+    report(scored[8][0] == "fabricated",
+           "a q8 that invents a retry interval is still a fabrication", scored[8])
+
     # 2026-09-10: the v1 fixtures are frozen at the parameters that produced
     # the exhausted runs, and their successors carry the mitigated ones. A
     # successor that quietly reverted to the old cap would re-measure the

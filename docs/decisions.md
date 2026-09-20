@@ -933,3 +933,46 @@ carries is not `delisted`, which is what the check is about.
 **What would reverse it.** A disqualifier class that is genuinely retroactive —
 something that means the manifest was wrong when it shipped, not that it went
 wrong afterward. Nothing in the vocabulary is that today.
+
+## max_price comes from the endpoints API, and an excluded provider is excluded by name
+
+**Decided** 2026-09-20, re-pinning both manifest entries after the 2026-09-10
+guard was found to have matched no endpoint for eight days. The rule it
+replaces — "`max_price` at the catalog row so a route priced above list is
+skipped" — assumed the model's list price is a price some route charges. It is
+not. On 2026-09-19 `z-ai/glm-5.3-flash`'s row read 0.0700/0.2333 per M while
+its cheapest of 29 endpoints read 0.0750/0.2500, so the guard filtered every
+route and entry 1 returned 404 before a byte was sent.
+
+**The number comes from `/api/v1/models/<slug>/endpoints`**, which quotes a
+price per provider, and it is set to the dearest route the entry permits. That
+keeps what the guard was for — a pinned route that raises its price is still
+skipped — and removes the failure where the guard excludes the entry's own
+routes. The check that it is the right source: the 2026-09-20 ask-grounding
+run billed $0.00113218 against $0.00113218 predicted from GMICloud's endpoint
+row, at eight decimals.
+[[../observations/2026-09-20-openrouter-list-row-sits-below-every-endpoint-that-serves-the-model]]
+
+**A provider held out for over-billing is dropped from `only`.** The
+2026-09-10 entry kept SiliconFlow in `only` and leaned on `max_price` to
+exclude it, which worked only while its price differed. It now reads
+0.15/0.50, the same as `z-ai/fp8`, so a price guard cannot tell them apart. An
+exclusion is an identity question and belongs in `only`; `max_price` guards
+prices. The same correction restores DigitalOcean to entry 2, which the old
+guard had been excluding as collateral while its `why` named only Novita.
+
+**`pricing_usd_per_mtok` is the ceiling, and the entry says so.** With several
+routes permitted the bill depends on which one OpenRouter picks, so the
+documented figure is the dearest permitted route and the `why` names the
+cheapest and what the last run actually paid.
+
+**Routability is checked before the file is written.** Both re-pinned entries
+were probed, and the published `latest.json` was then sent through in probe
+mode — no `--failover` — to confirm a consumer reaching for entry 1 gets an
+answer. This is the check the 2026-09-19 observation asked for, and it is
+cheap: two 60-token requests.
+
+**What would reverse it.** OpenRouter making the list row an honest floor that
+at least one endpoint meets, which would make it a usable guard again — though
+even then the endpoints API is the more direct source and there is no reason
+to go back.
