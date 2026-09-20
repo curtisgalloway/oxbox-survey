@@ -67,11 +67,22 @@ endpoint row exactly.
 
 `max_price` is a guard against a route billing more than the survey measured,
 and it can only do that job if it is set to a number some route actually
-charges. The model's list row is not that number: OpenRouter appears to
-carry it as a headline figure, and it drifts below the endpoints without any
-endpoint moving. Pinning from it produces two failure modes, both silent —
-a total refusal when the row is under everything, and an unannounced narrowing
-to one provider when it is under most things.
+charges. The model's list row is not that number.
+
+The 2026-09-20 catalog, taken hours after the rest of this observation, says
+what the row is. It moved on both models without either one's endpoints
+moving: glm-5.3-flash 0.0700/0.2333 → 0.0900/0.3000, deepseek-v4-flash
+0.0886/0.1772 → 0.0372/0.0745. The second is StreamLake's endpoint price to
+the digit, and the first is `relace`'s. Counting endpoints at or under the new
+row: 3 of 29 for glm-5.3-flash, exactly 1 of 16 for deepseek-v4-flash.
+
+So the row tracks the **cheapest** endpoint, and lags it. A `max_price` set
+from it therefore admits at most the cheapest route, and when the row lags a
+floor that has risen it admits none — which is the whole of both failures
+above, in one sentence. Note that today's row would still break the glm
+entry: none of its three pinned routes is among the three at or under
+0.0900/0.3000. A list-row guard is not a guard with a stale number in it, it
+is the wrong number.
 
 There is a second lesson in the SiliconFlow case. The 2026-09-10 entry kept
 SiliconFlow in `only` and relied on `max_price` to exclude it for billing 2x
