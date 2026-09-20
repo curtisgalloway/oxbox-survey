@@ -1240,6 +1240,12 @@ def test_ratings():
     # `answered` field was added for. These runs (four hosted, and two local
     # ollama runs on 2026-09-10) recorded identical
     # measured fields to runs that gave the ideal answer.
+    #
+    # The roster now carries two senses of empty, which is worth knowing when
+    # reading it: a model that answered with nothing, and a venue that refused
+    # before the model saw the request (glm-5.3-flash's price_filtered on
+    # 2026-09-19, qwen3.8-27b:free's rate_limited on 2026-09-20). Both are
+    # "no content came back"; only the first is about the model.
     obs_all = rt["load_observations"]()
     unanswered = {o["model"] for o in obs_all if rt["_bool"](o.get("answered")) is False}
     report(unanswered == {"inclusionai/ling-3.0-flash-fin:free",
@@ -1247,7 +1253,8 @@ def test_ratings():
                           "nvidia/nemotron-3.5-lightning",
                           "z-ai/glm-5.3-free",
                           "gemma4:26b", "gpt-oss:20b",
-                          "z-ai/glm-5.3-flash"},
+                          "z-ai/glm-5.3-flash",
+                          "qwen/qwen3.8-27b:free"},
            "every empty answer in the record is marked answered: false",
            sorted(unanswered))
     rows_all = rt["run_rows"](obs_all, rt["load_corpus"]())
