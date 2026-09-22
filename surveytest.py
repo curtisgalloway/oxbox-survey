@@ -990,6 +990,91 @@ def test_usagereport():
                "the report says how many dry runs it set aside")
 
 
+# --- What must never reach a public repository --------------------------------
+#
+# This repository is public (curtisgalloway/oxbox-survey). On 2026-09-21 a
+# commit was written that carried the homelab's DNS domain into
+# verifiercheck.py, in an endpoint URL for the local ollama arms. It was caught
+# by hand at the push, and by then the domain appeared nowhere in published
+# history -- so the catch was worth a great deal and rested entirely on someone
+# remembering to look. This check is that memory, mechanized. A rule that lives
+# only in a README is a hope.
+#
+# The patterns are assembled from fragments on purpose, so that this file does
+# not itself contain the strings it forbids and can be scanned like every other
+# file. Spelling them out here would mean exempting the scanner from the scan,
+# which is the one exemption guaranteed to be abused. The first run proved the
+# point twice over: it failed, because the pattern for the machine name still
+# spelled that name out and this file had become the 70th match.
+_DOMAIN = r"\bh\." + r"curtisg\.xyz\b"
+_MACHINE = r"\b" + "arg" + "enta" + r"\b"
+
+# Absolute: no allowlist, no budget, no exceptions. None of these has ever been
+# published here, and each is a fact about private infrastructure or a
+# credential rather than anything a reader of the survey needs.
+FORBIDDEN = [
+    ("the homelab DNS domain", _DOMAIN),
+    ("a homelab LAN address", r"\b10\.66\.\d{1,3}\.\d{1,3}\b"),
+    ("a MAC address", r"\b(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b"),
+    ("a 1Password service account token", r"\bops_[A-Za-z0-9+/=]{40,}"),
+    ("a WireGuard or SSH private key", r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+]
+
+# Budgeted: already in published history, where a rewrite was judged not worth
+# its cost (2026-09-21 -- ~40 files, one of them a filename, for a bare name
+# that resolves nowhere public). The budget is the count standing that day. The
+# point is to stop the NEXT one, not to relitigate the last, so these may not
+# grow; bringing one down is welcome and lowering the number here is the way to
+# lock the gain in.
+BUDGETED = [
+    ("a local home-directory path", r"/Users/[a-z][a-z0-9_.-]*", 7),
+    ("a bare homelab machine name", _MACHINE, 69),
+]
+
+
+def scan_tracked():
+    """Every tracked text file, as (path, contents)."""
+    listing = subprocess.run(["git", "ls-files", "-z"], cwd=str(HERE),
+                             capture_output=True, text=True, check=False)
+    for name in listing.stdout.split("\0"):
+        if not name:
+            continue
+        path = HERE / name
+        try:
+            yield name, path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, FileNotFoundError, IsADirectoryError):
+            # Binary (the costs workbook) or a path git knows and the tree does
+            # not. Neither can carry a leak a reader would find by grepping.
+            continue
+
+
+def test_private_infrastructure():
+    print("\n=== what must never reach a public repository ===")
+
+    tracked = list(scan_tracked())
+    report(len(tracked) > 50, "tracked text files are readable", len(tracked))
+
+    for label, pattern in FORBIDDEN:
+        hits = []
+        for name, body in tracked:
+            for match in re.finditer(pattern, body):
+                line = body.count("\n", 0, match.start()) + 1
+                hits.append("%s:%d" % (name, line))
+        report(not hits, "no tracked file carries %s" % label, hits[:5])
+
+    for label, pattern, budget in BUDGETED:
+        total, files = 0, set()
+        for name, body in tracked:
+            found = len(re.findall(pattern, body))
+            if found:
+                total += found
+                files.add(name)
+        report(total <= budget,
+               "%s stays within its budget of %d" % (label, budget),
+               "%d matches in %d files; new ones are not grandfathered"
+               % (total, len(files)))
+
+
 def test_repo_discipline():
     print("\n=== the repo's own rules ===")
 
@@ -1662,6 +1747,7 @@ def main():
     test_pricing()
     test_usagereport()
     test_repo_discipline()
+    test_private_infrastructure()
     test_ratings()
     test_issue_shape()
 
