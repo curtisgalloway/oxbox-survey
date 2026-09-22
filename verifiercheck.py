@@ -640,6 +640,12 @@ PRICES = {
     "anthropic/claude-opus-5": (5.0e-6, 25.0e-6),
     "anthropic/claude-fable-5.1": (10.0e-6, 50.0e-6),
     "google/gemini-3.8-flash": (0.75e-6, 3.75e-6),
+    # Added 2026-09-20 for the cheap arms, from catalogs/openrouter/2026-09-20.json.
+    # Without them `priced` returns None and the cheap arms' usd column reads
+    # $0.0000 against a real venue bill -- which reads as "free" rather than as
+    # "not in the table", and is the more dangerous of the two errors here.
+    "z-ai/glm-5.3-flash": (0.09e-6, 0.30e-6),
+    "deepseek/deepseek-v4-flash": (0.03724e-6, 0.07448e-6),
 }
 
 
