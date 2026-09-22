@@ -334,6 +334,121 @@ implements. Every arm treating them differently was precision. The lesson kept i
 narrower and about method: two findings that a summary calls "the same defect"
 may not be, and the way to find out is to read what each one actually said.
 
+## A cheap verifier is tested against a cheap verifier, and the router is an arm
+
+**Decided** 2026-09-20, in a design discussion with the user, extending
+"Comparing verifiers" above. That section asked whether a cheaper model can do
+the supervisor's job. This one settles how the question gets answered now that
+the first run is in, and adds the arm the first run could not express.
+
+**The checker is where the money is, so the checker is what varies.** The
+special edition of 2026-09-11 measured it plainly: GLM-5.3 Flash's own run on
+the zero-defect control cost $0.0015 and the Opus 5 check of its findings cost
+16 cents, and "the checking half did not shrink with the price of the model
+being checked". Every arm the survey has published pays a frontier price to
+check. The quadrant nobody has run is cheap candidate plus cheap check, and it
+is the one that decides whether the whole pipeline can cost a cent. The arms
+added here are therefore chosen to fill it: cheap hosted through ox, local
+models on the local GPU host, and the free OpenRouter pool.
+
+**Agreement between two checkers is not evidence, and the record already shows
+why.** On the fifteen findings of 2026-09-03, Opus 5 and Gemini 3.8 Flash --
+different vendors, different harnesses, identical bytes -- both returned REFUTED
+on P2, where the key says CONFIRMED. Two independent readers agreed with each
+other and were both wrong, on a real defect they both dismissed. The two rows
+where they disagreed (P6, P7) each resolved in favor of whichever arm was
+refuting. So on this record disagreement carried information and agreement
+concealed a shared blind spot, which is the opposite of how a consensus
+procedure treats them. **A consensus arm is scored here as a curiosity, never
+adopted as a procedure**, and nothing in the survey may report two checkers
+agreeing as though it were a verdict twice confirmed.
+
+**Two router shapes are scored, and the survey already runs one of them.**
+`observations/README.md`'s checking order is a cascade: reproduce what can be
+executed, put the rest to a cheap refuter pinned to a route that has answered,
+and send only what the refuter CONFIRMED or left UNCERTAIN to the metered
+frontier. `verifiercheck.py` now scores that shape as an arm (`cascade:`),
+beside the symmetric one a two-agent hand-off falls into (`disagree:`: act on
+what both agree, escalate where they differ). Scoring the cascade is the point
+of the exercise -- it is the procedure the survey's own observations are
+produced by, and until now nothing measured it.
+
+The two fail differently and the difference is the finding to look for. The
+cascade is asymmetric: it spends nothing on a row the cheap arm killed, so its
+whole exposure is a cheap arm refuting a real defect, and nothing downstream
+ever sees that row. The disagreement router escalates only where the arms
+differ, so its exposure is the P2 case, where two arms agreed and were both
+wrong -- it escalates that row never and inherits the error at full
+confidence. `score` reports each one's escalation rate beside its blended
+cost, because an escalation rate near 1 is a frontier pipeline wearing a cheap
+arm's name.
+
+**Escalation is billed per batch, not per finding.** The evidence payload is the
+five pinned files, and it dominates the prompt; a batch that escalates one
+finding re-sends all of it. The blended figure therefore charges a full
+escalation-arm batch to any batch with at least one disputed row. A
+row-proportional figure would be cheaper and would describe a pipeline that does
+not exist.
+
+**The unpriced arms report a different cost, and the two are not summed.** Local
+models on the local GPU host and the free pool bill nothing, so a blended dollar figure for
+those routers is the escalation arm's bill alone. Their own half is a latency,
+and the 2026-09-10/11 local batches put that between 21 seconds and 46 minutes
+on the same class of fixture. Report the hosted router's cents as the headline
+and the free arms as the same accuracy at zero marginal dollars, at these
+latencies -- two claims, not one column.
+
+**The key is extended to every adjudicated batch at the pin, and the pin is what
+bounds it.** Fifteen findings cannot support an escalation rate: one
+disagreement moves it seven points. Every `kind: findings` observation on
+`oxbox-clean-control` whose findings were adjudicated by a recorded check is
+transcribed into the key, which is additive -- same corpus, same pin
+(`6302b12`), same evidence set, same contract -- and costs no model calls. The
+key goes from 5 batches and 15 findings to 14 and 67. Two exclusions, both
+stated: the `zero-defect-control-v2` runs are a different fixture and get their
+own key or none, and `qwen3-coder:30b`'s thousand findings from five templates
+on 2026-09-11 are a degenerate batch that would swamp every rate on this page
+with one run's pathology.
+
+**Every later correction is applied, so a key row may disagree with its own
+observation.** Four do. OPUS1 was recorded real and re-decided invented under
+the scored-as-written ruling; C3 was recorded real and refuted after being
+*reproduced* on macOS and Linux rather than read again; F2 and F3 were
+recorded "true, negligible" and are benign. The batch note says so wherever it
+happens, because a reader checking the key against an observation would
+otherwise find what looks like a transcription error.
+
+**The rows where reading and the record disagree are the most valuable in the
+key, and they are marked.** M1 and M2 were CONFIRMED by both metered checkers
+and are refuted in the record, under the ruling the C3 reproduction produced.
+F4 is the standing dissent in the other direction: the metered Opus 5 check
+refuted it and the record keeps it real. On those rows `verified_by` is empty
+or partial, because the recorded verdict is the editor's and not a checker's,
+and an arm must not be given self-authorship credit for a row a ruling
+overruled.
+
+**An arm is also scored on the rows it did not write.** The key's verdicts were
+reached by Fable 5.1 and Opus 5, and after this extension nearly every new row
+is theirs, so their agreement figures are substantially circular -- more so
+than the parent section's warning implied when 11 of 15 rows were Fable's.
+Each finding therefore carries `verified_by`, each arm declares a
+`key_author`, and `score` prints every arm's accuracy on the rows its own
+model did not produce beside its accuracy on all of them. The cheap arms
+author nothing here. That is a structural advantage in this comparison and it
+is said out loud rather than left to flatter them.
+
+**A good result still does not move the supervisor.** The bar in "Comparing
+verifiers" stands unchanged: a cheap arm that matches on this record has to be
+shown on a batch with no key before it can take the standing supervisor's job.
+Replay measures agreement with a past judgment, and a larger replay measures it
+more precisely without turning it into something else. Whatever this run scores,
+the edition reports it as a bound on what a cheap verifier does against a fixed
+record.
+
+**What this is not.** It is not a finding about models the survey recommends, so
+it goes to `docs/verifier-comparison-<date>.md` beside the generator reviews and
+not to `observations/`, for the reason the parent section gives.
+
 ## The Editor's Rating replaces the status markers
 
 **Decided** 2026-09-06, in a design discussion with the user. The four status

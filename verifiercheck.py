@@ -93,8 +93,21 @@ EVIDENCE = ["jailtest.py", "oxbox", "profiles/jail.sb", "guardtest.py", ".gitign
 # effort would run at its default without failing.
 OX = ["oxbox", "send"]
 
+# The scratch build the local arms use; see the note on those arms. It is not
+# installed and not on PATH, so the path is given at run time.
+LOCAL_SEND = [os.environ.get("VERIFIERCHECK_LOCAL_SEND", "./oxbox-send-http")]
+
+# Where the local arms reach ollama. The host is deliberately NOT written down:
+# it is a machine on a private network, and this repository is public. Set
+# VERIFIERCHECK_OLLAMA_URL to the OpenAI-compatible chat-completions endpoint --
+# the full URL, not a prefix, because oxbox uses --base-url as the endpoint
+# itself.
+OLLAMA_URL = os.environ.get("VERIFIERCHECK_OLLAMA_URL",
+                            "http://localhost:11434/v1/chat/completions")
+
 ARMS = {
     "opus": {
+        "key_author": "claude-opus-5",
         "model": "claude-opus-5",
         "harness": "claude-code-cli",
         "priced": False,
@@ -119,6 +132,7 @@ ARMS = {
         ],
     },
     "or-opus": {
+        "key_author": "claude-opus-5",
         "model": "anthropic/claude-opus-5",
         "harness": "ox-openrouter",
         "priced": True,
@@ -149,6 +163,7 @@ ARMS = {
     # row is a judgment its own author will not reproduce, and four arms have not
     # missed anything -- the key has.
     "or-fable": {
+        "key_author": "claude-fable-5-1",
         "model": "anthropic/claude-fable-5.1",
         "harness": "ox-openrouter",
         "priced": True,
@@ -157,6 +172,153 @@ ARMS = {
         "evidence": "files",
         "wrote_key_rows": ["S1", "S2", "G1", "P1", "P2", "P3", "P4", "P5", "P6",
                            "P7", "P8"],
+    },
+
+    # ---- The cheap checkers -------------------------------------------------
+    #
+    # The quadrant nobody has run. costcheck.py and the 2026-09-11 special
+    # edition both put the bill in the checking half -- GLM-5.3 Flash's own run
+    # on this fixture cost $0.0015 and the Opus 5 check of its findings cost 16
+    # cents -- so the arms that matter for cost are the ones sitting where Opus
+    # sits, not where the candidate sits. These two are the manifest's cheap
+    # paid tier, and they are already the production refuter: observations/
+    # README.md's checking order puts "a model in the manifest's cheap paid
+    # tier" between reproduction and the metered frontier read.
+    #
+    # Each runs at its OWN default_effort from the 2026-09-20 catalog, as the
+    # arms above do -- glm at max, deepseek at high -- because the question is
+    # what a supervisor costs to run and a matched rung prices a setting nobody
+    # would choose.
+    #
+    # The cap is 32,768 and not the catalog's maximum, which is the one place
+    # these arms deviate from the frontier arms above, and the record is the
+    # reason: deepseek-v4-flash spent a whole budget reasoning on this very
+    # fixture and returned nothing in 33 minutes (2026-09-06), and a gateway
+    # budgets about 80 percent of max_tokens for thinking at high effort. A
+    # 131,072-token cap authorizes a 100,000-token thought. A checker that
+    # cannot answer inside 32K on a batch of at most a dozen findings is not a
+    # cheap checker, and recording that is the measurement, not a failure of it.
+    #
+    # Both are provider-pinned to the routes in manifests/oxbox-manifest-2026-09-20.json.
+    # That is not tidiness: the first unpinned refuter request of 2026-09-11
+    # landed on a provider that reasoned for 13k tokens and returned an error
+    # after five minutes, and the same batch pinned answered in a minute.
+    "or-glm": {
+        "model": "z-ai/glm-5.3-flash",
+        "harness": "ox-openrouter",
+        "priced": True,
+        "effort": "max",
+        "max_tokens": "32768",
+        "evidence": "files",
+        "provider": {"only": ["z-ai/fp8", "gmicloud/fp8", "streamlake/fp8"],
+                     "allow_fallbacks": False,
+                     "max_price": {"prompt": 0.15, "completion": 0.5}},
+    },
+    "or-deepseek": {
+        "model": "deepseek/deepseek-v4-flash",
+        "harness": "ox-openrouter",
+        "priced": True,
+        "effort": "high",
+        "max_tokens": "32768",
+        "evidence": "files",
+        "provider": {"only": ["streamlake/fp8", "digitalocean"],
+                     "allow_fallbacks": False,
+                     "max_price": {"prompt": 0.098, "completion": 0.196}},
+    },
+
+    # ---- The free pool ------------------------------------------------------
+    #
+    # Priced arms in name only: both bill zero, so `priced` is False and they
+    # appear in the accuracy tables and not the cost ones. Reporting a $0.0000
+    # row beside a real bill invites a reader to add them up, and a free arm's
+    # actual cost is a latency and a training-on-input risk, neither of which
+    # is a dollar.
+    #
+    # Chosen because they ANSWERED this fixture as candidates. The free pool's
+    # characteristic failure here is silence, not error: north-mini-code:free
+    # timed out at 900 seconds twice in an hour (2026-09-08) and
+    # ling-3.0-flash-fin:free spent its whole 32K cap reasoning and returned
+    # nothing. Its sibling ling-3.0-flash-vl:free finished the same fixture on
+    # 2026-09-20, which is why that tag and not the fin one is here.
+    "free-ling-vl": {
+        "model": "inclusionai/ling-3.0-flash-vl:free",
+        "harness": "ox-openrouter",
+        "priced": False,
+        "effort": "medium",
+        "max_tokens": "32768",
+        "evidence": "files",
+    },
+    "free-dots": {
+        "model": "dots-studio/dots-3-note-preview:free",
+        "harness": "ox-openrouter",
+        "priced": False,
+        "effort": "medium",
+        "max_tokens": "32768",
+        "evidence": "files",
+    },
+
+    # ---- Local, on the GPU host ---------------------------------------------
+    #
+    # ollama on the local GPU host through oxbox's --base-url, which needs
+    # --api-key-env even for a host that wants no credential, so a dummy variable is named rather than
+    # the flag being skipped: oxbox refuses to send a key to an unlisted host by
+    # default and that refusal is worth keeping.
+    #
+    # The RELEASED oxbox refuses a plain-http --base-url outright ("a credential
+    # must not travel in cleartext"), which is correct for the internet and
+    # wrong for a GPU box on the LAN that serves no TLS. The local arms
+    # therefore run a scratch oxbox-send whose ONLY change is that one guard;
+    # LOCAL_SEND below names it, and it is not on PATH and is not installed.
+    # Everything else -- the audit log, the secret scan, the status file -- is
+    # the released code, so a local run is recorded exactly as a hosted one is.
+    # If that scratch build is missing, the local arms fail loudly rather than
+    # falling back to something unrecorded.
+    #
+    # Temperature 1.0, not the 0.2 the hosted arms send. Every vendor card for
+    # these open-weight thinking models sets 1.0, three of them name low
+    # temperature as a cause of endless repetition, and the 2026-09-10 batch
+    # watched gemma4:26b and gpt-oss:20b loop away a 100,000-token cap at 0.2
+    # and return nothing. That makes the local arms NOT byte-identical in
+    # sampling to the hosted ones, which is a stated compromise and not an
+    # oversight: at 0.2 there is no local arm to compare at all.
+    #
+    # The -64k tags are the context-extended builds registered for the v2 runs;
+    # the untagged ones carry ollama's default window and truncate the evidence.
+    "local-qwen38": {
+        "model": "qwen3.8:27b-64k",
+        "harness": "ox-ollama",
+        "priced": False,
+        "effort": "medium",
+        "max_tokens": "32768",
+        "temperature": "1.0",
+        "evidence": "files",
+        "base_url": OLLAMA_URL,
+        "api_key_env": "OLLAMA_API_KEY",
+        "send": LOCAL_SEND,
+    },
+    "local-gptoss": {
+        "model": "gpt-oss:20b-64k",
+        "harness": "ox-ollama",
+        "priced": False,
+        "effort": "medium",
+        "max_tokens": "32768",
+        "temperature": "1.0",
+        "evidence": "files",
+        "base_url": OLLAMA_URL,
+        "api_key_env": "OLLAMA_API_KEY",
+        "send": LOCAL_SEND,
+    },
+    "local-gemma4": {
+        "model": "gemma4:26b-64k",
+        "harness": "ox-ollama",
+        "priced": False,
+        "effort": "medium",
+        "max_tokens": "32768",
+        "temperature": "1.0",
+        "evidence": "files",
+        "base_url": OLLAMA_URL,
+        "api_key_env": "OLLAMA_API_KEY",
+        "send": LOCAL_SEND,
     },
 }
 
@@ -176,15 +338,40 @@ def ox_command(arm, pin, stem):
     leak exactly as willingly as a false positive.
     """
     files = ",".join(os.path.join(pin, name) for name in EVIDENCE)
+
+    # A local arm reaches ollama on the GPU host over --base-url and needs no
+    # OpenRouter credential, so it is not wrapped in `op run`. oxbox still
+    # demands --api-key-env for an unlisted host -- it will not send a key
+    # somewhere it does not know by default -- so a dummy variable is named.
+    # `run` puts an empty value in the environment for it.
+    local = arm.get("base_url")
+    prefix = [] if local else ["op", "run", "--env-file", ".env", "--"]
+    venue = [] if local else ["--venue", "openrouter"]
+    endpoint = (["--base-url", arm["base_url"],
+                 "--api-key-env", arm["api_key_env"]] if local else [])
+
+    # Provider routing rides as one JSON object, sent verbatim. Pinning is the
+    # survey's rule since oxbox 1.1.0 and it does double duty here: it fixes
+    # attribution to a named endpoint, and its max_price guard refuses a route
+    # that has repriced above what the manifest was judged on rather than
+    # quietly billing it.
+    routing = (["--provider", json.dumps(arm["provider"], sort_keys=True)]
+               if arm.get("provider") else [])
+
     return [
-        "op", "run", "--env-file", ".env", "--",
-        *OX,
+        *prefix,
+        *(arm.get("send") or OX),
         "--force",
-        "--venue", "openrouter",
+        *venue,
+        *endpoint,
         "--model", arm["model"],
+        *routing,
         "--effort", arm["effort"],
         "--max-tokens", arm["max_tokens"],
-        "--temperature", "0.2",
+        # 0.2 for the hosted arms, as every arm above sends; the local arms
+        # override to the 1.0 their vendor cards set, for the reason recorded
+        # beside them.
+        "--temperature", arm.get("temperature", "0.2"),
         "--mode", "ask",
         "--files", files,
         "--stdin",
@@ -203,9 +390,19 @@ def load_key():
         return json.load(handle)
 
 
-def slug(model):
-    """Short local name for a batch. Never sent to a verifier."""
-    return model.split("/")[-1]
+def slug(batch):
+    """Short local name for a batch. Never sent to a verifier.
+
+    The model id alone is NOT unique: z-ai/glm-5.3-flash ran this fixture
+    twice, as a baseline on 2026-09-02 and as a candidate on 2026-09-06, and
+    both are in the key. Two batches sharing a name share their artifact
+    paths, so the second run silently overwrites the first and `score` reads
+    one arm's verdicts as the other's. A batch therefore carries an explicit
+    `name` wherever the model id would collide.
+    """
+    if isinstance(batch, dict):
+        return batch.get("name") or batch["model"].split("/")[-1]
+    return batch.split("/")[-1]
 
 
 def build_evidence(pin):
@@ -279,7 +476,7 @@ def cmd_build(args):
         contract = handle.read()
     evidence = build_evidence(args.pin)
     for batch in key["batches"]:
-        name = slug(batch["model"])
+        name = slug(batch)
         findings = build_batch(batch, args.logs)
         # Two shapes of the same batch. The CLI arms have no way to attach a
         # file, so the source is inlined; ox attaches it with --files and
@@ -334,7 +531,7 @@ def extract_json(text):
 def cmd_run(args):
     key = load_key()
     arm = ARMS[args.arm]
-    names = [slug(b["model"]) for b in key["batches"]]
+    names = [slug(b) for b in key["batches"]]
     todo = names if args.all else [args.batch]
     unknown = [n for n in todo if n not in names]
     if unknown:
@@ -349,6 +546,7 @@ def cmd_run(args):
     failures = 0
     for name in todo:
         stem = os.path.join(args.work, "%s-%s" % (args.arm, name))
+        env = None
         is_ox = arm.get("evidence") == "files"
         batch_path = os.path.join(
             args.work, "batch-%s%s.txt" % (name, ".nofiles" if is_ox else ""))
@@ -363,6 +561,9 @@ def cmd_run(args):
                 sys.stderr.write("verifiercheck: an ox arm needs --pin\n")
                 return 2
             cmd, stdin, cwd = ox_command(arm, args.pin, stem), prompt, HERE
+            if arm.get("api_key_env"):
+                env = dict(os.environ)
+                env.setdefault(arm["api_key_env"], "ollama")
         else:
             cmd, stdin, cwd = list(arm["cmd"]), None, empty
             if arm["prompt"] == "stdin":
@@ -374,7 +575,7 @@ def cmd_run(args):
         try:
             proc = subprocess.run(
                 cmd, input=stdin, cwd=cwd, capture_output=True,
-                text=True, timeout=args.timeout, check=False,
+                text=True, timeout=args.timeout, check=False, env=env,
             )
         except subprocess.TimeoutExpired:
             sys.stderr.write("verifiercheck: arm=%s batch=%s TIMEOUT after %ds\n"
@@ -526,12 +727,91 @@ def read_arm(work, arm, name):
     return {v.get("id"): v for v in data.get("verdicts", [])}
 
 
+# The two ensemble shapes, scored as arms so they land in every table the real
+# arms do. Neither is adopted by scoring well here: an ensemble measured on a
+# replay is measured against a past judgment, and the bar in docs/decisions.md
+# ("Comparing verifiers") still asks for a batch with no key.
+#
+# CASCADE is the survey's own production rule, written down in
+# observations/README.md's checking order: put a batch to a cheap refuter, let
+# a REFUTED verdict stand, and send only what it CONFIRMED or left UNCERTAIN to
+# the metered frontier. It is asymmetric on purpose -- it spends money on the
+# findings that would cost a reader time, and nothing on the ones the cheap arm
+# already killed -- and its exposure is precisely a cheap arm that refutes a
+# real defect, because nothing downstream ever sees that row.
+#
+# DISAGREE is the shape a two-agent hand-off falls into: run both, act on what
+# they agree about, escalate where they differ. It is scored here because the
+# user asked whether it generalizes, and the honest answer on this record is in
+# the numbers: P2 is a row where two independent arms agreed and were both
+# wrong, so a disagreement router escalates it never and inherits the error at
+# full confidence. Agreement is not a second opinion when the two readers share
+# a prior.
+ROUTER_SHAPES = ("cascade", "disagree")
+
+
+def router_verdicts(rows, shape, cheap, escalate):
+    """Synthetic verdict per row, plus the batches that had to escalate.
+
+    A row where any component arm is missing stays '-': absent data is not an
+    ensemble decision, and filling it in would let an unfinished run score.
+    """
+    verdicts, escalated = {}, set()
+    for index, row in enumerate(rows):
+        parts = [row[arm] for arm in cheap]
+        if "-" in parts or row[escalate] == "-":
+            verdicts[index] = "-"
+            continue
+        if shape == "cascade":
+            # One refuter by contract; a cascade over two is a different
+            # procedure and is not what the checking order describes.
+            cheap_verdict = parts[0]
+            if cheap_verdict == "REFUTED":
+                verdicts[index] = cheap_verdict
+                continue
+        else:
+            if len(set(parts)) == 1:
+                verdicts[index] = parts[0]
+                continue
+        verdicts[index] = row[escalate]
+        escalated.add(row["batch"])
+    return verdicts, escalated
+
+
+def router_cost(work, batches, cheap, escalate, escalated):
+    """What the router billed: every cheap run, plus escalated batches.
+
+    Escalation is charged a WHOLE batch of the escalation arm, not a share of
+    one. The evidence payload is the five pinned files and it dominates the
+    prompt, so a batch that escalates one finding re-sends all of it. A
+    row-proportional figure would be cheaper and would describe a pipeline that
+    does not exist.
+
+    An unpriced cheap arm contributes zero, because it billed zero. That makes
+    the router's dollar figure the escalation arm's bill alone, which is the
+    true statement about a free or local refuter -- its own cost is a latency,
+    and a latency does not belong in a column of dollars.
+    """
+    total = 0.0
+    for batch in batches:
+        name = slug(batch)
+        for arm in cheap:
+            if not ARMS.get(arm, {}).get("priced"):
+                continue
+            status = read_status(os.path.join(work, "%s-%s" % (arm, name)))
+            total += (priced(ARMS[arm]["model"], status) or 0.0) if status else 0.0
+        if name in escalated and ARMS.get(escalate, {}).get("priced"):
+            status = read_status(os.path.join(work, "%s-%s" % (escalate, name)))
+            total += (priced(ARMS[escalate]["model"], status) or 0.0) if status else 0.0
+    return total
+
+
 def cmd_score(args):
     key = load_key()
     arms = args.arms.split(",")
     rows, missing, extra = [], [], []
     for batch in key["batches"]:
-        name = slug(batch["model"])
+        name = slug(batch)
         got = {arm: read_arm(args.work, arm, name) for arm in arms}
         for arm, verdicts in got.items():
             if verdicts is None:
@@ -544,13 +824,51 @@ def cmd_score(args):
         for finding in batch["findings"]:
             row = {"batch": name, "id": finding["id"],
                    "accept": finding["accept"], "recorded": finding["recorded"],
-                   "defect": finding.get("defect")}
+                   "defect": finding.get("defect"),
+                   "verified_by": finding.get("verified_by") or []}
             for arm in arms:
                 verdicts = got.get(arm) or {}
                 entry = verdicts.get(finding["id"])
                 row[arm] = (entry or {}).get("verdict", "-")
                 row[arm + ":why"] = (entry or {}).get("reason", "")
             rows.append(row)
+
+    # The routers are synthesized from columns that already exist, so they cost
+    # nothing to add and cannot disagree with their own components about what a
+    # verdict was. They are appended to the accuracy tables and deliberately
+    # kept OUT of the disagreement list below, which is about what two readers
+    # of the source actually said.
+    routers = []
+    for spec in (args.router or []):
+        try:
+            shape, rest = spec.split(":", 1)
+            cheap_spec, escalate = rest.split(">", 1)
+        except ValueError:
+            sys.stderr.write("verifiercheck: --router wants shape:cheap>escalate,"
+                             " e.g. cascade:or-glm>or-opus\n")
+            return 2
+        cheap = cheap_spec.split(",")
+        if shape not in ROUTER_SHAPES:
+            sys.stderr.write("verifiercheck: no such router shape: %s\n" % shape)
+            return 2
+        if shape == "disagree" and len(cheap) < 2:
+            sys.stderr.write("verifiercheck: a disagree router needs two cheap arms\n")
+            return 2
+        unknown = [a for a in cheap + [escalate] if a not in arms]
+        if unknown:
+            sys.stderr.write("verifiercheck: --router names arms that are not "
+                             "scored: %s (add them to --arms)\n" % ", ".join(unknown))
+            return 2
+        label = "%s/%s" % (shape[:4], "+".join(a.split("-")[-1] for a in cheap))
+        verdicts, escalated = router_verdicts(rows, shape, cheap, escalate)
+        for index, row in enumerate(rows):
+            row[label] = verdicts[index]
+            row[label + ":why"] = ""
+        routers.append({"label": label, "shape": shape, "cheap": cheap,
+                        "escalate": escalate, "escalated": escalated,
+                        "spec": spec})
+
+    columns = arms + [r["label"] for r in routers]
 
     # A row missing an arm's verdict is absent data, not a disagreement; counting
     # it as one turns an unfinished run into a finding.
@@ -576,7 +894,7 @@ def cmd_score(args):
     head = "%-10s %5s %5s %5s %5s" % ("arm", "n", "ok", "miss", "false")
     print(head)
     print("-" * len(head))
-    for arm in arms:
+    for arm in columns:
         scored = [r for r in rows if r[arm] != "-"]
         ok = [r for r in scored if r[arm] in r["accept"]]
         # A miss is a real defect called REFUTED; a false is an invention
@@ -591,6 +909,37 @@ def cmd_score(args):
     print("\nmiss  = a defect the key calls real, refuted by the arm")
     print("false = an invention the key refutes, confirmed by the arm")
 
+    # An arm that wrote a key row cannot be scored on it. The key's verdicts
+    # were reached by Fable 5.1 and Opus 5, so those two are marking their own
+    # homework on most of this corpus -- and after the 2026-09-20 extension
+    # nearly every new row is theirs. The cheap arms author nothing here, which
+    # is the one structural advantage they have in this comparison and has to
+    # be said out loud rather than left to flatter them.
+    # Matched on the arm's declared key_author, not on a string mangled out of
+    # its model id: "anthropic/claude-fable-5.1" and "claude-fable-5-1" are the
+    # same model spelled two ways, and a heuristic that got that wrong would
+    # silently hand an arm credit for rows it wrote.
+    authored = {}
+    for arm in columns:
+        author = ARMS.get(arm, {}).get("key_author")
+        authored[arm] = ([r for r in rows if author in r["verified_by"]]
+                         if author else [])
+    if any(authored[a] for a in columns):
+        print("\n## The same score, on rows the arm did not write\n")
+        head = "%-10s %7s %7s %9s %9s" % ("arm", "wrote", "left", "ok", "of left")
+        print(head)
+        print("-" * len(head))
+        for arm in columns:
+            mine = {id(r) for r in authored[arm]}
+            left = [r for r in rows if id(r) not in mine and r[arm] != "-"]
+            ok = [r for r in left if r[arm] in r["accept"]]
+            print("%-10s %7d %7d %9d %9s"
+                  % (arm, len(authored[arm]), len(left), len(ok),
+                     "%.0f%%" % (100.0 * len(ok) / len(left)) if left else "n/a"))
+        print("\nwrote = key rows this arm's model produced the recorded verdict for.")
+        print("A row an arm wrote is not evidence about that arm; a router built")
+        print("from arms that wrote nothing is scored on the whole key.")
+
     # ok/miss/false still lets a bad supervisor look reasonable, because an arm
     # that confirms nearly everything scores every real defect correct. What a
     # supervisor is actually for is the CONFIRMED list a human then reads, so
@@ -603,7 +952,7 @@ def cmd_score(args):
         "arm", "confirmed", "of which", "precision", "defects", "recall")
     print(head)
     print("-" * len(head))
-    for arm in arms:
+    for arm in columns:
         # A row whose key accepts more than one verdict is one the record
         # declines to adjudicate, and it cannot be evidence for or against an
         # arm: confirming it is not a false positive, and not confirming it is
@@ -660,7 +1009,7 @@ def cmd_score(args):
             runs = prompt = completion = 0
             total = venue = 0.0
             for batch in key["batches"]:
-                stem = os.path.join(args.work, "%s-%s" % (arm, slug(batch["model"])))
+                stem = os.path.join(args.work, "%s-%s" % (arm, slug(batch)))
                 status = read_status(stem)
                 # ox writes a status file on every exit, so one can exist with
                 # null token counts -- a run still in flight, or one that failed
@@ -694,7 +1043,7 @@ def cmd_score(args):
         print(head)
         print("-" * len(head))
         for batch in key["batches"]:
-            name = slug(batch["model"])
+            name = slug(batch)
             n = len(batch["findings"])
             nreal = sum(1 for f in batch["findings"] if f["accept"] == ["CONFIRMED"])
             line = "%-20s %8d %6d" % (name, n, nreal)
@@ -703,6 +1052,35 @@ def cmd_score(args):
                 usd = priced(ARMS[arm]["model"], status) if status else None
                 line += " %11s" % ("$%.4f" % usd if usd is not None else "-")
             print(line)
+    if routers:
+        print("\n## What the router escalated, and what it cost\n")
+        head = ("%-18s %-28s %11s %10s %11s"
+                % ("router", "cheap > escalate", "escalated", "of batches", "usd"))
+        print(head)
+        print("-" * len(head))
+        nbatch = len(key["batches"])
+        for spec in routers:
+            usd = router_cost(args.work, key["batches"], spec["cheap"],
+                              spec["escalate"], spec["escalated"])
+            free_half = [a for a in spec["cheap"]
+                         if not ARMS.get(a, {}).get("priced")]
+            print("%-18s %-28s %11s %10s %11s"
+                  % (spec["label"],
+                     "%s > %s" % (",".join(spec["cheap"]), spec["escalate"]),
+                     "%d batches" % len(spec["escalated"]),
+                     "%d" % nbatch,
+                     "$%.4f%s" % (usd, "*" if free_half else "")))
+        print("\nescalated counts BATCHES, not findings: the evidence payload is")
+        print("the five pinned files and it dominates the prompt, so a batch that")
+        print("escalates one row re-sends all of it and is charged in full.")
+        print("An escalation rate near 1 is a frontier pipeline wearing a cheap")
+        print("arm's name, and its accuracy row above should be read that way.")
+        if any(not ARMS.get(a, {}).get("priced")
+               for spec in routers for a in spec["cheap"]):
+            print("* the cheap half of this router billed nothing, so the figure is")
+            print("  the escalation arm's bill alone; that arm's own cost is a")
+            print("  latency and is not summed into a column of dollars.")
+
     if missing:
         print("\nNOT RUN: %s" % ", ".join(missing))
     if extra:
@@ -736,6 +1114,14 @@ def main():
 
     score = subs.add_parser("score", help="disagreements first, then the key")
     score.add_argument("--arms", default="opus,gemini")
+    score.add_argument("--router", action="append", metavar="SHAPE:CHEAP>ESCALATE",
+                       help="score an ensemble as an arm; repeatable. "
+                            "cascade:or-glm>or-opus is the survey's own "
+                            "checking order (a cheap REFUTED stands, anything "
+                            "else escalates); "
+                            "disagree:or-glm,or-deepseek>or-opus is the "
+                            "two-agent hand-off (agree and act, differ and "
+                            "escalate). Every arm named must also be in --arms.")
     score.set_defaults(func=cmd_score)
 
     args = parser.parse_args()
