@@ -36,10 +36,13 @@ all toolless, all on byte-identical payloads, none of them running anything.
 Two arms did not finish every batch, and the reason is the result rather than a
 gap in it. `free-dots` failed 6 of 14, all `finish=length`: the free model spent
 its whole 32,768-token cap reasoning and returned nothing, which is the free
-pool's documented failure on this corpus. `or-glm` failed 5: three
-`finish=length` at effort `max`, one 1Password TLS handshake timeout and one
-unreadable HTTP 200. Its figures below are over the 8 batches it completed and
-are not comparable to a full arm's.
+pool's documented failure on this corpus. `or-glm` failed 5 on the first pass
+and 3 after retries: the two recovered ones were a 1Password TLS handshake
+timeout and a 900-second read timeout, both infrastructure; the three that
+stand are `finish=length` at effort `max` on the three largest batches, which
+is the 32,768-token cap doing what the decision entry said it might. `or-glm`'s
+figures below are over the **11 batches** it completed, and a rate over 33 rows
+is not comparable to one over 67.
 
 ## The list a human would have to read
 
@@ -49,12 +52,13 @@ and an arm that confirms everything has moved the cost rather than removed it.
 | arm | confirmed | of which real | precision | recall |
 |---|---|---|---|---|
 | **`casc/qwen38`** (router) | 11 | 8 | **73%** | 2 of 2 |
+| **`casc/glm`** (router, 11 batches) | 10 | 7 | **70%** | 2 of 2 |
 | `or-opus` | 19 | 10 | 53% | 2 of 2 |
 | `disa/qwen38+deepseek` (router) | 17 | 9 | 53% | 2 of 2 |
 | `casc/deepseek` (router) | 10 | 5 | 50% | 2 of 2 |
 | `local-qwen38` | 16 | 8 | 50% | 2 of 2 |
 | `free-dots` | 4 | 2 | 50% | 2 of 2 |
-| `or-glm` | 12 | 4 | 33% | 2 of 2 |
+| `or-glm` (11 batches) | 15 | 7 | 47% | 2 of 2 |
 | `free-ling-vl` | 21 | 6 | 29% | 2 of 2 |
 | `or-deepseek` | 17 | 3 | 18% | 2 of 2 |
 | `local-gptoss` | 22 | 4 | 18% | 1 of 2 |
@@ -102,17 +106,38 @@ reason the parent section's bar stands unchanged.
 | router | shape | escalated | precision | cost |
 |---|---|---|---|---|
 | `casc/qwen38` | cheap REFUTED stands, else escalate | 10 of 14 batches | **73%** | $3.34 |
-| `casc/deepseek` | same, with the paid cheap arm | 10 of 14 | 50% | $2.88 |
+| `casc/glm` | same, with the cheap paid arm | 8 of 11 | **70%** | $2.24, really $3.34 |
+| `casc/deepseek` | same, with the other cheap paid arm | 10 of 14 | 50% | $2.88 |
 | `disa/qwen38+deepseek` | agree and act, differ and escalate | 11 of 14 | 53% | $3.55 |
 | `or-opus` alone | -- | -- | 53% | $4.01 |
+
+`casc/glm`'s printed $2.24 is **too low and must not be quoted on its own.** The
+three batches GLM never completed contribute no escalation, so the router pays
+nothing for them -- but a refuter that returns nothing escalates everything, and
+in production those three go to the frontier in full. Adding their `or-opus`
+batch costs ($0.4169, $0.3260, $0.3525) brings it to $3.34, the same place the
+free local refuter lands. The saving is about 17%, not 44%.
 
 **The cascade is the survey's own procedure and nothing had ever measured it.**
 `observations/README.md`'s checking order -- reproduce first, then a cheap
 refuter, then the metered frontier on whatever survived -- comes out at 73%
-precision with a free local refuter in front, twenty points above the frontier
-model on its own. It gets there by being asymmetric: it spends nothing on a row
-the cheap arm killed, and its whole exposure is a cheap arm refuting a real
-defect. On this corpus it never did.
+precision with a free local refuter in front and 70% with a cheap paid one,
+seventeen to twenty points above the frontier model on its own. It gets there by
+being asymmetric: it spends nothing on a row the cheap arm killed, and its whole
+exposure is a cheap arm refuting a real defect. On this corpus neither refuter
+ever did.
+
+**Two unrelated refuters landing in the same place is the reason to believe it.**
+`qwen3.8:27b` on local hardware and `z-ai/glm-5.3-flash` through OpenRouter share
+no vendor, no venue and no weights, and the cascade gains about the same with
+either. One arm at 73% would be a fact about that arm.
+
+**But the cascade is only as good as the refuter's precision.** `casc/deepseek`
+gains nothing -- 50%, a point below the frontier alone -- and DeepSeek V4 Flash is
+the weakest refuter measured, at 18% on its own. A refuter that confirms
+indiscriminately escalates indiscriminately, and hands back the frontier's number
+with an extra request in front of it. The choice of cheap model is the whole
+decision; "use a cheap model" is not.
 
 **The symmetric router buys nothing.** Acting on what two independent arms agree
 about and escalating where they differ lands on 53% precision -- identical to the
@@ -131,7 +156,7 @@ is charged in full. A router that escalates 71% of its batches is a frontier
 pipeline with a cheap pre-filter attached, and it should be described that way.
 
 What it is *not* is expensive: the cheap half of the whole comparison came to
-**5.5 cents** -- $0.0438 for eight GLM batches and $0.0110 for fourteen DeepSeek
+**8.1 cents** -- $0.0704 for eleven GLM batches and $0.0110 for fourteen DeepSeek
 batches -- against $4.01 for one pass of Opus. About 1% of the bill, for the arm
 that does the filtering.
 
