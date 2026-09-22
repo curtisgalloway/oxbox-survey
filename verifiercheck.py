@@ -132,6 +132,7 @@ ARMS = {
         ],
     },
     "or-opus": {
+        "checks_own": ["anthropic/claude-opus-5"],
         "key_author": "claude-opus-5",
         "model": "anthropic/claude-opus-5",
         "harness": "ox-openrouter",
@@ -163,6 +164,7 @@ ARMS = {
     # row is a judgment its own author will not reproduce, and four arms have not
     # missed anything -- the key has.
     "or-fable": {
+        "checks_own": ["anthropic/claude-fable-5.1"],
         "key_author": "claude-fable-5-1",
         "model": "anthropic/claude-fable-5.1",
         "harness": "ox-openrouter",
@@ -204,6 +206,7 @@ ARMS = {
     # landed on a provider that reasoned for 13k tokens and returned an error
     # after five minutes, and the same batch pinned answered in a minute.
     "or-glm": {
+        "checks_own": ["z-ai/glm-5.3-flash"],
         "model": "z-ai/glm-5.3-flash",
         "harness": "ox-openrouter",
         "priced": True,
@@ -215,6 +218,7 @@ ARMS = {
                      "max_price": {"prompt": 0.15, "completion": 0.5}},
     },
     "or-deepseek": {
+        "checks_own": ["deepseek/deepseek-v4-flash"],
         "model": "deepseek/deepseek-v4-flash",
         "harness": "ox-openrouter",
         "priced": True,
@@ -285,6 +289,7 @@ ARMS = {
     # The -64k tags are the context-extended builds registered for the v2 runs;
     # the untagged ones carry ollama's default window and truncate the evidence.
     "local-qwen38": {
+        "checks_own": ["qwen3.8:27b"],
         "model": "qwen3.8:27b-64k",
         "harness": "ox-ollama",
         "priced": False,
@@ -924,6 +929,34 @@ def cmd_score(args):
         author = ARMS.get(arm, {}).get("key_author")
         authored[arm] = ([r for r in rows if author in r["verified_by"]]
                          if author else [])
+    # An arm checking a batch its OWN model emitted is a second conflict, and a
+    # different one from writing the key: here the arm is not marking its own
+    # marking, it is judging its own work. Five arms have one such batch each,
+    # and for a cheap arm it is the batch most likely to flatter it -- a model
+    # that reproduces its own reasoning will confirm its own invention. Scored
+    # separately rather than dropped, because the size of the effect is itself
+    # worth knowing.
+    own_rows = {}
+    for arm in columns:
+        own_models = ARMS.get(arm, {}).get("checks_own") or []
+        own_names = {slug(b) for b in key["batches"] if b["model"] in own_models}
+        own_rows[arm] = [r for r in rows if r["batch"] in own_names]
+    if any(own_rows[a] for a in columns):
+        print("\n## The same score, with the arm's own batch left out\n")
+        head = "%-10s %9s %8s %9s %9s" % ("arm", "own rows", "left", "ok", "of left")
+        print(head)
+        print("-" * len(head))
+        for arm in columns:
+            if not own_rows[arm]:
+                continue
+            mine = {id(r) for r in own_rows[arm]}
+            left = [r for r in rows if id(r) not in mine and r[arm] != "-"]
+            ok = [r for r in left if r[arm] in r["accept"]]
+            print("%-10s %9d %8d %9d %9s"
+                  % (arm, len(own_rows[arm]), len(left), len(ok),
+                     "%.0f%%" % (100.0 * len(ok) / len(left)) if left else "n/a"))
+        print("\nown rows = findings this arm's own model emitted as a candidate.")
+
     if any(authored[a] for a in columns):
         print("\n## The same score, on rows the arm did not write\n")
         head = "%-10s %7s %7s %9s %9s" % ("arm", "wrote", "left", "ok", "of left")
